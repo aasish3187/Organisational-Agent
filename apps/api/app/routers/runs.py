@@ -8,6 +8,8 @@ from app.core.database import get_db
 from app.models.agent_instance import AgentInstance
 from app.models.run import Run
 from app.models.task import Task
+from app.runtime.orchestrator import execute_run_step_by_step
+from app.runtime.replay import replay_full_run
 from app.schemas.run import RunResponse
 from app.services.veritas import verify_chain
 
@@ -51,6 +53,8 @@ async def get_run_organization(
         "project_id": run.project_id,
         "mode": run.mode,
         "status": run.status,
+        "tokens_used": run.tokens_used,
+        "cost_usd": float(run.cost_usd or 0.0),
         "agents": [
             {
                 "id": a.id,
@@ -76,6 +80,22 @@ async def get_run_organization(
             for t in tasks
         ],
     }
+
+@router.post("/{run_id}/step")
+async def step_run(
+    run_id: str,
+    session: SessionDep,
+) -> dict[str, Any]:
+    """Execute next task in the run DAG."""
+    return await execute_run_step_by_step(session, run_id)
+
+@router.post("/{run_id}/replay")
+async def replay_run(
+    run_id: str,
+    session: SessionDep,
+) -> dict[str, Any]:
+    """Execute complete replay pipeline for demo execution."""
+    return await replay_full_run(session, run_id, step_delay=0.1)
 
 @router.get("/{run_id}/verify")
 async def verify_run_veritas(

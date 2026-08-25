@@ -100,6 +100,9 @@ export default function IdeaContractPage({
       const plan = await compileOrganization(projectId, mode, 'AUTO');
       setCompiledPlan(plan);
       setCompiling(false);
+      setTimeout(() => {
+        router.push(`/projects/${projectId}/canvas`);
+      }, 700);
     } catch (err: any) {
       setError(err.message || 'Compilation failed');
       setCompiling(false);
@@ -292,9 +295,12 @@ export default function IdeaContractPage({
                   <div>Human Gates: {compiledPlan.human_gates.length}</div>
                   <div>Retrieved Atoms: {compiledPlan.retrieved_atoms.length}</div>
                 </div>
-                <div className="pt-2 border-t border-purple-500/20 text-[11px] font-mono text-purple-300">
-                  Ready for Phase 3 Living Canvas
-                </div>
+                <button
+                  onClick={() => router.push(`/projects/${projectId}/canvas`)}
+                  className="pt-2 text-[11px] font-mono text-purple-300 hover:text-purple-100 flex items-center gap-1 cursor-pointer"
+                >
+                  Enter Living Canvas →
+                </button>
               </GlassCard>
             )}
           </div>
@@ -336,12 +342,13 @@ export default function IdeaContractPage({
               {compiling ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Compiling Organization...
+                  Compiling & Launching Canvas...
                 </>
               ) : compiledPlan ? (
                 <>
                   <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                  Organization Compiled
+                  Launch Living Canvas
+                  <ArrowRight className="w-4 h-4" />
                 </>
               ) : (
                 <>

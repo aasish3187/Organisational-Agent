@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.database import engine
 from app.core.redis_client import close_redis
+from app.routers.events import router as events_router
 from app.routers.health import router as health_router
 from app.routers.projects import router as projects_router
 from app.routers.runs import router as runs_router
@@ -39,5 +40,7 @@ app.include_router(health_router, prefix="/api")
 # Register core routers
 app.include_router(projects_router, prefix="/api")
 app.include_router(runs_router, prefix="/api")
+app.include_router(events_router, prefix="/api")
 app.include_router(projects_router)
 app.include_router(runs_router)
+app.include_router(events_router)
