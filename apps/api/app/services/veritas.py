@@ -72,6 +72,7 @@ async def emit_event(
         timestamp=now_dt,
     )
     session.add(event)
+    await session.flush()
     return event
 
 async def verify_chain(session: AsyncSession, run_id: str) -> dict[str, Any]:
