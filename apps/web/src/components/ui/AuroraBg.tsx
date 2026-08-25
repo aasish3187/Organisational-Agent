@@ -5,6 +5,7 @@ import React from 'react';
 export function AuroraBg() {
   return (
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      {/* 4 Animated Radial Gradient Blobs */}
       <div
         className="absolute rounded-full filter blur-[80px] opacity-70"
         style={{
@@ -47,6 +48,15 @@ export function AuroraBg() {
           left: '15%',
           background: 'radial-gradient(circle, var(--aurora-rose), transparent 70%)',
           animation: 'aurora-drift 22s linear infinite -5s',
+        }}
+      />
+
+      {/* Constellation Dot-Grid Overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.035]"
+        style={{
+          backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.8) 1px, transparent 1px)`,
+          backgroundSize: '32px 32px',
         }}
       />
     </div>
