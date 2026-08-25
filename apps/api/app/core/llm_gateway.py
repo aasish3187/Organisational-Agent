@@ -143,7 +143,7 @@ class LLMGateway:
         schema: type[BaseModel],
     ) -> tuple[dict[str, Any], int, str]:
         """Execute request against live provider endpoint with timeout."""
-        timeout = httpx.Timeout(settings.LLM_REQUEST_TIMEOUT_SEC)
+        timeout = httpx.Timeout(timeout=10.0, connect=4.0)
 
         if provider == "gemini":
             if not settings.GEMINI_API_KEY:

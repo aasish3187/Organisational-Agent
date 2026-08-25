@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     # Security & Auth
     SECRET_KEY: str = "nexus-production-secret-key-replace-in-env"
     AUTH_ENABLED: bool = False
-    ALLOWED_ORIGINS: list[str] = ["*"]
+    ALLOWED_ORIGINS: list[str] | str = ["*"]
 
     # Database & Pool
     DATABASE_URL: str = "sqlite+aiosqlite:///./nexus.db"
