@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Aurora background layers */
+  --aurora-base: #050810;
+  --aurora-deep: #060a14;
+  --aurora-violet: rgba(88, 28, 220, 0.12);
+  --aurora-cyan: rgba(6, 182, 212, 0.08);
+  --aurora-emerald: rgba(16, 185, 129, 0.06);
+  --aurora-rose: rgba(244, 63, 94, 0.06);
+
+  /* Glass tiers */
+  --glass-thin-bg: rgba(255, 255, 255, 0.04);
+  --glass-thin-border: rgba(255, 255, 255, 0.08);
+  --glass-thin-blur: 8px;
+
+  --glass-regular-bg: rgba(255, 255, 255, 0.07);
+  --glass-regular-border: rgba(255, 255, 255, 0.12);
+  --glass-regular-blur: 16px;
+  --glass-regular-specular: rgba(255, 255, 255, 0.06);
+
+  --glass-thick-bg: rgba(15, 20, 35, 0.75);
+  --glass-thick-border: rgba(255, 255, 255, 0.15);
+  --glass-thick-blur: 24px;
+
+  /* Brand accents */
+  --accent-primary: #7c3aed;      /* violet — NEXUS identity */
+  --accent-cyan: #06b6d4;         /* cyan — VERITAS chain */
+  --accent-emerald: #10b981;      /* green — success/approved */
+  --accent-amber: #f59e0b;        /* amber — waiting/pending */
+  --accent-rose: #f43f5e;         /* rose — error/blocked */
+  --accent-indigo: #6366f1;       /* indigo — MNEMOS memory */
+
+  /* Agent status colors */
+  --agent-active: #7c3aed;
+  --agent-completed: #10b981;
+  --agent-waiting: #f59e0b;
+  --agent-reviewing: #06b6d4;
+  --agent-failed: #f43f5e;
+  --agent-pending: rgba(255, 255, 255, 0.2);
+
+  /* Typography */
+  --font-display: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Concentric corner radii */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+}
+
+body {
+  background-color: var(--aurora-base);
+  color: #f8fafc;
+  font-family: var(--font-display);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Glass component utility classes */
+.glass-thin {
+  background: var(--glass-thin-bg);
+  backdrop-filter: blur(var(--glass-thin-blur)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--glass-thin-blur)) saturate(1.2);
+  border: 1px solid var(--glass-thin-border);
+  border-radius: var(--radius-md);
+}
+
+.glass-regular {
+  background: var(--glass-regular-bg);
+  backdrop-filter: blur(var(--glass-regular-blur)) saturate(1.4) brightness(1.05);
+  -webkit-backdrop-filter: blur(var(--glass-regular-blur)) saturate(1.4) brightness(1.05);
+  border: 1px solid var(--glass-regular-border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    inset 0 1px 0 var(--glass-regular-specular),
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.glass-thick {
+  background: var(--glass-thick-bg);
+  backdrop-filter: blur(var(--glass-thick-blur)) saturate(1.6) brightness(0.98);
+  -webkit-backdrop-filter: blur(var(--glass-thick-blur)) saturate(1.6) brightness(0.98);
+  border: 1px solid var(--glass-thick-border);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 8px 40px rgba(0, 0, 0, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.4);
+}

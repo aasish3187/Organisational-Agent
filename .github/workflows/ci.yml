@@ -1,0 +1,62 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+
+jobs:
+  backend:
+    name: Backend Tests & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        working-directory: ./apps/api
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx ruff
+
+      - name: Run Ruff Lint
+        working-directory: ./apps/api
+        run: ruff check .
+
+      - name: Run Pytest
+        working-directory: ./apps/api
+        run: pytest
+
+  frontend:
+    name: Frontend Tests & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: ./apps/web/package.json
+
+      - name: Install Dependencies
+        working-directory: ./apps/web
+        run: npm ci || npm install
+
+      - name: Typecheck
+        working-directory: ./apps/web
+        run: npm run typecheck
+
+      - name: Run Tests
+        working-directory: ./apps/web
+        run: npm run test:run || npm test
