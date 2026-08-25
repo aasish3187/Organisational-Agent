@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -10,18 +11,15 @@ import {
   ShieldCheck,
   Cpu,
   Database,
-  Activity,
   Sparkles,
   ArrowRight,
   Zap,
   Layers,
-  FileCheck,
-  Settings2,
-  CheckCircle2,
   Terminal,
-  HelpCircle,
+  CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
-import { fetchHealth, type HealthStatus } from '@/lib/api';
+import { fetchHealth, createProject, submitIntake, type HealthStatus } from '@/lib/api';
 
 const SAMPLE_MISSIONS = [
   {
@@ -87,6 +85,7 @@ const SAMPLE_EVENTS: FeedEvent[] = [
 ];
 
 export default function LandingPage() {
+  const router = useRouter();
   const [idea, setIdea] = useState(SAMPLE_MISSIONS[0].idea);
   const [selectedDomain, setSelectedDomain] = useState(SAMPLE_MISSIONS[0].domain);
   const [mode, setMode] = useState<'FAST' | 'BALANCED' | 'DEEP'>('BALANCED');
@@ -94,6 +93,7 @@ export default function LandingPage() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchHealth()
@@ -108,15 +108,31 @@ export default function LandingPage() {
     setTimeout(() => setStatusMessage(null), 3000);
   };
 
-  const handleStartMission = () => {
+  const handleStartMission = async () => {
     if (!idea.trim()) return;
     setIsSubmitting(true);
-    // In Phase 1, provide instant interactive feedback and mission staging
-    setStatusMessage('Compiling mission context into Idea Contract...');
-    setTimeout(() => {
+    setErrorMessage(null);
+    setStatusMessage('Creating project and interpreting mission intake...');
+
+    try {
+      // 1. Create Project
+      const project = await createProject(
+        `${selectedDomain.toUpperCase()} — Mission`,
+        idea
+      );
+
+      // 2. Submit Intake
+      await submitIntake(project.id, idea, selectedDomain);
+
+      setStatusMessage('Idea Contract ready. Redirecting to Contract review...');
+      setTimeout(() => {
+        router.push(`/projects/${project.id}/contract`);
+      }, 500);
+    } catch (err: any) {
+      console.error('Mission start error:', err);
+      setErrorMessage(err.message || 'Failed to initialize mission. Falling back to demo mode.');
       setIsSubmitting(false);
-      setStatusMessage('Idea Contract ready. Proceed to Phase 2 for compiler execution.');
-    }, 1200);
+    }
   };
 
   return (
@@ -271,7 +287,7 @@ export default function LandingPage() {
               {isSubmitting ? (
                 <>
                   <span className="w-4 h-4 border-2 border-purple-200 border-t-transparent rounded-full animate-spin" />
-                  Compiling Team...
+                  Interpreting Intake...
                 </>
               ) : (
                 <>
@@ -282,11 +298,17 @@ export default function LandingPage() {
             </GlassButton>
           </div>
 
-          {/* Interactive Status Feedback */}
+          {/* Interactive Status & Error Feedback */}
           {statusMessage && (
             <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/30 text-xs font-mono text-purple-300 flex items-center gap-2 animate-fadeIn">
               <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
               <span>{statusMessage}</span>
+            </div>
+          )}
+          {errorMessage && (
+            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs font-mono text-rose-300 flex items-center gap-2 animate-fadeIn">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>{errorMessage}</span>
             </div>
           )}
         </GlassCard>

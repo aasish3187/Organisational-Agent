@@ -6,13 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine
 from app.core.redis_client import close_redis
 from app.routers.health import router as health_router
+from app.routers.projects import router as projects_router
+from app.routers.runs import router as runs_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables or connectivity
     yield
-    # Shutdown: cleanup resources
     await close_redis()
     await engine.dispose()
 
@@ -32,6 +32,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routers
+# Register health check
 app.include_router(health_router)
 app.include_router(health_router, prefix="/api")
+
+# Register core routers
+app.include_router(projects_router, prefix="/api")
+app.include_router(runs_router, prefix="/api")
+app.include_router(projects_router)
+app.include_router(runs_router)
