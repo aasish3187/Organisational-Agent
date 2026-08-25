@@ -14,23 +14,37 @@ router = APIRouter(prefix="/lab", tags=["Counterfactual Lab"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_db)]
 
+
 class SimulationRequest(BaseModel):
     domain: str = "edtech"
     data_sensitivity: str = "student-data"
     model_policy: str = "AUTO"  # AUTO | STRICT | NOCAP
     active_policies: list[str] = Field(
-        default_factory=lambda: ["P-01", "P-02", "P-03", "P-04", "P-05", "P-06", "P-07", "P-08", "P-09"]
+        default_factory=lambda: [
+            "P-01",
+            "P-02",
+            "P-03",
+            "P-04",
+            "P-05",
+            "P-06",
+            "P-07",
+            "P-08",
+            "P-09",
+        ]
     )
+
 
 class TamperRequest(BaseModel):
     run_id: str
     target_sequence: int = 1
     corrupt_hash: str = "bad0000000000000000000000000000000000000000000000000000000000000"
 
+
 @router.get("/policies")
 async def list_policies() -> list[dict[str, Any]]:
     """Returns the full catalog of NEXUS governance policies P-01 through P-09."""
     return policy_engine.list_policies()
+
 
 @router.post("/simulate")
 async def simulate_counterfactual(payload: SimulationRequest) -> dict[str, Any]:
@@ -47,7 +61,11 @@ async def simulate_counterfactual(payload: SimulationRequest) -> dict[str, Any]:
     }
 
     # If P-02 enabled and sensitivity high, add privacy role and gate
-    if "P-02" in payload.active_policies and payload.data_sensitivity in ["student-data", "health", "financial"]:
+    if "P-02" in payload.active_policies and payload.data_sensitivity in [
+        "student-data",
+        "health",
+        "financial",
+    ]:
         context["roles"].append("privacy_risk")
         context["human_gates"].append("sensitive-data-retention")
 
@@ -57,7 +75,11 @@ async def simulate_counterfactual(payload: SimulationRequest) -> dict[str, Any]:
     )
 
     # If P-02 is disabled but data is sensitive, register unconstrained governance violation
-    if "P-02" not in payload.active_policies and payload.data_sensitivity in ["student-data", "health", "financial"]:
+    if "P-02" not in payload.active_policies and payload.data_sensitivity in [
+        "student-data",
+        "health",
+        "financial",
+    ]:
         evaluation["compliant"] = False
         evaluation["violations"].append(
             "P-02 VIOLATION (UNCONSTRAINED): Student data processed without mandatory retention limit or Privacy/Risk approval gate."
@@ -98,6 +120,7 @@ async def simulate_counterfactual(payload: SimulationRequest) -> dict[str, Any]:
         },
     }
 
+
 @router.post("/tamper")
 async def tamper_event_hash(
     payload: TamperRequest,
@@ -107,9 +130,8 @@ async def tamper_event_hash(
     Intentionally corrupts an event hash in the database to demonstrate
     VERITAS cryptographic tamper detection in live expo demos.
     """
-    stmt = (
-        select(Event)
-        .where(Event.run_id == payload.run_id, Event.sequence == payload.target_sequence)
+    stmt = select(Event).where(
+        Event.run_id == payload.run_id, Event.sequence == payload.target_sequence
     )
     result = await session.execute(stmt)
     event = result.scalar_one_or_none()

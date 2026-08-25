@@ -11,6 +11,7 @@ class PolicyDefinition(BaseModel):
     default_enabled: bool = True
     parameters: dict[str, Any] = Field(default_factory=dict)
 
+
 POLICIES_CATALOG: list[PolicyDefinition] = [
     PolicyDefinition(
         code="P-01",
@@ -77,6 +78,7 @@ POLICIES_CATALOG: list[PolicyDefinition] = [
     ),
 ]
 
+
 class PolicyEngine:
     def list_policies(self) -> list[dict[str, Any]]:
         return [p.model_dump() for p in POLICIES_CATALOG]
@@ -95,12 +97,14 @@ class PolicyEngine:
 
         for p in POLICIES_CATALOG:
             if p.code not in active_codes:
-                results.append({
-                    "code": p.code,
-                    "name": p.name,
-                    "status": "DISABLED",
-                    "reason": "Policy explicitly disabled in counterfactual configuration",
-                })
+                results.append(
+                    {
+                        "code": p.code,
+                        "name": p.name,
+                        "status": "DISABLED",
+                        "reason": "Policy explicitly disabled in counterfactual configuration",
+                    }
+                )
                 continue
 
             # P-01 Check
@@ -108,19 +112,23 @@ class PolicyEngine:
                 claims = context.get("claims", [])
                 unsupported = [c for c in claims if not c.get("evidence_ids")]
                 if unsupported and context.get("strict_evidence", True):
-                    results.append({
-                        "code": p.code,
-                        "name": p.name,
-                        "status": "PASSED",
-                        "reason": f"Verified grounding: {len(claims) - len(unsupported)}/{len(claims)} claims cited",
-                    })
+                    results.append(
+                        {
+                            "code": p.code,
+                            "name": p.name,
+                            "status": "PASSED",
+                            "reason": f"Verified grounding: {len(claims) - len(unsupported)}/{len(claims)} claims cited",
+                        }
+                    )
                 else:
-                    results.append({
-                        "code": p.code,
-                        "name": p.name,
-                        "status": "PASSED",
-                        "reason": "All empirical claims cite verified source IDs",
-                    })
+                    results.append(
+                        {
+                            "code": p.code,
+                            "name": p.name,
+                            "status": "PASSED",
+                            "reason": "All empirical claims cite verified source IDs",
+                        }
+                    )
 
             # P-02 Check
             elif p.code == "P-02":
@@ -129,62 +137,85 @@ class PolicyEngine:
                     has_gate = "sensitive-data-retention" in context.get("human_gates", [])
                     has_privacy_role = "privacy_risk" in context.get("roles", [])
                     if has_gate and has_privacy_role:
-                        results.append({
+                        results.append(
+                            {
+                                "code": p.code,
+                                "name": p.name,
+                                "status": "PASSED",
+                                "reason": "Privacy/Risk role active and human approval gate configured",
+                            }
+                        )
+                    else:
+                        violations.append(
+                            f"P-02 VIOLATION: Sensitive data ({sensitivity}) without Privacy role / human gate."
+                        )
+                        results.append(
+                            {
+                                "code": p.code,
+                                "name": p.name,
+                                "status": "FAILED",
+                                "reason": "Sensitive data missing mandatory human approval gate",
+                            }
+                        )
+                else:
+                    results.append(
+                        {
                             "code": p.code,
                             "name": p.name,
                             "status": "PASSED",
-                            "reason": "Privacy/Risk role active and human approval gate configured",
-                        })
-                    else:
-                        violations.append(f"P-02 VIOLATION: Sensitive data ({sensitivity}) without Privacy role / human gate.")
-                        results.append({
-                            "code": p.code,
-                            "name": p.name,
-                            "status": "FAILED",
-                            "reason": "Sensitive data missing mandatory human approval gate",
-                        })
-                else:
-                    results.append({
-                        "code": p.code,
-                        "name": p.name,
-                        "status": "PASSED",
-                        "reason": "Non-sensitive data classification; standard retention applies",
-                    })
+                            "reason": "Non-sensitive data classification; standard retention applies",
+                        }
+                    )
 
             # P-06 Check (Tool Catalog Isolation)
             elif p.code == "P-06":
                 tools = context.get("allowed_tools", [])
-                forbidden = {"write_file", "execute_shell", "send_email", "deploy_cluster", "payment_charge"}
+                forbidden = {
+                    "write_file",
+                    "execute_shell",
+                    "send_email",
+                    "deploy_cluster",
+                    "payment_charge",
+                }
                 active_forbidden = [t for t in tools if t in forbidden]
                 if active_forbidden:
-                    violations.append(f"P-06 VIOLATION: Unrestricted write/exec tools detected: {active_forbidden}")
-                    results.append({
-                        "code": p.code,
-                        "name": p.name,
-                        "status": "FAILED",
-                        "reason": f"Denied unrestricted tool access: {active_forbidden}",
-                    })
+                    violations.append(
+                        f"P-06 VIOLATION: Unrestricted write/exec tools detected: {active_forbidden}"
+                    )
+                    results.append(
+                        {
+                            "code": p.code,
+                            "name": p.name,
+                            "status": "FAILED",
+                            "reason": f"Denied unrestricted tool access: {active_forbidden}",
+                        }
+                    )
                 else:
-                    results.append({
-                        "code": p.code,
-                        "name": p.name,
-                        "status": "PASSED",
-                        "reason": "Strict read-only analysis tool sandbox enforced",
-                    })
+                    results.append(
+                        {
+                            "code": p.code,
+                            "name": p.name,
+                            "status": "PASSED",
+                            "reason": "Strict read-only analysis tool sandbox enforced",
+                        }
+                    )
 
             # Default pass for other policies in simulation
             else:
-                results.append({
-                    "code": p.code,
-                    "name": p.name,
-                    "status": "PASSED",
-                    "reason": "Policy check passed within verified bounds",
-                })
+                results.append(
+                    {
+                        "code": p.code,
+                        "name": p.name,
+                        "status": "PASSED",
+                        "reason": "Policy check passed within verified bounds",
+                    }
+                )
 
         return {
             "compliant": len(violations) == 0,
             "violations": violations,
             "policy_results": results,
         }
+
 
 policy_engine = PolicyEngine()

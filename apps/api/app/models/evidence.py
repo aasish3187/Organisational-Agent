@@ -12,7 +12,9 @@ class Evidence(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("ev"))
     project_id: Mapped[str | None] = mapped_column(String, ForeignKey("projects.id"), nullable=True)
-    artifact_id: Mapped[str | None] = mapped_column(String, ForeignKey("artifacts.id"), nullable=True)
+    artifact_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("artifacts.id"), nullable=True
+    )
     source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     source_file: Mapped[str | None] = mapped_column(Text, nullable=True)
     excerpt: Mapped[str] = mapped_column(Text, nullable=False)

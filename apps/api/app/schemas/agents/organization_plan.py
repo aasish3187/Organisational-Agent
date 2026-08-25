@@ -8,10 +8,12 @@ class SelectionRationale(BaseModel):
     reason: str
     source: str | None = None  # e.g., "mnemos_atom:atom_0042" or None
 
+
 class PlanBudget(BaseModel):
     max_tokens: int = 30000
     max_cost_usd: float = 2.0
     max_minutes: int = 10
+
 
 class TaskSpec(BaseModel):
     task_id: str
@@ -23,6 +25,7 @@ class TaskSpec(BaseModel):
     review_required: bool = True
     token_budget: int = 5000
     risk_level: str = "low"  # low | medium | high
+
 
 class OrganizationPlan(BaseModel):
     model_config = ConfigDict(from_attributes=True)

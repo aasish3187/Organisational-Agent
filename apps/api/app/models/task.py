@@ -11,11 +11,17 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("tsk"))
-    run_id: Mapped[str] = mapped_column(String, ForeignKey("runs.id", ondelete="CASCADE"), nullable=False)
-    owner_agent_id: Mapped[str | None] = mapped_column(String, ForeignKey("agent_instances.id"), nullable=True)
+    run_id: Mapped[str] = mapped_column(
+        String, ForeignKey("runs.id", ondelete="CASCADE"), nullable=False
+    )
+    owner_agent_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("agent_instances.id"), nullable=True
+    )
     role: Mapped[str] = mapped_column(String, nullable=False)
     depends_on: Mapped[list[str] | None] = mapped_column(JSON, default=list)  # array of task IDs
-    status: Mapped[str] = mapped_column(String, default="QUEUED")  # QUEUED|RUNNING|REVIEW|REVISION|COMPLETED|FAILED
+    status: Mapped[str] = mapped_column(
+        String, default="QUEUED"
+    )  # QUEUED|RUNNING|REVIEW|REVISION|COMPLETED|FAILED
     output_schema: Mapped[str] = mapped_column(String, nullable=False)
     token_budget: Mapped[int] = mapped_column(Integer, default=5000)
     tokens_used: Mapped[int] = mapped_column(Integer, default=0)

@@ -12,6 +12,7 @@ class RunCreate(BaseModel):
     budget_max_cost_usd: Decimal = Field(default=Decimal("2.0000"))
     budget_max_minutes: int = Field(default=10, ge=1)
 
+
 class RunResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

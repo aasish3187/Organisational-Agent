@@ -7,10 +7,12 @@ class ModelChoice(BaseModel):
     rationale: str
     context_window: int
 
+
 class PromptTopology(BaseModel):
     role: str
     system_prompt_strategy: str
     output_schema: str
+
 
 class AIArchitectureSpec(BaseModel):
     model_config = ConfigDict(from_attributes=True)

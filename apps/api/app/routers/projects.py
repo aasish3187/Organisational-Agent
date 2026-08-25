@@ -26,13 +26,16 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_db)]
 
+
 class IntakeRequest(BaseModel):
     raw_idea: str = Field(..., min_length=3)
     domain: str | None = None
 
+
 class CompileRequest(BaseModel):
     mode: str = Field(default="BALANCED", pattern="^(FAST|BALANCED|DEEP)$")
     model_policy: str = Field(default="AUTO", pattern="^(STRICT|BALANCE|NOCAP|AUTO)$")
+
 
 @router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_project(
@@ -51,6 +54,7 @@ async def create_project(
     await session.refresh(project)
     return ProjectResponse.model_validate(project)
 
+
 @router.get("/{project_id}", response_model=ProjectResponse)
 async def get_project(
     project_id: str,
@@ -62,6 +66,7 @@ async def get_project(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return ProjectResponse.model_validate(project)
+
 
 @router.post("/{project_id}/intake", response_model=IdeaContract)
 async def submit_intake(
@@ -161,6 +166,7 @@ async def submit_intake(
 
     await session.commit()
     return IdeaContract.model_validate(contract_data)
+
 
 @router.post("/{project_id}/compile-organization", response_model=OrganizationPlan)
 async def compile_organization(

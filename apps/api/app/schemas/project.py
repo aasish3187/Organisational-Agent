@@ -9,6 +9,7 @@ class ProjectCreate(BaseModel):
     classification: str = Field(default="internal")
     owner_session: str = Field(default="session_default")
 
+
 class ProjectResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -21,7 +21,17 @@ async def test_policy_catalog_and_simulation(client: AsyncClient, test_session: 
         json={
             "domain": "edtech",
             "data_sensitivity": "student-data",
-            "active_policies": ["P-01", "P-02", "P-03", "P-04", "P-05", "P-06", "P-07", "P-08", "P-09"],
+            "active_policies": [
+                "P-01",
+                "P-02",
+                "P-03",
+                "P-04",
+                "P-05",
+                "P-06",
+                "P-07",
+                "P-08",
+                "P-09",
+            ],
         },
     )
     assert sim_res_gov.status_code == 200
@@ -45,6 +55,7 @@ async def test_policy_catalog_and_simulation(client: AsyncClient, test_session: 
     assert uncon_data["projected_metrics"]["risk_score_pct"] > 70
     assert "P-02 VIOLATION" in uncon_data["evaluation"]["violations"][0]
 
+
 @pytest.mark.asyncio
 async def test_live_veritas_tamper_demonstration(client: AsyncClient, test_session: AsyncSession):
     # 1. Create project, intake, compile
@@ -59,8 +70,12 @@ async def test_live_veritas_tamper_demonstration(client: AsyncClient, test_sessi
     )
     project_id = p_res.json()["id"]
 
-    await client.post(f"/api/projects/{project_id}/intake", json={"raw_idea": "Tamper demonstration"})
-    comp_res = await client.post(f"/api/projects/{project_id}/compile-organization", json={"mode": "BALANCED"})
+    await client.post(
+        f"/api/projects/{project_id}/intake", json={"raw_idea": "Tamper demonstration"}
+    )
+    comp_res = await client.post(
+        f"/api/projects/{project_id}/compile-organization", json={"mode": "BALANCED"}
+    )
     run_id = comp_res.json()["run_id"]
 
     # 2. Run steps to generate events

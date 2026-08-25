@@ -12,8 +12,12 @@ class Run(Base):
     __tablename__ = "runs"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("run"))
-    project_id: Mapped[str] = mapped_column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
-    mode: Mapped[str] = mapped_column(String, default="BALANCED", nullable=False)  # FAST|BALANCED|DEEP
+    project_id: Mapped[str] = mapped_column(
+        String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    mode: Mapped[str] = mapped_column(
+        String, default="BALANCED", nullable=False
+    )  # FAST|BALANCED|DEEP
     status: Mapped[str] = mapped_column(String, default="INITIALIZING", nullable=False)
     # INITIALIZING|COMPILING|RUNNING|WAITING_FOR_HUMAN|COMPLETED|FAILED|CANCELLED|BUDGET_EXCEEDED
     model_policy: Mapped[str] = mapped_column(String, default="AUTO")  # STRICT|BALANCE|NOCAP|AUTO
@@ -30,9 +34,13 @@ class Run(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     project = relationship("Project", back_populates="runs")
-    agent_instances = relationship("AgentInstance", back_populates="run", cascade="all, delete-orphan")
+    agent_instances = relationship(
+        "AgentInstance", back_populates="run", cascade="all, delete-orphan"
+    )
     tasks = relationship("Task", back_populates="run", cascade="all, delete-orphan")
-    events = relationship("Event", back_populates="run", cascade="all, delete-orphan", order_by="Event.sequence")
+    events = relationship(
+        "Event", back_populates="run", cascade="all, delete-orphan", order_by="Event.sequence"
+    )
     approvals = relationship("Approval", back_populates="run", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="run")
     metrics = relationship("Metric", back_populates="run")

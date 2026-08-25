@@ -51,7 +51,9 @@ class SolutionsOfficerAgent(BaseAgent):
             artifact_type="FinalBlueprint",
             content=blueprint.model_dump(),
             confidence=0.96,
-            assumptions=["All intermediate review verdicts passed with zero high-severity blockers"],
+            assumptions=[
+                "All intermediate review verdicts passed with zero high-severity blockers"
+            ],
             claims=[
                 {
                     "claim_id": "clm_fb_1",

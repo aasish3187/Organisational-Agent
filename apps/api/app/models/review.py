@@ -12,7 +12,9 @@ class Review(Base):
     __tablename__ = "reviews"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("rev"))
-    artifact_id: Mapped[str | None] = mapped_column(String, ForeignKey("artifacts.id"), nullable=True)
+    artifact_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("artifacts.id"), nullable=True
+    )
     run_id: Mapped[str | None] = mapped_column(String, ForeignKey("runs.id"), nullable=True)
     reviewer_role: Mapped[str] = mapped_column(String, nullable=False)
     verdict: Mapped[str] = mapped_column(String, nullable=False)  # PASS|REVISE|ESCALATE

@@ -10,11 +10,13 @@ from app.main import app
 
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 
+
 @pytest.fixture(scope="session")
 def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
 
 @pytest_asyncio.fixture(scope="function")
 async def test_session():
@@ -31,6 +33,7 @@ async def test_session():
         await conn.run_sync(Base.metadata.drop_all)
 
     await engine.dispose()
+
 
 @pytest_asyncio.fixture(scope="function")
 async def client(test_session: AsyncSession):

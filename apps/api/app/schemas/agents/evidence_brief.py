@@ -6,10 +6,12 @@ class Finding(BaseModel):
     source_ids: list[str] = Field(default_factory=list)
     limitations: str = ""
 
+
 class SourceQuality(BaseModel):
     source_id: str
     tier: str  # primary | official | secondary
     checked_at: str
+
 
 class EvidenceBrief(BaseModel):
     model_config = ConfigDict(from_attributes=True)

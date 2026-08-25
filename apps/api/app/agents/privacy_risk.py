@@ -48,7 +48,9 @@ class PrivacyRiskAgent(BaseAgent):
             artifact_type="RiskAssessment",
             content=assessment.model_dump(),
             confidence=0.95,
-            assumptions=["Human operator verifies 90-day purge schedule before production deployment"],
+            assumptions=[
+                "Human operator verifies 90-day purge schedule before production deployment"
+            ],
             claims=[
                 {
                     "claim_id": "clm_risk_1",

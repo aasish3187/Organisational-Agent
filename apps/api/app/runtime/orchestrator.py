@@ -53,7 +53,11 @@ async def execute_run_step_by_step(
 
     # Find first uncompleted task
     current_task = next(
-        (t for t in all_tasks if t.status in ["QUEUED", "RUNNING", "WAITING_FOR_HUMAN", "APPROVED"]),
+        (
+            t
+            for t in all_tasks
+            if t.status in ["QUEUED", "RUNNING", "WAITING_FOR_HUMAN", "APPROVED"]
+        ),
         None,
     )
     if not current_task:
@@ -82,7 +86,11 @@ async def execute_run_step_by_step(
         return {"status": "COMPLETED", "task_executed": None}
 
     # Check if task triggers a Human Gate
-    if current_task.role == "privacy_risk" and not bypass_gates and current_task.status != "APPROVED":
+    if (
+        current_task.role == "privacy_risk"
+        and not bypass_gates
+        and current_task.status != "APPROVED"
+    ):
         current_task.status = "WAITING_FOR_HUMAN"
         run.status = "WAITING_FOR_HUMAN"
         await emit_event(
@@ -133,21 +141,28 @@ async def execute_run_step_by_step(
         res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
     elif role == "consistency_reviewer":
         agent = ConsistencyReviewerAgent()
-        res = await agent.run(inputs={"artifacts": ["EvidenceBrief", "ProductSpec", "AIArchitectureSpec"]}, model_router_instance=model_router)
+        res = await agent.run(
+            inputs={"artifacts": ["EvidenceBrief", "ProductSpec", "AIArchitectureSpec"]},
+            model_router_instance=model_router,
+        )
     elif role == "solutions_officer":
         agent = SolutionsOfficerAgent()
         res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
     else:
         # Fallback
-        res = type("Result", (), {
-            "artifact_type": current_task.output_schema,
-            "content": {"status": "completed", "role": role},
-            "confidence": 0.90,
-            "assumptions": [],
-            "claims": [],
-            "tokens_used": 800,
-            "model_used": "mock-reasoning-v1",
-        })()
+        res = type(
+            "Result",
+            (),
+            {
+                "artifact_type": current_task.output_schema,
+                "content": {"status": "completed", "role": role},
+                "confidence": 0.90,
+                "assumptions": [],
+                "claims": [],
+                "tokens_used": 800,
+                "model_used": "mock-reasoning-v1",
+            },
+        )()
 
     # Store Artifact
     canonical_str = canonical(res.content)

@@ -8,6 +8,7 @@ class RiskItem(BaseModel):
     mitigation: str
     requires_human_gate: bool = False
 
+
 class RiskAssessment(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

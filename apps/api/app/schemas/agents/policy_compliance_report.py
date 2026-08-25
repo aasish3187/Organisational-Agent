@@ -7,6 +7,7 @@ class PolicyCheckItem(BaseModel):
     status: str  # PASSED | FAILED | WAIVER_GRANTED
     notes: str
 
+
 class PolicyComplianceReport(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

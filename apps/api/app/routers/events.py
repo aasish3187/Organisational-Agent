@@ -2,64 +2,78 @@ import asyncio
 import json
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import async_session_factory, get_db
+from app.core.redis_client import subscribe_run_events
 from app.models.event import Event
-from app.models.run import Run
 
 router = APIRouter(tags=["Events"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_db)]
 
+
 @router.get("/runs/{run_id}/events")
 async def stream_events(
     run_id: str,
     after_sequence: int = Query(default=-1),
+    last_event_id: str | None = Header(default=None),
 ):
     """
-    SSE endpoint streaming VERITAS events as they are emitted for a run.
+    Enterprise SSE Streaming Endpoint with Redis Pub/Sub backend
+    and Last-Event-ID catchup recovery.
     """
-    async def generator():
-        last_seq = after_sequence
-        # Poll new events with short interval
-        for _ in range(120):  # Cap max poll duration per connection
-            async with async_session_factory() as session:
-                # 1. Fetch new events
-                stmt = (
-                    select(Event)
-                    .where(Event.run_id == run_id, Event.sequence > last_seq)
-                    .order_by(Event.sequence.asc())
-                )
-                result = await session.execute(stmt)
-                new_events = result.scalars().all()
+    # Parse starting sequence
+    start_seq = after_sequence
+    if last_event_id and last_event_id.isdigit():
+        start_seq = max(start_seq, int(last_event_id))
 
-                for evt in new_events:
-                    payload_dict = evt.to_sse_dict()
-                    yield f"data: {json.dumps(payload_dict)}\n\n"
-                    last_seq = evt.sequence
+    async def event_generator():
+        last_seq = start_seq
 
-                # 2. Check run status
-                stmt_run = select(Run.status).where(Run.id == run_id)
-                run_res = await session.execute(stmt_run)
-                status_row = run_res.first()
-                run_status = status_row[0] if status_row else "INITIALIZING"
+        # 1. Backfill existing events from DB
+        async with async_session_factory() as session:
+            stmt = (
+                select(Event)
+                .where(Event.run_id == run_id, Event.sequence > last_seq)
+                .order_by(Event.sequence.asc())
+            )
+            result = await session.execute(stmt)
+            for evt in result.scalars().all():
+                payload_dict = evt.to_sse_dict()
+                last_seq = max(last_seq, evt.sequence)
+                yield f"id: {evt.sequence}\nevent: message\ndata: {json.dumps(payload_dict)}\n\n"
 
-                if run_status in ("COMPLETED", "FAILED", "CANCELLED"):
-                    yield f"data: {json.dumps({'type': 'stream_end', 'status': run_status})}\n\n"
+        # 2. Subscribe to live Redis Pub/Sub events
+        try:
+            async for event_data in subscribe_run_events(run_id):
+                if event_data.get("heartbeat"):
+                    yield ": heartbeat\n\n"
+                    continue
+
+                seq = event_data.get("sequence", last_seq + 1)
+                if seq > last_seq:
+                    last_seq = seq
+                    yield f"id: {seq}\nevent: message\ndata: {json.dumps(event_data)}\n\n"
+
+                # Check if terminal
+                if event_data.get("type") in ("run_completed", "run_failed", "stream_end"):
+                    yield f"data: {json.dumps({'type': 'stream_end', 'status': event_data.get('type')})}\n\n"
                     break
-
-            await asyncio.sleep(0.5)
+        except asyncio.CancelledError:
+            pass
 
     return StreamingResponse(
-        generator(),
+        event_generator(),
         media_type="text/event-stream",
         headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
+            "Cache-Control": "no-cache, no-transform",
             "Connection": "keep-alive",
+            "Content-Type": "text/event-stream",
+            "X-Accel-Buffering": "no",  # NGINX SSE buffer bypass
+            "Access-Control-Allow-Origin": "*",
         },
     )

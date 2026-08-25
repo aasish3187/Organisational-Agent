@@ -3,7 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.config import settings
 from app.core.database import engine
+from app.core.middleware import setup_production_middleware
 from app.core.redis_client import close_redis
 from app.routers.events import router as events_router
 from app.routers.health import router as health_router
@@ -18,23 +20,29 @@ async def lifespan(app: FastAPI):
     await close_redis()
     await engine.dispose()
 
+
 app = FastAPI(
-    title="NEXUS Organization OS API",
-    description="Multi-agent organization operating system with VERITAS event chaining, MNEMOS memory, and Policy Engine",
-    version="0.1.0",
+    title=settings.APP_NAME,
+    description="Production-Scale Multi-Agent Organization Operating System with VERITAS Cryptographic Chaining, MNEMOS Memory, and Policy Engine",
+    version=settings.VERSION,
     lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Register health check
+# Production security, rate limiting, and correlation middleware
+setup_production_middleware(app)
+
+# Register health check & telemetry
 app.include_router(health_router)
 app.include_router(health_router, prefix="/api")
 
@@ -43,7 +51,3 @@ app.include_router(projects_router, prefix="/api")
 app.include_router(runs_router, prefix="/api")
 app.include_router(events_router, prefix="/api")
 app.include_router(lab_router, prefix="/api")
-app.include_router(projects_router)
-app.include_router(runs_router)
-app.include_router(events_router)
-app.include_router(lab_router)

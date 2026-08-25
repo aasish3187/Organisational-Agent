@@ -18,7 +18,9 @@ class ProcessAtom(Base):
     action: Mapped[str] = mapped_column(Text, nullable=False)
     purpose: Mapped[str] = mapped_column(Text, nullable=False)
     tags: Mapped[list[str]] = mapped_column(JSON, nullable=False)
-    embedding: Mapped[list[float] | None] = mapped_column(JSON, nullable=True)  # 384-dim vector stored as JSON array
+    embedding: Mapped[list[float] | None] = mapped_column(
+        JSON, nullable=True
+    )  # 384-dim vector stored as JSON array
     visibility: Mapped[str] = mapped_column(String, default="shared")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

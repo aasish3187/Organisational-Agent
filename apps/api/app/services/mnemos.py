@@ -47,10 +47,12 @@ PRESEEDED_ATOMS = [
     },
 ]
 
+
 def cosine_sim(a: list[float], b: list[float]) -> float:
     va, vb = np.array(a, dtype=float), np.array(b, dtype=float)
     denom = float(np.linalg.norm(va) * np.linalg.norm(vb) + 1e-9)
     return float(np.dot(va, vb) / denom)
+
 
 def compute_keyword_similarity(query: str, atom_text: str) -> float:
     """Fallback similarity score based on term overlap."""
@@ -60,6 +62,7 @@ def compute_keyword_similarity(query: str, atom_text: str) -> float:
         return 0.0
     overlap = len(q_words.intersection(a_words))
     return overlap / max(len(q_words), 1)
+
 
 def row_to_dict(atom: ProcessAtom) -> dict[str, Any]:
     return {
@@ -72,6 +75,7 @@ def row_to_dict(atom: ProcessAtom) -> dict[str, Any]:
         "source_run_id": atom.source_run_id,
         "visibility": atom.visibility,
     }
+
 
 async def retrieve_atoms(
     session: AsyncSession,
@@ -101,7 +105,9 @@ async def retrieve_atoms(
     else:
         for atom in all_atoms:
             tags = atom.tags or []
-            if domain in tags or (isinstance(atom.applicability, dict) and atom.applicability.get("domain") == domain):
+            if domain in tags or (
+                isinstance(atom.applicability, dict) and atom.applicability.get("domain") == domain
+            ):
                 candidates.append(row_to_dict(atom))
             else:
                 candidates.append(row_to_dict(atom))
@@ -119,6 +125,7 @@ async def retrieve_atoms(
 
     scored.sort(key=lambda x: x[0], reverse=True)
     return [c for _, c in scored[:top_k]]
+
 
 async def write_atoms(
     session: AsyncSession,
@@ -145,11 +152,21 @@ async def write_atoms(
     await session.commit()
     return ids
 
+
 class MnemosService:
-    async def retrieve_atoms(self, session: AsyncSession, domain: str, deliverable_type: str, query_text: str, top_k: int = 5):
+    async def retrieve_atoms(
+        self,
+        session: AsyncSession,
+        domain: str,
+        deliverable_type: str,
+        query_text: str,
+        top_k: int = 5,
+    ):
         return await retrieve_atoms(session, domain, deliverable_type, query_text, top_k)
 
-    async def write_atoms(self, session: AsyncSession, run_id: str, atoms_data: list[dict[str, Any]]):
+    async def write_atoms(
+        self, session: AsyncSession, run_id: str, atoms_data: list[dict[str, Any]]
+    ):
         return await write_atoms(session, run_id, atoms_data)
 
     async def learn_atom(
@@ -175,5 +192,6 @@ class MnemosService:
         session.add(atom)
         await session.commit()
         return atom.id
+
 
 mnemos_service = MnemosService()

@@ -13,7 +13,9 @@ class Metric(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("met"))
     run_id: Mapped[str | None] = mapped_column(String, ForeignKey("runs.id"), nullable=True)
-    agent_id: Mapped[str | None] = mapped_column(String, ForeignKey("agent_instances.id"), nullable=True)
+    agent_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("agent_instances.id"), nullable=True
+    )
     task_id: Mapped[str | None] = mapped_column(String, ForeignKey("tasks.id"), nullable=True)
     tokens_in: Mapped[int] = mapped_column(Integer, default=0)
     tokens_out: Mapped[int] = mapped_column(Integer, default=0)

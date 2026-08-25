@@ -12,7 +12,9 @@ class Event(Base):
     __tablename__ = "events"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("evt"))
-    run_id: Mapped[str] = mapped_column(String, ForeignKey("runs.id", ondelete="CASCADE"), nullable=False)
+    run_id: Mapped[str] = mapped_column(
+        String, ForeignKey("runs.id", ondelete="CASCADE"), nullable=False
+    )
     sequence: Mapped[int] = mapped_column(Integer, nullable=False)
     type: Mapped[str] = mapped_column(String, nullable=False)
     actor: Mapped[str] = mapped_column(String, nullable=False)
@@ -47,5 +49,7 @@ class Event(Base):
             "payload_canonical": self.payload_canonical,
             "prev_hash": self.prev_hash,
             "hash": self.hash,
-            "timestamp": self.timestamp.isoformat() if hasattr(self.timestamp, "isoformat") else str(self.timestamp),
+            "timestamp": self.timestamp.isoformat()
+            if hasattr(self.timestamp, "isoformat")
+            else str(self.timestamp),
         }

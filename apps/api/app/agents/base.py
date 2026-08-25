@@ -12,6 +12,7 @@ class AgentResult(BaseModel):
     tokens_used: int
     model_used: str
 
+
 class BaseAgent:
     role: str
     mandate: str

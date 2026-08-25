@@ -11,6 +11,7 @@ from app.models.event import Event
 
 GENESIS_HASH = "0000000000000000000000000000000000000000000000000000000000000000"
 
+
 def format_timestamp(dt: Any) -> str:
     """Format timestamp consistently as UTC ISO string across PostgreSQL and SQLite."""
     if isinstance(dt, str):
@@ -21,13 +22,16 @@ def format_timestamp(dt: Any) -> str:
         return dt.isoformat()
     return str(dt)
 
+
 def canonical(payload: dict[str, Any]) -> str:
     """Deterministic JSON serialization. Store this string; never re-derive at verify time."""
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
+
 def compute_hash(prev_hash: str, payload_canonical: str, timestamp: str) -> str:
     raw = f"{prev_hash}{payload_canonical}{timestamp}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
 
 async def emit_event(
     session: AsyncSession,
@@ -49,7 +53,7 @@ async def emit_event(
     )
     result = await session.execute(stmt)
     last = result.first()
-    
+
     prev_hash = last[0] if last else GENESIS_HASH
     next_seq = (last[1] + 1) if last else 0
 
@@ -66,14 +70,36 @@ async def emit_event(
         actor=actor,
         actor_id=actor_id,
         payload=payload,
-        payload_canonical=payload_str,   # Stored once, read at verify time
+        payload_canonical=payload_str,  # Stored once, read at verify time
         prev_hash=prev_hash,
         hash=event_hash,
         timestamp=now_dt,
     )
     session.add(event)
     await session.flush()
+
+    # Broadcast to distributed event bus (Redis Pub/Sub)
+    try:
+        from app.core.redis_client import publish_run_event
+
+        event_dict = {
+            "id": event.id,
+            "run_id": event.run_id,
+            "sequence": event.sequence,
+            "type": event.type,
+            "actor": event.actor,
+            "actor_id": event.actor_id,
+            "payload": event.payload,
+            "hash": event.hash,
+            "prev_hash": event.prev_hash,
+            "timestamp": timestamp_str,
+        }
+        await publish_run_event(run_id, event_dict)
+    except Exception:
+        pass
+
     return event
+
 
 async def verify_chain(session: AsyncSession, run_id: str) -> dict[str, Any]:
     """
@@ -81,7 +107,9 @@ async def verify_chain(session: AsyncSession, run_id: str) -> dict[str, Any]:
     Returns: {valid: bool, event_count: int, broken_at_index: int | None, message: str}
     """
     stmt = (
-        select(Event.sequence, Event.prev_hash, Event.hash, Event.payload_canonical, Event.timestamp)
+        select(
+            Event.sequence, Event.prev_hash, Event.hash, Event.payload_canonical, Event.timestamp
+        )
         .where(Event.run_id == run_id)
         .order_by(Event.sequence.asc())
     )

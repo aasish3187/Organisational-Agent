@@ -7,6 +7,7 @@ class ArchitectureSummary(BaseModel):
     database: str
     ai_models: list[str] = Field(default_factory=list)
 
+
 class FinalBlueprint(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

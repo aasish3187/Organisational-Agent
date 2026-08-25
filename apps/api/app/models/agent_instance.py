@@ -11,13 +11,21 @@ class AgentInstance(Base):
     __tablename__ = "agent_instances"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("agt"))
-    run_id: Mapped[str] = mapped_column(String, ForeignKey("runs.id", ondelete="CASCADE"), nullable=False)
+    run_id: Mapped[str] = mapped_column(
+        String, ForeignKey("runs.id", ondelete="CASCADE"), nullable=False
+    )
     role: Mapped[str] = mapped_column(String, nullable=False)
-    parent_id: Mapped[str | None] = mapped_column(String, ForeignKey("agent_instances.id"), nullable=True)
+    parent_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("agent_instances.id"), nullable=True
+    )
     mandate: Mapped[str | None] = mapped_column(Text, nullable=True)
     permitted_tools: Mapped[list[str] | None] = mapped_column(JSON, default=list)
-    model_tier: Mapped[str] = mapped_column(String, default="reasoning")  # fast|reasoning|local|qwen
-    status: Mapped[str] = mapped_column(String, default="PENDING")  # PENDING|ACTIVE|COMPLETED|FAILED
+    model_tier: Mapped[str] = mapped_column(
+        String, default="reasoning"
+    )  # fast|reasoning|local|qwen
+    status: Mapped[str] = mapped_column(
+        String, default="PENDING"
+    )  # PENDING|ACTIVE|COMPLETED|FAILED
     token_budget: Mapped[int] = mapped_column(Integer, default=5000)
     tokens_used: Mapped[int] = mapped_column(Integer, default=0)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

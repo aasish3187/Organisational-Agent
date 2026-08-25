@@ -19,6 +19,7 @@ async def test_create_project_flow(client: AsyncClient):
     assert data["id"].startswith("prj_")
     assert data["title"] == "EdTech Exam Prep"
 
+
 @pytest.mark.asyncio
 async def test_intake_generates_idea_contract(client: AsyncClient, test_session: AsyncSession):
     # 1. Create project
@@ -49,8 +50,11 @@ async def test_intake_generates_idea_contract(client: AsyncClient, test_session:
     assert len(contract["constraints"]) > 0
     assert contract["confidence"] >= 0.8
 
+
 @pytest.mark.asyncio
-async def test_organization_compiler_activates_risk_for_student_data(client: AsyncClient, test_session: AsyncSession):
+async def test_organization_compiler_activates_risk_for_student_data(
+    client: AsyncClient, test_session: AsyncSession
+):
     # 1. Create project
     p_res = await client.post(
         "/api/projects",
@@ -85,7 +89,7 @@ async def test_organization_compiler_activates_risk_for_student_data(client: Asy
     assert "research_analyst" in roles
     assert "product_strategist" in roles
     assert "ai_architect" in roles  # activated due to multilingual
-    assert "privacy_risk" in roles   # activated due to student-data (Policy P-02)
+    assert "privacy_risk" in roles  # activated due to student-data (Policy P-02)
     assert "consistency_reviewer" in roles
     assert "solutions_officer" in roles
 

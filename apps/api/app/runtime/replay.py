@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.runtime.orchestrator import execute_run_step_by_step
 
 
-async def replay_full_run(session: AsyncSession, run_id: str, step_delay: float = 0.4) -> dict[str, Any]:
+async def replay_full_run(
+    session: AsyncSession, run_id: str, step_delay: float = 0.4
+) -> dict[str, Any]:
     """
     Simulates / plays an entire demo run from compiled state to completion.
     Emits events step by step for real-time visualization on the living canvas.

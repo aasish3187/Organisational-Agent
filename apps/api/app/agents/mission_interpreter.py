@@ -25,7 +25,10 @@ class MissionInterpreterAgent(BaseAgent):
 
         # Domain classification logic
         lower_idea = raw_idea.lower()
-        if any(k in lower_idea for k in ["b.tech", "student", "exam", "education", "edtech", "learn", "study"]):
+        if any(
+            k in lower_idea
+            for k in ["b.tech", "student", "exam", "education", "edtech", "learn", "study"]
+        ):
             domain = "edtech"
             data_sensitivity = "student-data"
             audience = "B.Tech students and academic faculty across Indian universities"
@@ -57,11 +60,15 @@ class MissionInterpreterAgent(BaseAgent):
                 "privacy_risk",
                 "consistency_reviewer",
             ]
-        elif any(k in lower_idea for k in ["food", "restaurant", "surplus", "waste", "marketplace"]):
+        elif any(
+            k in lower_idea for k in ["food", "restaurant", "surplus", "waste", "marketplace"]
+        ):
             domain = "marketplace"
             data_sensitivity = "internal"
             audience = "Restaurants, catering businesses, and certified food banks"
-            problem = "Massive surplus food waste coupled with inefficient, slow food bank matching."
+            problem = (
+                "Massive surplus food waste coupled with inefficient, slow food bank matching."
+            )
             success_criteria = [
                 "Sub-15 minute dispatch matching before food safety expiry",
                 "Accurate inventory tracking and verified donor onboarding",
@@ -101,7 +108,9 @@ class MissionInterpreterAgent(BaseAgent):
             ]
 
         contract = IdeaContract(
-            title=project_title if project_title != "New Project" else f"{domain.capitalize()} Blueprint",
+            title=project_title
+            if project_title != "New Project"
+            else f"{domain.capitalize()} Blueprint",
             domain=domain,
             target_audience=audience,
             problem_statement=problem,

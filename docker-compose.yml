@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: nexus-postgres
     restart: unless-stopped
     environment:
@@ -23,6 +23,7 @@ services:
     image: redis:7-alpine
     container_name: nexus-redis
     restart: unless-stopped
+    command: redis-server --appendonly yes
     ports:
       - "6379:6379"
     volumes:
@@ -44,9 +45,30 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=production
       - DEMO_REPLAY=true
-      - PRIMARY_PROVIDER=anthropic
+      - PRIMARY_PROVIDER=gemini
+      - FALLBACK_PROVIDER=anthropic
+      - RATE_LIMIT_ENABLED=true
     ports:
       - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: nexus-worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.runtime.worker"]
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://nexus:nexus_secret@db:5432/nexus_db
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=production
+      - DEMO_REPLAY=true
+      - WORKER_CONCURRENCY=4
     depends_on:
       db:
         condition: service_healthy

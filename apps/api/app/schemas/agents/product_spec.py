@@ -7,6 +7,7 @@ class FeatureSpec(BaseModel):
     priority: str  # P0 | P1 | P2
     evidence_basis: list[str] = Field(default_factory=list)
 
+
 class ProductSpec(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

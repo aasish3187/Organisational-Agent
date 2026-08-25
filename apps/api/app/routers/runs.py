@@ -19,9 +19,11 @@ router = APIRouter(prefix="/runs", tags=["Runs"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_db)]
 
+
 class GateDecisionRequest(BaseModel):
     decision: str = Field(..., pattern="^(APPROVE|REJECT)$")
     reason: str = "Authorized by human operator"
+
 
 @router.get("/{run_id}", response_model=RunResponse)
 async def get_run(
@@ -34,6 +36,7 @@ async def get_run(
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
     return RunResponse.model_validate(run)
+
 
 @router.get("/{run_id}/organization")
 async def get_run_organization(
@@ -87,6 +90,7 @@ async def get_run_organization(
         ],
     }
 
+
 @router.post("/{run_id}/step")
 async def step_run(
     run_id: str,
@@ -95,6 +99,7 @@ async def step_run(
     """Execute next task in the run DAG."""
     return await execute_run_step_by_step(session, run_id)
 
+
 @router.post("/{run_id}/replay")
 async def replay_run(
     run_id: str,
@@ -102,6 +107,7 @@ async def replay_run(
 ) -> dict[str, Any]:
     """Execute complete replay pipeline for demo execution."""
     return await replay_full_run(session, run_id, step_delay=0.05)
+
 
 @router.post("/{run_id}/gate-decision")
 async def handle_gate_decision(
@@ -147,6 +153,7 @@ async def handle_gate_decision(
         await session.commit()
         return {"status": "CANCELLED", "reason": payload.reason}
 
+
 @router.get("/{run_id}/blueprint")
 async def get_run_blueprint(
     run_id: str,
@@ -178,6 +185,7 @@ async def get_run_blueprint(
         "content_hash": art.content_hash,
         "created_at": art.created_at.isoformat() if art.created_at else None,
     }
+
 
 @router.get("/{run_id}/verify")
 async def verify_run_veritas(

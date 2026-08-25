@@ -13,6 +13,7 @@ async def test_health_endpoint(client: AsyncClient):
     assert "environment" in data
     assert "demo_mode" in data
 
+
 @pytest.mark.asyncio
 async def test_api_health_endpoint(client: AsyncClient):
     response = await client.get("/api/health")

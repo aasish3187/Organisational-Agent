@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.mark.asyncio
-async def test_full_governed_organization_and_approval_gate(client: AsyncClient, test_session: AsyncSession):
+async def test_full_governed_organization_and_approval_gate(
+    client: AsyncClient, test_session: AsyncSession
+):
     # 1. Create project
     p_res = await client.post(
         "/api/projects",
@@ -20,7 +22,9 @@ async def test_full_governed_organization_and_approval_gate(client: AsyncClient,
     # 2. Submit Intake
     await client.post(
         f"/api/projects/{project_id}/intake",
-        json={"raw_idea": "Design a multilingual AI exam-prep platform for B.Tech students in India"},
+        json={
+            "raw_idea": "Design a multilingual AI exam-prep platform for B.Tech students in India"
+        },
     )
 
     # 3. Compile Organization

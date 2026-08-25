@@ -7,9 +7,11 @@ class Contradiction(BaseModel):
     severity: str  # low | medium | high
     resolution_owner: str
 
+
 class CoverageAnalysis(BaseModel):
     met: list[str] = Field(default_factory=list)
     missing: list[str] = Field(default_factory=list)
+
 
 class ReviewReport(BaseModel):
     model_config = ConfigDict(from_attributes=True)

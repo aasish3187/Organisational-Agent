@@ -92,7 +92,9 @@ class OrganizationCompilerAgent(BaseAgent):
         # Domain-specific specialist activation & Policy P-02 check
         if domain == "edtech" or "multilingual" in goal.lower():
             # Check if reinforced by MNEMOS atom
-            atom_ref = next((a for a in retrieved_atoms if "multilingual" in a.get("tags", [])), None)
+            atom_ref = next(
+                (a for a in retrieved_atoms if "multilingual" in a.get("tags", [])), None
+            )
             rationale.append(
                 SelectionRationale(
                     role="ai_architect",
@@ -136,7 +138,10 @@ class OrganizationCompilerAgent(BaseAgent):
         )
 
         # Policy P-02: Personal/Student/Health data activates Privacy/Risk Analyst
-        if data_sensitivity in ["student-data", "health", "financial", "high"] or domain == "edtech":
+        if (
+            data_sensitivity in ["student-data", "health", "financial", "high"]
+            or domain == "edtech"
+        ):
             atom_ref = next((a for a in retrieved_atoms if "privacy" in a.get("tags", [])), None)
             rationale.append(
                 SelectionRationale(
