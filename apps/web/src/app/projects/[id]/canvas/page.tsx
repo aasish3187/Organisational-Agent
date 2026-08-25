@@ -64,19 +64,37 @@ export default function LivingCanvasPage({
       .then(async (proj) => {
         setProject(proj);
 
-        // 2. Fetch or initialize compiled organization
+        // 2. Fetch runs or compile organization
         try {
-          const compRes = await apiClient.post(`/api/projects/${projectId}/compile-organization`, {
-            mode: 'BALANCED',
-            model_policy: 'AUTO',
-          });
-          const plan = compRes.data;
-          setRunId(plan.run_id);
+          // Check if run_id was provided or already exists for project
+          let activeRunId = '';
+          const urlParams = new URLSearchParams(window.location.search);
+          const passedRunId = urlParams.get('run_id');
 
-          const orgRes = await apiClient.get(`/api/runs/${plan.run_id}/organization`);
+          if (passedRunId) {
+            activeRunId = passedRunId;
+          } else {
+            const runsRes = await apiClient.get(`/api/projects/${projectId}/runs`);
+            if (runsRes.data && runsRes.data.length > 0) {
+              activeRunId = runsRes.data[0].id;
+            }
+          }
+
+          if (!activeRunId) {
+            const compRes = await apiClient.post(`/api/projects/${projectId}/compile-organization`, {
+              mode: 'BALANCED',
+              model_policy: 'AUTO',
+            });
+            activeRunId = compRes.data.run_id;
+          }
+
+          setRunId(activeRunId);
+
+          const orgRes = await apiClient.get(`/api/runs/${activeRunId}/organization`);
           setRawAgents(orgRes.data.agents || []);
           setRawTasks(orgRes.data.tasks || []);
         } catch (e) {
+          console.warn('Organization load fallback:', e);
           // Fallback demo run
           const fallbackRunId = `run_${Date.now()}`;
           setRunId(fallbackRunId);

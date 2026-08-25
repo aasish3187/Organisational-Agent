@@ -68,6 +68,32 @@ async def get_project(
     return ProjectResponse.model_validate(project)
 
 
+@router.get("/{project_id}/runs")
+async def list_project_runs(
+    project_id: str,
+    session: SessionDep,
+):
+    stmt = (
+        select(Run)
+        .where(Run.project_id == project_id)
+        .order_by(Run.created_at.desc())
+    )
+    result = await session.execute(stmt)
+    runs = result.scalars().all()
+    return [
+        {
+            "id": r.id,
+            "project_id": r.project_id,
+            "mode": r.mode,
+            "model_policy": r.model_policy,
+            "status": r.status,
+            "tokens_used": r.tokens_used,
+            "created_at": str(r.created_at),
+        }
+        for r in runs
+    ]
+
+
 @router.post("/{project_id}/intake", response_model=IdeaContract)
 async def submit_intake(
     project_id: str,
@@ -212,8 +238,10 @@ async def compile_organization(
         model_router_instance=model_router,
     )
 
-    # 4. Create AgentInstances and Tasks
+    # 4. Create AgentInstances and Tasks with globally unique IDs
+    task_id_map: dict[str, str] = {task_spec.task_id: new_id("tsk") for task_spec in plan.tasks}
     agent_map: dict[str, str] = {}
+
     for task_spec in plan.tasks:
         if task_spec.role not in agent_map:
             agt_id = new_id("agt")
@@ -228,12 +256,15 @@ async def compile_organization(
             )
             session.add(agent_inst)
 
+        real_task_id = task_id_map[task_spec.task_id]
+        real_depends_on = [task_id_map.get(dep, dep) for dep in task_spec.depends_on]
+
         task_obj = Task(
-            id=task_spec.task_id,
+            id=real_task_id,
             run_id=run_id,
             owner_agent_id=agent_map[task_spec.role],
             role=task_spec.role,
-            depends_on=task_spec.depends_on,
+            depends_on=real_depends_on,
             output_schema=task_spec.output_schema,
             review_required=task_spec.review_required,
             token_budget=task_spec.token_budget,

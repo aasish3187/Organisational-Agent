@@ -95,14 +95,16 @@ export default function IdeaContractPage({
   }, [projectId]);
 
   const handleCompile = async () => {
+    if (compiledPlan) {
+      router.push(`/projects/${projectId}/canvas?run_id=${compiledPlan.run_id}`);
+      return;
+    }
     setCompiling(true);
     try {
       const plan = await compileOrganization(projectId, mode, 'AUTO');
       setCompiledPlan(plan);
       setCompiling(false);
-      setTimeout(() => {
-        router.push(`/projects/${projectId}/canvas`);
-      }, 700);
+      router.push(`/projects/${projectId}/canvas?run_id=${plan.run_id}`);
     } catch (err: any) {
       setError(err.message || 'Compilation failed');
       setCompiling(false);
