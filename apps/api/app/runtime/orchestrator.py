@@ -124,30 +124,48 @@ async def execute_run_step_by_step(
         payload={"task_id": current_task.id, "role": role},
     )
 
+    # Fetch contract data for context
+    stmt_art = (
+        select(Artifact)
+        .where(Artifact.project_id == run.project_id, Artifact.type == "IdeaContract")
+        .order_by(Artifact.created_at.desc())
+        .limit(1)
+    )
+    art_res = await session.execute(stmt_art)
+    contract_art = art_res.scalar_one_or_none()
+    contract_data = contract_art.content if contract_art else {}
+    domain = contract_data.get("domain", "edtech")
+    agent_inputs = {
+        "domain": domain,
+        "contract": contract_data,
+        "raw_idea": contract_data.get("problem_statement", ""),
+        "title": contract_data.get("title", ""),
+    }
+
     if role == "research_analyst":
         agent = ResearchAnalystAgent()
-        res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
+        res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
     elif role == "product_strategist":
         agent = ProductStrategistAgent()
-        res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
+        res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
     elif role == "ai_architect":
         agent = AIArchitectAgent()
-        res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
+        res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
     elif role == "system_architect":
         agent = SystemArchitectAgent()
-        res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
+        res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
     elif role == "privacy_risk":
         agent = PrivacyRiskAgent()
-        res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
+        res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
     elif role == "consistency_reviewer":
         agent = ConsistencyReviewerAgent()
         res = await agent.run(
-            inputs={"artifacts": ["EvidenceBrief", "ProductSpec", "AIArchitectureSpec"]},
+            inputs={**agent_inputs, "artifacts": ["EvidenceBrief", "ProductSpec", "AIArchitectureSpec"]},
             model_router_instance=model_router,
         )
     elif role == "solutions_officer":
         agent = SolutionsOfficerAgent()
-        res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
+        res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
     else:
         # Fallback
         res = type(
