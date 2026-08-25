@@ -154,7 +154,15 @@ export default function CounterfactualLabPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-4 text-xs font-mono text-slate-400 mr-2">
+              <span
+                onClick={() => router.push('/')}
+                className="hover:text-purple-300 cursor-pointer transition-colors"
+              >
+                Mission Intake
+              </span>
+            </div>
             <span className="bg-purple-500/10 text-purple-300 text-xs font-mono px-3 py-1 rounded-full border border-purple-500/30 flex items-center gap-1.5">
               <Terminal className="w-3.5 h-3.5 text-purple-400" />
               Counterfactual Sandbox

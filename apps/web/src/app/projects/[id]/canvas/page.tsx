@@ -214,6 +214,20 @@ export default function LivingCanvasPage({
 
           {/* Action Buttons & HUD */}
           <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-4 text-xs font-mono text-slate-400 mr-2">
+              <span
+                onClick={() => router.push(`/projects/${projectId}/blueprint`)}
+                className="hover:text-purple-300 cursor-pointer transition-colors"
+              >
+                Blueprint
+              </span>
+              <span
+                onClick={() => router.push('/lab')}
+                className="hover:text-purple-300 cursor-pointer transition-colors"
+              >
+                Policy Lab
+              </span>
+            </div>
             <TokenMeter
               tokensUsed={tokensUsed || 3420}
               budgetTokens={30000}

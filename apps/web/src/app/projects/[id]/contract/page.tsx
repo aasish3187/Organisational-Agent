@@ -139,7 +139,21 @@ export default function IdeaContractPage({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-4 text-xs font-mono text-slate-400 mr-2">
+              <span
+                onClick={() => router.push(`/projects/${projectId}/canvas`)}
+                className="hover:text-purple-300 cursor-pointer transition-colors"
+              >
+                Canvas
+              </span>
+              <span
+                onClick={() => router.push('/lab')}
+                className="hover:text-purple-300 cursor-pointer transition-colors"
+              >
+                Policy Lab
+              </span>
+            </div>
             <StatusBadge status="SUBMITTED" />
             <span className="bg-cyan-500/10 text-cyan-300 text-xs font-mono px-2.5 py-1 rounded-full border border-cyan-500/30">
               VERITAS Chained
