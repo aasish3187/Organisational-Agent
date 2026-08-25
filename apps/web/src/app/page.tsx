@@ -152,17 +152,11 @@ export default function LandingPage() {
           </div>
 
           <div className="hidden md:flex items-center gap-6 text-xs text-slate-400 font-mono">
-            <span className="flex items-center gap-1.5 hover:text-slate-200 transition-colors cursor-pointer">
-              <Layers className="w-3.5 h-3.5 text-purple-400" /> Org Canvas
-            </span>
-            <span className="flex items-center gap-1.5 hover:text-slate-200 transition-colors cursor-pointer">
-              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" /> VERITAS Chain
-            </span>
-            <span className="flex items-center gap-1.5 hover:text-slate-200 transition-colors cursor-pointer">
-              <Database className="w-3.5 h-3.5 text-indigo-400" /> MNEMOS Memory
-            </span>
-            <span className="flex items-center gap-1.5 hover:text-slate-200 transition-colors cursor-pointer">
-              <Terminal className="w-3.5 h-3.5 text-emerald-400" /> Lab
+            <span
+              onClick={() => router.push('/lab')}
+              className="flex items-center gap-1.5 hover:text-slate-200 transition-colors cursor-pointer"
+            >
+              <Terminal className="w-3.5 h-3.5 text-purple-400" /> Policy Lab
             </span>
           </div>
 
