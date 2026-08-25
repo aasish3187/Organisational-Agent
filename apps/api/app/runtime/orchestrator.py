@@ -5,22 +5,32 @@ from typing import Any
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agents.ai_architect import AIArchitectAgent
 from app.agents.consistency_reviewer import ConsistencyReviewerAgent
+from app.agents.privacy_risk import PrivacyRiskAgent
 from app.agents.product_strategist import ProductStrategistAgent
 from app.agents.research_analyst import ResearchAnalystAgent
+from app.agents.solutions_officer import SolutionsOfficerAgent
+from app.agents.system_architect import SystemArchitectAgent
 from app.core.nanoid import new_id
 from app.models.agent_instance import AgentInstance
 from app.models.artifact import Artifact
 from app.models.claim import Claim
 from app.models.run import Run
 from app.models.task import Task
+from app.services.mnemos import mnemos_service
 from app.services.model_router import model_router
 from app.services.veritas import canonical, emit_event
 
 
-async def execute_run_step_by_step(session: AsyncSession, run_id: str) -> dict[str, Any]:
+async def execute_run_step_by_step(
+    session: AsyncSession,
+    run_id: str,
+    bypass_gates: bool = False,
+) -> dict[str, Any]:
     """
-    Executes the next ready task in the run's DAG, emitting VERITAS events and storing artifacts.
+    Executes the next ready task in the run's DAG, pausing for human gates if necessary,
+    emitting VERITAS events, and persisting structured artifacts.
     """
     stmt_run = select(Run).where(Run.id == run_id)
     result = await session.execute(stmt_run)
@@ -28,13 +38,24 @@ async def execute_run_step_by_step(session: AsyncSession, run_id: str) -> dict[s
     if not run:
         raise ValueError(f"Run {run_id} not found")
 
+    # If already paused for human gate
+    if run.status == "WAITING_FOR_HUMAN" and not bypass_gates:
+        return {
+            "status": "WAITING_FOR_HUMAN",
+            "message": "Run is waiting for human approval.",
+            "task_executed": None,
+        }
+
     # Fetch queued tasks
     stmt_tasks = select(Task).where(Task.run_id == run_id).order_by(Task.queued_at.asc())
     tasks_res = await session.execute(stmt_tasks)
     all_tasks = tasks_res.scalars().all()
 
     # Find first uncompleted task
-    current_task = next((t for t in all_tasks if t.status in ["QUEUED", "RUNNING"]), None)
+    current_task = next(
+        (t for t in all_tasks if t.status in ["QUEUED", "RUNNING", "WAITING_FOR_HUMAN", "APPROVED"]),
+        None,
+    )
     if not current_task:
         # All completed
         run.status = "COMPLETED"
@@ -45,8 +66,43 @@ async def execute_run_step_by_step(session: AsyncSession, run_id: str) -> dict[s
             actor="system",
             payload={"status": "COMPLETED", "tokens_used": run.tokens_used},
         )
+
+        # Trigger MNEMOS write-back
+        await mnemos_service.learn_atom(
+            session=session,
+            name="EdTech Multilingual & Privacy Pattern",
+            purpose="Reusable architecture for regional engineering curriculum and P-02 compliance",
+            action="Apply dual-tier model hierarchy with 90-day automatic student data expiration.",
+            applicability={"domain": "edtech", "data_sensitivity": "student-data"},
+            tags=["multilingual", "student-privacy", "engineering", "p-02"],
+            source_run_id=run_id,
+        )
+
         await session.commit()
         return {"status": "COMPLETED", "task_executed": None}
+
+    # Check if task triggers a Human Gate
+    if current_task.role == "privacy_risk" and not bypass_gates and current_task.status != "APPROVED":
+        current_task.status = "WAITING_FOR_HUMAN"
+        run.status = "WAITING_FOR_HUMAN"
+        await emit_event(
+            session=session,
+            run_id=run_id,
+            event_type="gate_triggered",
+            actor="privacy_risk",
+            payload={
+                "gate_name": "sensitive-data-retention",
+                "risk_level": "high",
+                "reason": "Policy P-02 requires explicit human authorization for student diagnostic data retention.",
+            },
+        )
+        await session.commit()
+        return {
+            "status": "WAITING_FOR_HUMAN",
+            "gate_name": "sensitive-data-retention",
+            "task_id": current_task.id,
+            "role": current_task.role,
+        }
 
     # Execute according to role
     role = current_task.role
@@ -66,11 +122,23 @@ async def execute_run_step_by_step(session: AsyncSession, run_id: str) -> dict[s
     elif role == "product_strategist":
         agent = ProductStrategistAgent()
         res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
+    elif role == "ai_architect":
+        agent = AIArchitectAgent()
+        res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
+    elif role == "system_architect":
+        agent = SystemArchitectAgent()
+        res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
+    elif role == "privacy_risk":
+        agent = PrivacyRiskAgent()
+        res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
     elif role == "consistency_reviewer":
         agent = ConsistencyReviewerAgent()
-        res = await agent.run(inputs={"artifacts": ["EvidenceBrief", "ProductSpec"]}, model_router_instance=model_router)
+        res = await agent.run(inputs={"artifacts": ["EvidenceBrief", "ProductSpec", "AIArchitectureSpec"]}, model_router_instance=model_router)
+    elif role == "solutions_officer":
+        agent = SolutionsOfficerAgent()
+        res = await agent.run(inputs={"domain": "edtech"}, model_router_instance=model_router)
     else:
-        # Generic role completion fallback
+        # Fallback
         res = type("Result", (), {
             "artifact_type": current_task.output_schema,
             "content": {"status": "completed", "role": role},

@@ -8,8 +8,10 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { TokenMeter } from '@/components/ui/TokenMeter';
 import { LiveEventFeed, type FeedEvent } from '@/components/ui/LiveEventFeed';
 import { AgentNetwork } from '@/components/canvas/AgentNetwork';
+import { ApprovalModal } from '@/components/ui/ApprovalModal';
 import {
   ArrowLeft,
+  ArrowRight,
   Play,
   RotateCcw,
   ShieldCheck,
@@ -22,7 +24,7 @@ import {
   FileCheck2,
 } from 'lucide-react';
 import { useRunEvents } from '@/hooks/useRunEvents';
-import { getProject, verifyRun, apiClient, type Project } from '@/lib/api';
+import { getProject, verifyRun, submitGateDecision, apiClient, type Project } from '@/lib/api';
 
 export default function LivingCanvasPage({
   params,
@@ -45,6 +47,13 @@ export default function LivingCanvasPage({
     message: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Approval Gate state
+  const [gateOpen, setGateOpen] = useState(false);
+  const [activeGate, setActiveGate] = useState<{ name: string; role: string; reason?: string }>({
+    name: 'sensitive-data-retention',
+    role: 'privacy_risk',
+  });
 
   // Initialize SSE event listener
   const { events, runStatus, tokensUsed, costUsd } = useRunEvents(runId);
@@ -93,7 +102,14 @@ export default function LivingCanvasPage({
     if (!runId) return;
     setExecuting(true);
     try {
-      await apiClient.post(`/api/runs/${runId}/step`);
+      const stepRes = await apiClient.post(`/api/runs/${runId}/step`);
+      if (stepRes.data.status === 'WAITING_FOR_HUMAN') {
+        setActiveGate({
+          name: stepRes.data.gate_name || 'sensitive-data-retention',
+          role: stepRes.data.role || 'privacy_risk',
+        });
+        setGateOpen(true);
+      }
       const orgRes = await apiClient.get(`/api/runs/${runId}/organization`);
       setRawAgents(orgRes.data.agents);
       setRawTasks(orgRes.data.tasks);
@@ -116,6 +132,32 @@ export default function LivingCanvasPage({
       console.warn('Replay failed:', err);
     } finally {
       setExecuting(false);
+    }
+  };
+
+  const handleGateApprove = async (reason: string) => {
+    try {
+      await submitGateDecision(runId, 'APPROVE', reason);
+      setGateOpen(false);
+      const orgRes = await apiClient.get(`/api/runs/${runId}/organization`);
+      setRawAgents(orgRes.data.agents);
+      setRawTasks(orgRes.data.tasks);
+    } catch (err) {
+      console.warn('Gate approval failed:', err);
+      setGateOpen(false);
+    }
+  };
+
+  const handleGateReject = async (reason: string) => {
+    try {
+      await submitGateDecision(runId, 'REJECT', reason);
+      setGateOpen(false);
+      const orgRes = await apiClient.get(`/api/runs/${runId}/organization`);
+      setRawAgents(orgRes.data.agents);
+      setRawTasks(orgRes.data.tasks);
+    } catch (err) {
+      console.warn('Gate rejection failed:', err);
+      setGateOpen(false);
     }
   };
 
@@ -217,6 +259,35 @@ export default function LivingCanvasPage({
 
       {/* Main Canvas Workspace */}
       <main className="flex-1 max-w-7xl mx-auto px-6 py-6 w-full flex flex-col gap-6">
+        {/* Run Completed Banner with Transition to Final Blueprint */}
+        {runStatus === 'COMPLETED' && (
+          <div className="p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/30 backdrop-blur-md flex items-center justify-between gap-4 animate-fadeIn">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white">
+                  Organization Execution Complete & Verified
+                </h4>
+                <p className="text-xs text-emerald-300/80 font-mono">
+                  All 7 specialist agent artifacts synthesized into the Final Project Blueprint.
+                </p>
+              </div>
+            </div>
+
+            <GlassButton
+              variant="primary"
+              size="sm"
+              onClick={() => router.push(`/projects/${projectId}/blueprint`)}
+              className="gap-2 text-xs font-mono font-semibold shrink-0 bg-emerald-600 hover:bg-emerald-500"
+            >
+              <span>View Final Blueprint</span>
+              <ArrowRight className="w-4 h-4" />
+            </GlassButton>
+          </div>
+        )}
+
         {/* Verification Result Notification */}
         {verifyResult && (
           <div
@@ -267,10 +338,23 @@ export default function LivingCanvasPage({
                 <span>ProductSpec</span>
                 <span className="text-purple-400">VERIFIED</span>
               </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/5 text-slate-300">
+                <span>FinalBlueprint</span>
+                <span className="text-emerald-400">SYNTHESIZED</span>
+              </div>
             </div>
           </GlassCard>
         </div>
       </main>
+
+      {/* Human Approval Gate Modal */}
+      <ApprovalModal
+        isOpen={gateOpen}
+        gateName={activeGate.name}
+        role={activeGate.role}
+        onApprove={handleGateApprove}
+        onReject={handleGateReject}
+      />
     </div>
   );
 }

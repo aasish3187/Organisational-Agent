@@ -61,6 +61,18 @@ def compute_keyword_similarity(query: str, atom_text: str) -> float:
     overlap = len(q_words.intersection(a_words))
     return overlap / max(len(q_words), 1)
 
+def row_to_dict(atom: ProcessAtom) -> dict[str, Any]:
+    return {
+        "atom_id": atom.id,
+        "name": atom.name,
+        "applicability": atom.applicability,
+        "action": atom.action,
+        "purpose": atom.purpose,
+        "tags": atom.tags,
+        "source_run_id": atom.source_run_id,
+        "visibility": atom.visibility,
+    }
+
 async def retrieve_atoms(
     session: AsyncSession,
     domain: str,
@@ -73,14 +85,12 @@ async def retrieve_atoms(
     Step 2: Semantic / keyword rerank candidates
     Returns top_k most relevant process atoms as dicts
     """
-    # Query database for process atoms
     stmt = select(ProcessAtom)
     result = await session.execute(stmt)
     all_atoms = result.scalars().all()
 
     candidates: list[dict[str, Any]] = []
 
-    # If DB is empty, use preseeded demo atoms
     if not all_atoms:
         for pa in PRESEEDED_ATOMS:
             tags = pa.get("tags", [])
@@ -99,12 +109,10 @@ async def retrieve_atoms(
     if not candidates:
         return []
 
-    # Rerank candidates based on keyword / relevance
     scored = []
     for c in candidates:
         combined = f"{c.get('name', '')} {c.get('action', '')} {c.get('purpose', '')}"
         sim = compute_keyword_similarity(query_text, combined)
-        # Boost if domain directly matches
         if c.get("applicability", {}).get("domain") == domain:
             sim += 0.5
         scored.append((sim, c))
@@ -117,10 +125,6 @@ async def write_atoms(
     run_id: str,
     atoms_data: list[dict[str, Any]],
 ) -> list[str]:
-    """
-    Write 3-6 process atoms from a completed run.
-    Hard Rule: Guard against verbatim user document leaks (> 12 words).
-    """
     ids = []
     for data in atoms_data:
         atom_id = data.get("id") or new_id("atom")
@@ -141,14 +145,35 @@ async def write_atoms(
     await session.commit()
     return ids
 
-def row_to_dict(atom: ProcessAtom) -> dict[str, Any]:
-    return {
-        "atom_id": atom.id,
-        "name": atom.name,
-        "applicability": atom.applicability,
-        "action": atom.action,
-        "purpose": atom.purpose,
-        "tags": atom.tags,
-        "source_run_id": atom.source_run_id,
-        "visibility": atom.visibility,
-    }
+class MnemosService:
+    async def retrieve_atoms(self, session: AsyncSession, domain: str, deliverable_type: str, query_text: str, top_k: int = 5):
+        return await retrieve_atoms(session, domain, deliverable_type, query_text, top_k)
+
+    async def write_atoms(self, session: AsyncSession, run_id: str, atoms_data: list[dict[str, Any]]):
+        return await write_atoms(session, run_id, atoms_data)
+
+    async def learn_atom(
+        self,
+        session: AsyncSession,
+        name: str,
+        purpose: str,
+        action: str,
+        applicability: dict[str, Any],
+        tags: list[str],
+        source_run_id: str,
+    ) -> str:
+        atom = ProcessAtom(
+            id=new_id("atom"),
+            source_run_id=source_run_id,
+            name=name,
+            applicability=applicability,
+            action=action,
+            purpose=purpose,
+            tags=tags,
+            visibility="shared",
+        )
+        session.add(atom)
+        await session.commit()
+        return atom.id
+
+mnemos_service = MnemosService()
