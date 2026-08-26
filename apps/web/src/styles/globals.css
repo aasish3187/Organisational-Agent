@@ -21,20 +21,22 @@
   --glass-regular-blur: 16px;
   --glass-regular-specular: rgba(255, 255, 255, 0.06);
 
-  --glass-thick-bg: rgba(15, 20, 35, 0.75);
-  --glass-thick-border: rgba(255, 255, 255, 0.15);
+  --glass-thick-bg: rgba(13, 20, 36, 0.75);
+  --glass-thick-border: rgba(255, 255, 255, 0.12);
   --glass-thick-blur: 24px;
 
-  /* Brand accents */
-  --accent-primary: #7c3aed;      /* violet — NEXUS identity */
+  /* Brand accents (v3.1 Liquid Glass) */
+  --accent-primary: #8b5cf6;      /* violet/purple — NEXUS identity */
+  --accent-purple-glow: #a855f7;
   --accent-cyan: #06b6d4;         /* cyan — VERITAS chain */
+  --accent-cyan-glow: #38bdf8;
   --accent-emerald: #10b981;      /* green — success/approved */
   --accent-amber: #f59e0b;        /* amber — waiting/pending */
   --accent-rose: #f43f5e;         /* rose — error/blocked */
   --accent-indigo: #6366f1;       /* indigo — MNEMOS memory */
 
   /* Agent status colors */
-  --agent-active: #7c3aed;
+  --agent-active: #8b5cf6;
   --agent-completed: #10b981;
   --agent-waiting: #f59e0b;
   --agent-reviewing: #06b6d4;
@@ -94,3 +96,102 @@ body {
     0 8px 40px rgba(0, 0, 0, 0.6),
     0 2px 8px rgba(0, 0, 0, 0.4);
 }
+
+/* v3.1 Liquid Glass & Hero Styling */
+.floating-nav-pill {
+  background: rgba(13, 20, 36, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+.liquid-glass-card {
+  background: rgba(13, 20, 36, 0.55);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 1.5rem;
+  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+.liquid-glass-input {
+  background: rgba(4, 7, 18, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-input:focus-within,
+.liquid-glass-input:focus {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15), 0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+.nexus-btn-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+  color: #ffffff;
+  box-shadow: 0 0 24px rgba(124, 58, 237, 0.40);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nexus-btn-primary:hover {
+  box-shadow: 0 0 36px rgba(124, 58, 237, 0.65);
+  transform: translateY(-1px) scale(1.01);
+}
+
+.nexus-btn-primary:active {
+  transform: translateY(0) scale(0.99);
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 6px #10b981); }
+  50% { opacity: 0.5; transform: scale(0.9); filter: drop-shadow(0 0 2px #10b981); }
+}
+
+.nexus-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background-color: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.text-glow-purple {
+  text-shadow: 0 0 24px rgba(168, 85, 247, 0.4);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 24px rgba(56, 189, 248, 0.4);
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Sleek global dark scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(5, 8, 16, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
+}
+

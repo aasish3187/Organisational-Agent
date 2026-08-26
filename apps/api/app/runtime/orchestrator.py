@@ -87,9 +87,10 @@ async def execute_run_step_by_step(
 
     # Check if task triggers a Human Gate
     if (
-        current_task.role == "privacy_risk"
+        ("privacy" in current_task.role.lower() or "risk" in current_task.role.lower() or "compliance" in current_task.role.lower() or "safety" in current_task.role.lower() or current_task.role == "privacy_risk")
         and not bypass_gates
         and current_task.status != "APPROVED"
+        and current_task.risk_level == "high"
     ):
         current_task.status = "WAITING_FOR_HUMAN"
         run.status = "WAITING_FOR_HUMAN"
@@ -97,11 +98,11 @@ async def execute_run_step_by_step(
             session=session,
             run_id=run_id,
             event_type="gate_triggered",
-            actor="privacy_risk",
+            actor=current_task.role,
             payload={
                 "gate_name": "sensitive-data-retention",
                 "risk_level": "high",
-                "reason": "Policy P-02 requires explicit human authorization for student diagnostic data retention.",
+                "reason": "Policy P-02 requires explicit human authorization for sensitive data retention and risk waiver.",
             },
         )
         await session.commit()
@@ -112,7 +113,7 @@ async def execute_run_step_by_step(
             "role": current_task.role,
         }
 
-    # Execute according to role
+    # Execute according to dynamic role
     role = current_task.role
     current_task.status = "RUNNING"
     await emit_event(
@@ -142,45 +143,42 @@ async def execute_run_step_by_step(
         "title": contract_data.get("title", ""),
     }
 
-    if role == "research_analyst":
+    r = role.lower()
+    if "research" in r or "analyst" in r or "intelligence" in r or ("specialist" in r and "data" in r):
         agent = ResearchAnalystAgent()
+        agent.role = role
         res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
-    elif role == "product_strategist":
+    elif "product" in r or "strategist" in r or "operations" in r:
         agent = ProductStrategistAgent()
+        agent.role = role
         res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
-    elif role == "ai_architect":
+    elif "ai" in r or "model" in r or "rag" in r:
         agent = AIArchitectAgent()
+        agent.role = role
         res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
-    elif role == "system_architect":
+    elif "system" in r or "infra" in r or "ledger" in r or "iot" in r:
         agent = SystemArchitectAgent()
+        agent.role = role
         res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
-    elif role == "privacy_risk":
+    elif "privacy" in r or "risk" in r or "compliance" in r or "guard" in r or "safety" in r:
         agent = PrivacyRiskAgent()
+        agent.role = role
         res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
-    elif role == "consistency_reviewer":
+    elif "review" in r or "auditor" in r or "consistency" in r:
         agent = ConsistencyReviewerAgent()
+        agent.role = role
         res = await agent.run(
             inputs={**agent_inputs, "artifacts": ["EvidenceBrief", "ProductSpec", "AIArchitectureSpec"]},
             model_router_instance=model_router,
         )
-    elif role == "solutions_officer":
+    elif "solution" in r or "officer" in r or "director" in r or "lead" in r:
         agent = SolutionsOfficerAgent()
+        agent.role = role
         res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
     else:
-        # Fallback
-        res = type(
-            "Result",
-            (),
-            {
-                "artifact_type": current_task.output_schema,
-                "content": {"status": "completed", "role": role},
-                "confidence": 0.90,
-                "assumptions": [],
-                "claims": [],
-                "tokens_used": 800,
-                "model_used": "mock-reasoning-v1",
-            },
-        )()
+        agent = SolutionsOfficerAgent()
+        agent.role = role
+        res = await agent.run(inputs=agent_inputs, model_router_instance=model_router)
 
     # Store Artifact
     canonical_str = canonical(res.content)
@@ -251,6 +249,38 @@ async def execute_run_step_by_step(
         actor_id=current_task.owner_agent_id,
         payload={"task_id": current_task.id, "tokens_used": res.tokens_used},
     )
+
+    # Check if this was the last task in the run
+    remaining_tasks = [
+        t for t in all_tasks if t.id != current_task.id and t.status in ["QUEUED", "WAITING_FOR_HUMAN", "RUNNING"]
+    ]
+    if not remaining_tasks:
+        run.status = "COMPLETED"
+        await emit_event(
+            session=session,
+            run_id=run_id,
+            event_type="run_completed",
+            actor="system",
+            payload={"status": "COMPLETED", "tokens_used": run.tokens_used},
+        )
+        # Trigger MNEMOS write-back
+        await mnemos_service.learn_atom(
+            session=session,
+            name=f"{domain.capitalize()} Reusable Pattern",
+            purpose=f"Reusable architecture for {domain} and governance compliance",
+            action="Apply specialized role topology with automated policy verification.",
+            applicability={"domain": domain, "data_sensitivity": contract_data.get("data_sensitivity", "internal")},
+            tags=[domain, "governed", "p-02", "veritas"],
+            source_run_id=run_id,
+        )
+        await session.commit()
+        return {
+            "status": "COMPLETED",
+            "task_executed": current_task.id,
+            "role": role,
+            "artifact_id": art_id,
+            "run_completed": True,
+        }
 
     await session.commit()
     return {

@@ -77,3 +77,63 @@ async def stream_events(
             "Access-Control-Allow-Origin": "*",
         },
     )
+
+
+@router.get("/runs/{run_id}/merkle-root")
+async def get_merkle_root(
+    run_id: str,
+    session: SessionDep,
+):
+    """
+    Computes the cryptographic binary Merkle Root over all VERITAS event hashes in the run.
+    """
+    from app.services.merkle_anchor import build_merkle_tree_for_events
+
+    stmt = select(Event.hash).where(Event.run_id == run_id).order_by(Event.sequence.asc())
+    res = await session.execute(stmt)
+    hashes = list(res.scalars().all())
+
+    tree = build_merkle_tree_for_events(hashes)
+    return {
+        "run_id": run_id,
+        "event_count": len(hashes),
+        "merkle_root": tree.root,
+        "leaf_count": len(tree.leaves),
+        "tree_depth": len(tree.levels),
+    }
+
+
+@router.get("/runs/{run_id}/merkle-proof/{sequence}")
+async def get_merkle_proof(
+    run_id: str,
+    sequence: int,
+    session: SessionDep,
+):
+    """
+    Generates a cryptographic Merkle audit inclusion proof for a specific event sequence.
+    """
+    from app.services.merkle_anchor import build_merkle_tree_for_events
+
+    stmt = select(Event.hash).where(Event.run_id == run_id).order_by(Event.sequence.asc())
+    res = await session.execute(stmt)
+    hashes = list(res.scalars().all())
+
+    if sequence < 0 or sequence >= len(hashes):
+        return {
+            "valid": False,
+            "error": f"Sequence {sequence} out of range (0-{len(hashes)-1})",
+        }
+
+    tree = build_merkle_tree_for_events(hashes)
+    proof = tree.get_proof(sequence)
+    leaf_hash = hashes[sequence]
+
+    return {
+        "run_id": run_id,
+        "sequence": sequence,
+        "leaf_hash": leaf_hash,
+        "merkle_root": tree.root,
+        "proof": proof,
+        "verified": tree.verify_proof(leaf_hash, proof, tree.root),
+    }
+

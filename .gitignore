@@ -53,6 +53,13 @@ next-env.d.ts
 *.sqlite3
 *.sqlite
 *.db
+*.db-shm
+*.db-wal
+nexus.db*
+
+# Archives & Temporary Design Assets
+*.zip
+dark_mode_design_system/
 
 # Logs
 logs/

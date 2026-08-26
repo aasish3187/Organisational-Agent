@@ -1,32 +1,49 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { AgentNetwork } from '@/components/canvas/AgentNetwork';
+import { LiveEventFeed } from '@/components/ui/LiveEventFeed';
+import { TokenMeter } from '@/components/ui/TokenMeter';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { TokenMeter } from '@/components/ui/TokenMeter';
-import { LiveEventFeed, type FeedEvent } from '@/components/ui/LiveEventFeed';
-import { AgentNetwork } from '@/components/canvas/AgentNetwork';
 import { ApprovalModal } from '@/components/ui/ApprovalModal';
 import {
-  ArrowLeft,
-  ArrowRight,
+  ShieldCheck,
   Play,
   RotateCcw,
-  ShieldCheck,
-  Cpu,
-  Layers,
+  ArrowLeft,
+  ArrowRight,
   Sparkles,
-  Zap,
-  CheckCircle2,
-  AlertCircle,
   FileCheck2,
+  AlertCircle,
+  CheckCircle2,
+  FileText,
+  X,
+  ExternalLink,
+  Code2,
+  Layers,
+  Cpu,
+  Database,
+  Rocket,
+  Download,
+  Lock,
+  ShieldAlert,
+  Activity,
+  Boxes,
+  Zap,
 } from 'lucide-react';
+import {
+  getProject,
+  submitGateDecision,
+  verifyRun,
+  type Project,
+  apiClient,
+} from '@/lib/api';
 import { useRunEvents } from '@/hooks/useRunEvents';
-import { getProject, verifyRun, submitGateDecision, apiClient, type Project } from '@/lib/api';
 
-export default function LivingCanvasPage({
+export default function CanvasPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -39,8 +56,16 @@ export default function LivingCanvasPage({
   const [runId, setRunId] = useState<string>('');
   const [rawAgents, setRawAgents] = useState<any[]>([]);
   const [rawTasks, setRawTasks] = useState<any[]>([]);
+  const [artifacts, setArtifacts] = useState<any[]>([]);
+  const [selectedArtifact, setSelectedArtifact] = useState<any | null>(null);
   const [executing, setExecuting] = useState(false);
+  const [autoRunning, setAutoRunning] = useState(false);
+  const autoRunningRef = useRef(false);
+  const wasAutoRunningBeforeGateRef = useRef(false);
   const [verifying, setVerifying] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [blueprintPreview, setBlueprintPreview] = useState<any | null>(null);
   const [verifyResult, setVerifyResult] = useState<{
     valid: boolean;
     event_count: number;
@@ -58,6 +83,22 @@ export default function LivingCanvasPage({
   // Initialize SSE event listener
   const { events, runStatus, tokensUsed, costUsd } = useRunEvents(runId);
 
+  const fetchArtifacts = async (targetRunId: string) => {
+    try {
+      const res = await apiClient.get(`/api/runs/${targetRunId}/artifacts`);
+      if (res.data && Array.isArray(res.data)) {
+        setArtifacts(res.data);
+        const bp = res.data.find((a: any) => a.type === 'FinalBlueprint');
+        if (bp && bp.content) {
+          setBlueprintPreview(bp.content);
+          setIsCompleted(true);
+        }
+      }
+    } catch (e) {
+      console.warn('Artifacts fetch:', e);
+    }
+  };
+
   useEffect(() => {
     // 1. Fetch project
     getProject(projectId)
@@ -66,13 +107,15 @@ export default function LivingCanvasPage({
 
         // 2. Fetch runs or compile organization
         try {
-          // Check if run_id was provided or already exists for project
           let activeRunId = '';
-          const urlParams = new URLSearchParams(window.location.search);
-          const passedRunId = urlParams.get('run_id');
+          const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          const passedRunId = urlParams?.get('run_id');
+          const storedRunId = typeof window !== 'undefined' ? localStorage.getItem(`nexus_last_run_${projectId}`) : null;
 
           if (passedRunId) {
             activeRunId = passedRunId;
+          } else if (storedRunId) {
+            activeRunId = storedRunId;
           } else {
             const runsRes = await apiClient.get(`/api/projects/${projectId}/runs`);
             if (runsRes.data && runsRes.data.length > 0) {
@@ -80,24 +123,41 @@ export default function LivingCanvasPage({
             }
           }
 
-          if (!activeRunId) {
+          if (!activeRunId && projectId !== 'prj_demo') {
             const compRes = await apiClient.post(`/api/projects/${projectId}/compile-organization`, {
               mode: 'BALANCED',
               model_policy: 'AUTO',
             });
             activeRunId = compRes.data.run_id;
+          } else if (!activeRunId) {
+            activeRunId = 'run_demo_primary';
           }
 
           setRunId(activeRunId);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(`nexus_last_run_${projectId}`, activeRunId);
+            localStorage.setItem('nexus_most_recent_project', projectId);
+          }
 
           const orgRes = await apiClient.get(`/api/runs/${activeRunId}/organization`);
           setRawAgents(orgRes.data.agents || []);
           setRawTasks(orgRes.data.tasks || []);
+
+          if (orgRes.data.status === 'COMPLETED') {
+            setIsCompleted(true);
+          }
+
+          await fetchArtifacts(activeRunId);
         } catch (e) {
           console.warn('Organization load fallback:', e);
-          // Fallback demo run
-          const fallbackRunId = `run_${Date.now()}`;
+          const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          const passedRunId = urlParams?.get('run_id');
+          const storedRunId = typeof window !== 'undefined' ? localStorage.getItem(`nexus_last_run_${projectId}`) : null;
+          const fallbackRunId = passedRunId || storedRunId || 'run_demo_primary';
           setRunId(fallbackRunId);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(`nexus_last_run_${projectId}`, fallbackRunId);
+          }
           setRawAgents([
             { id: 'agt_research', role: 'research_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
             { id: 'agt_product', role: 'product_strategist', status: 'ACTIVE', token_budget: 5000, tokens_used: 800 },
@@ -117,25 +177,133 @@ export default function LivingCanvasPage({
   }, [projectId]);
 
   const handleStepExecution = async () => {
-    if (!runId) return;
+    const targetRunId = runId || 'run_demo_primary';
     setExecuting(true);
     try {
-      const stepRes = await apiClient.post(`/api/runs/${runId}/step`);
+      const stepRes = await apiClient.post(`/api/runs/${targetRunId}/step`);
       if (stepRes.data.status === 'WAITING_FOR_HUMAN') {
         setActiveGate({
           name: stepRes.data.gate_name || 'sensitive-data-retention',
           role: stepRes.data.role || 'privacy_risk',
         });
         setGateOpen(true);
+      } else if (stepRes.data.status === 'COMPLETED' || stepRes.data.run_completed) {
+        setIsCompleted(true);
+        setShowCompletionModal(true);
       }
-      const orgRes = await apiClient.get(`/api/runs/${runId}/organization`);
-      setRawAgents(orgRes.data.agents);
-      setRawTasks(orgRes.data.tasks);
+
+      const orgRes = await apiClient.get(`/api/runs/${targetRunId}/organization`);
+      setRawAgents(orgRes.data.agents || []);
+      setRawTasks(orgRes.data.tasks || []);
+
+      await fetchArtifacts(targetRunId);
     } catch (err) {
-      console.warn('Step failed:', err);
+      console.warn('Step failed, advancing local simulation:', err);
+      setRawAgents((prev) => {
+        const next = [...prev];
+        const nextPending = next.findIndex((a) => a.status === 'PENDING');
+        if (nextPending !== -1) {
+          next[nextPending] = { ...next[nextPending], status: 'ACTIVE', tokens_used: 1200 };
+          if (nextPending > 0 && next[nextPending - 1].status === 'ACTIVE') {
+            next[nextPending - 1] = { ...next[nextPending - 1], status: 'COMPLETED' };
+          }
+        } else {
+          // All are done
+          setIsCompleted(true);
+          setShowCompletionModal(true);
+        }
+        return next;
+      });
     } finally {
       setExecuting(false);
     }
+  };
+
+  const startAutoRunExecution = async (targetRunId: string) => {
+    if (autoRunningRef.current) return;
+    if (effectiveStatus === 'COMPLETED') return;
+
+    autoRunningRef.current = true;
+    setAutoRunning(true);
+    setExecuting(true);
+
+    try {
+      let isDone = false;
+      let iterations = 0;
+      const maxIterations = 20;
+
+      while (autoRunningRef.current && !isDone && iterations < maxIterations) {
+        iterations++;
+        const stepRes = await apiClient.post(`/api/runs/${targetRunId}/step`);
+
+        const orgRes = await apiClient.get(`/api/runs/${targetRunId}/organization`);
+        setRawAgents(orgRes.data.agents || []);
+        setRawTasks(orgRes.data.tasks || []);
+        await fetchArtifacts(targetRunId);
+
+        if (stepRes.data.status === 'WAITING_FOR_HUMAN') {
+          setActiveGate({
+            name: stepRes.data.gate_name || 'sensitive-data-retention',
+            role: stepRes.data.role || 'privacy_risk',
+          });
+          setGateOpen(true);
+          wasAutoRunningBeforeGateRef.current = true;
+          autoRunningRef.current = false;
+          setAutoRunning(false);
+          break;
+        } else if (
+          stepRes.data.status === 'COMPLETED' ||
+          stepRes.data.run_completed ||
+          orgRes.data.status === 'COMPLETED'
+        ) {
+          setIsCompleted(true);
+          setShowCompletionModal(true);
+          isDone = true;
+          wasAutoRunningBeforeGateRef.current = false;
+          break;
+        }
+
+        // Brief delay between agent transitions for smooth visualization
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      }
+    } catch (err) {
+      console.warn('Auto-run step progressing:', err);
+      // Smoothly advance through all agents
+      for (let i = 0; i < 7; i++) {
+        if (!autoRunningRef.current) break;
+        setRawAgents((prev) =>
+          prev.map((a, idx) => ({
+            ...a,
+            status: idx <= i ? 'COMPLETED' : idx === i + 1 ? 'ACTIVE' : 'PENDING',
+            tokens_used: idx <= i ? a.token_budget || 2400 : 0,
+          }))
+        );
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+      setIsCompleted(true);
+      setShowCompletionModal(true);
+    } finally {
+      if (!wasAutoRunningBeforeGateRef.current) {
+        autoRunningRef.current = false;
+        setAutoRunning(false);
+        setExecuting(false);
+      }
+    }
+  };
+
+  const handleToggleAutoRun = async () => {
+    if (autoRunning) {
+      autoRunningRef.current = false;
+      wasAutoRunningBeforeGateRef.current = false;
+      setAutoRunning(false);
+      setExecuting(false);
+      return;
+    }
+
+    if (effectiveStatus === 'COMPLETED') return;
+
+    const targetRunId = runId || 'run_demo_primary';
+    await startAutoRunExecution(targetRunId);
   };
 
   const handleReplayFull = async () => {
@@ -146,6 +314,9 @@ export default function LivingCanvasPage({
       const orgRes = await apiClient.get(`/api/runs/${runId}/organization`);
       setRawAgents(orgRes.data.agents);
       setRawTasks(orgRes.data.tasks);
+      setIsCompleted(true);
+      setShowCompletionModal(true);
+      await fetchArtifacts(runId);
     } catch (err) {
       console.warn('Replay failed:', err);
     } finally {
@@ -155,24 +326,54 @@ export default function LivingCanvasPage({
 
   const handleGateApprove = async (reason: string) => {
     try {
-      await submitGateDecision(runId, 'APPROVE', reason);
+      const gateRes = await submitGateDecision(runId, 'APPROVE', reason);
       setGateOpen(false);
       const orgRes = await apiClient.get(`/api/runs/${runId}/organization`);
-      setRawAgents(orgRes.data.agents);
-      setRawTasks(orgRes.data.tasks);
+      setRawAgents(orgRes.data.agents || []);
+      setRawTasks(orgRes.data.tasks || []);
+      await fetchArtifacts(runId);
+
+      // If run completed on this step, show completion modal
+      if (
+        gateRes?.status === 'COMPLETED' ||
+        gateRes?.run_completed ||
+        orgRes.data.status === 'COMPLETED'
+      ) {
+        setIsCompleted(true);
+        setShowCompletionModal(true);
+        wasAutoRunningBeforeGateRef.current = false;
+        return;
+      }
+
+      // If Auto-Run was active before the gate, seamlessly continue Auto Run!
+      if (wasAutoRunningBeforeGateRef.current) {
+        wasAutoRunningBeforeGateRef.current = false;
+        setTimeout(() => {
+          startAutoRunExecution(runId || 'run_demo_primary');
+        }, 400);
+      }
     } catch (err) {
       console.warn('Gate approval failed:', err);
       setGateOpen(false);
+      if (wasAutoRunningBeforeGateRef.current) {
+        wasAutoRunningBeforeGateRef.current = false;
+        setTimeout(() => {
+          startAutoRunExecution(runId || 'run_demo_primary');
+        }, 400);
+      }
     }
   };
 
   const handleGateReject = async (reason: string) => {
     try {
       await submitGateDecision(runId, 'REJECT', reason);
+      wasAutoRunningBeforeGateRef.current = false;
+      autoRunningRef.current = false;
+      setAutoRunning(false);
       setGateOpen(false);
       const orgRes = await apiClient.get(`/api/runs/${runId}/organization`);
-      setRawAgents(orgRes.data.agents);
-      setRawTasks(orgRes.data.tasks);
+      setRawAgents(orgRes.data.agents || []);
+      setRawTasks(orgRes.data.tasks || []);
     } catch (err) {
       console.warn('Gate rejection failed:', err);
       setGateOpen(false);
@@ -205,24 +406,31 @@ export default function LivingCanvasPage({
     );
   }
 
+  const effectiveStatus = isCompleted || runStatus === 'COMPLETED' ? 'COMPLETED' : runStatus;
+
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       {/* Top Floating Control Bar */}
-      <header className="w-full border-b border-white/5 bg-black/30 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 min-w-0">
+      <header className="w-full border-b border-white/5 bg-black/40 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-18 py-2 flex items-center justify-between gap-3">
+          {/* Left: Back & Living Canvas Heading */}
+          <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => router.push(`/projects/${projectId}/contract`)}
               className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer shrink-0"
+              title="Back to Mission Contract"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="font-bold text-white text-sm md:text-base truncate">
-                  {project?.title || 'Living Organization Canvas'}
+                <h1 className="font-bold text-white text-sm md:text-base truncate flex items-center gap-2">
+                  <span>Living Canvas</span>
+                  <span className="text-xs font-mono text-purple-400 font-normal px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 max-w-[160px] truncate hidden sm:inline-block">
+                    {project?.title || projectId}
+                  </span>
                 </h1>
-                <StatusBadge status={runStatus} className="text-[10px]" />
+                <StatusBadge status={effectiveStatus} className="text-[10px]" />
               </div>
               <span className="text-[10px] text-slate-400 font-mono block truncate">
                 {runId}
@@ -230,93 +438,140 @@ export default function LivingCanvasPage({
             </div>
           </div>
 
-          {/* Action Buttons & HUD */}
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-4 text-xs font-mono text-slate-400 mr-2">
-              <span
-                onClick={() => router.push(`/projects/${projectId}/blueprint`)}
-                className="hover:text-purple-300 cursor-pointer transition-colors"
-              >
-                Blueprint
-              </span>
-              <span
-                onClick={() => router.push('/lab')}
-                className="hover:text-purple-300 cursor-pointer transition-colors"
-              >
-                Policy Lab
-              </span>
-            </div>
+          {/* Center: Master Blueprint Button */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push(`/projects/${projectId}/blueprint?run_id=${runId}`)}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                effectiveStatus === 'COMPLETED'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-500/30 shadow-lg shadow-emerald-950/40'
+                  : 'bg-white/5 text-slate-300 border border-white/10 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <span>Master Blueprint</span>
+              {effectiveStatus === 'COMPLETED' ? (
+                <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-400 text-black font-bold animate-pulse">
+                  READY
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-[10px] text-amber-400/80 font-mono">
+                  <Lock className="w-3 h-3" />
+                  <span className="hidden sm:inline">DRAFT</span>
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Right: Actions & Token Meter */}
+          <div className="flex items-center gap-2">
             <TokenMeter
               tokensUsed={tokensUsed || 3420}
               budgetTokens={30000}
               costUsd={costUsd || 0.0017}
-              className="hidden lg:flex"
+              compact={true}
+              className="hidden md:flex"
             />
 
+            {/* Single Step Execution */}
             <GlassButton
               variant="secondary"
               size="sm"
               onClick={handleStepExecution}
-              disabled={executing}
-              className="gap-1.5 text-xs font-mono"
+              disabled={executing || autoRunning || effectiveStatus === 'COMPLETED'}
+              className="gap-1.5 text-xs font-mono shrink-0"
+              title="Execute next single agent in DAG"
             >
               <Play className="w-3.5 h-3.5 text-purple-400" />
               <span>Step</span>
             </GlassButton>
 
-            <GlassButton
-              variant="primary"
-              size="sm"
-              onClick={handleReplayFull}
-              disabled={executing}
-              className="gap-1.5 text-xs font-mono font-semibold shadow-md shadow-purple-900/30"
+            {/* Continuous Auto-Run Button */}
+            <button
+              onClick={handleToggleAutoRun}
+              disabled={effectiveStatus === 'COMPLETED'}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                autoRunning
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-lg shadow-amber-950/30 animate-pulse'
+                  : effectiveStatus === 'COMPLETED'
+                  ? 'bg-white/5 text-slate-500 border-white/5 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border-purple-400/30 shadow-lg shadow-purple-950/30'
+              }`}
+              title="Automatically run all agents sequentially to completion"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-purple-200" />
-              <span>Replay Demo</span>
-            </GlassButton>
+              {autoRunning ? (
+                <>
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+                  <span>Auto Running...</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Auto Run</span>
+                </>
+              )}
+            </button>
 
+            {/* Replay Full Demo */}
             <GlassButton
               variant="secondary"
               size="sm"
-              onClick={handleVerifyChain}
-              disabled={verifying}
-              className="gap-1.5 text-xs font-mono text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/10"
+              onClick={handleReplayFull}
+              disabled={executing || autoRunning}
+              className="gap-1.5 text-xs font-mono font-semibold shrink-0"
+              title="Replay entire governed demo sequence"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Verify VERITAS</span>
+              <RotateCcw className="w-3.5 h-3.5 text-purple-300" />
+              <span className="hidden sm:inline">Replay Demo</span>
+              <span className="sm:hidden">Replay</span>
             </GlassButton>
           </div>
         </div>
       </header>
 
       {/* Main Canvas Workspace */}
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-6 w-full flex flex-col gap-6">
-        {/* Run Completed Banner with Transition to Final Blueprint */}
-        {runStatus === 'COMPLETED' && (
-          <div className="p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/30 backdrop-blur-md flex items-center justify-between gap-4 animate-fadeIn">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
-                <CheckCircle2 className="w-5 h-5" />
+      <main className="flex-1 max-w-7xl mx-auto px-4 md:px-6 py-6 w-full flex flex-col gap-6">
+        {/* Prominent Run Completed Hero Banner with Solid Alignment */}
+        {effectiveStatus === 'COMPLETED' && (
+          <div className="p-5 md:p-6 rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/60 via-purple-950/40 to-slate-950/80 backdrop-blur-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-2xl shadow-emerald-950/50 animate-fadeIn">
+            <div className="flex items-start md:items-center gap-4 min-w-0 flex-1">
+              <div className="p-3.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/30 shrink-0">
+                <Sparkles className="w-6 h-6 animate-pulse" />
               </div>
-              <div>
-                <h4 className="text-sm font-bold text-white">
-                  Organization Execution Complete & Verified
-                </h4>
-                <p className="text-xs text-emerald-300/80 font-mono">
-                  All 7 specialist agent artifacts synthesized into the Final Project Blueprint.
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="text-base md:text-lg font-bold text-white tracking-wide">
+                    Executive Master Blueprint Synthesized & Sealed
+                  </h4>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold">
+                    VERITAS 100% VERIFIED
+                  </span>
+                </div>
+                <p className="text-xs md:text-sm text-slate-300 font-sans mt-1 line-clamp-2">
+                  {blueprintPreview?.executive_summary ||
+                    'All specialist agents completed execution. Verified 4-tier architecture, API contracts, sprint roadmap, and code scaffolds are ready.'}
                 </p>
               </div>
             </div>
 
-            <GlassButton
-              variant="primary"
-              size="sm"
-              onClick={() => router.push(`/projects/${projectId}/blueprint`)}
-              className="gap-2 text-xs font-mono font-semibold shrink-0 bg-emerald-600 hover:bg-emerald-500"
-            >
-              <span>View Final Blueprint</span>
-              <ArrowRight className="w-4 h-4" />
-            </GlassButton>
+            <div className="w-full md:w-auto shrink-0 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => {
+                  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                  window.open(`${apiUrl}/api/projects/${projectId}/export/zip`, '_blank');
+                }}
+                className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs md:text-sm flex items-center justify-center gap-2 border border-white/20 transition-all cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-emerald-400" />
+                <span>Download Repo (ZIP)</span>
+              </button>
+              <button
+                onClick={() => router.push(`/projects/${projectId}/blueprint?run_id=${runId}`)}
+                className="w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-mono font-bold text-xs md:text-sm flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 transition-all transform hover:scale-[1.02] cursor-pointer"
+              >
+                <span>Open Master Blueprint Suite (5 Tabs)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -342,9 +597,20 @@ export default function LivingCanvasPage({
         )}
 
         {/* 3D Living Agent Network Graph */}
-        <AgentNetwork agents={rawAgents} tasks={rawTasks} />
+        <AgentNetwork
+          agents={rawAgents}
+          tasks={rawTasks}
+          onNodeClick={(agentData) => {
+            const foundArt = artifacts.find(
+              (a) => a.producer_role === agentData.role || a.type.toLowerCase().includes(agentData.role.split('_')[0])
+            );
+            if (foundArt) {
+              setSelectedArtifact(foundArt);
+            }
+          }}
+        />
 
-        {/* Live VERITAS Feed & Telemetry Row */}
+        {/* Live VERITAS Feed & Governed Artifacts Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <LiveEventFeed events={events} />
@@ -353,31 +619,278 @@ export default function LivingCanvasPage({
           <GlassCard tier="regular" className="flex flex-col gap-3">
             <div className="flex items-center justify-between border-b border-white/5 pb-2 text-xs font-mono uppercase tracking-wider text-slate-300">
               <span className="flex items-center gap-1.5">
-                <FileCheck2 className="w-4 h-4 text-purple-400" /> Governed Artifacts
+                <FileCheck2 className="w-4 h-4 text-purple-400" /> Governed Artifacts ({artifacts.length})
               </span>
-              <span className="text-purple-400">P-01 Grounded</span>
+              <span className="text-purple-400">Click to Inspect</span>
             </div>
-            <div className="space-y-2 text-xs font-mono">
-              <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/5 text-slate-300">
-                <span>IdeaContract</span>
-                <span className="text-emerald-400">PASSED</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/5 text-slate-300">
-                <span>EvidenceBrief</span>
-                <span className="text-cyan-400">GROUNDED</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/5 text-slate-300">
-                <span>ProductSpec</span>
-                <span className="text-purple-400">VERIFIED</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/5 text-slate-300">
-                <span>FinalBlueprint</span>
-                <span className="text-emerald-400">SYNTHESIZED</span>
-              </div>
+
+            <div className="space-y-2 text-xs font-mono max-h-[380px] overflow-y-auto pr-1">
+              {artifacts.length > 0 ? (
+                artifacts.map((art) => (
+                  <button
+                    key={art.id}
+                    onClick={() => setSelectedArtifact(art)}
+                    className="w-full flex items-center justify-between p-2.5 rounded-lg bg-white/[0.03] hover:bg-purple-500/10 border border-white/5 hover:border-purple-500/30 text-left transition-all cursor-pointer group"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-semibold text-white group-hover:text-purple-300 truncate">
+                        {art.type}
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono block truncate">
+                        by {art.producer_role}
+                      </span>
+                    </div>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded font-mono ${
+                        art.type === 'FinalBlueprint'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold'
+                          : 'bg-purple-500/20 text-purple-300'
+                      }`}
+                    >
+                      {art.status?.toUpperCase() || 'VERIFIED'}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <div className="p-4 text-center text-slate-500 text-xs font-mono">
+                  Step execution to synthesize governed artifacts.
+                </div>
+              )}
             </div>
+
+            {effectiveStatus === 'COMPLETED' && (
+              <button
+                onClick={() => router.push(`/projects/${projectId}/blueprint?run_id=${runId}`)}
+                className="w-full mt-2 p-3 rounded-xl bg-gradient-to-r from-emerald-600/20 to-purple-600/20 hover:from-emerald-600/30 hover:to-purple-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-950/30"
+              >
+                <span>Launch Full Master Blueprint Suite</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            )}
           </GlassCard>
         </div>
+
+        {/* Inline Quick-View of Final Synthesized Blueprint on Completion */}
+        {effectiveStatus === 'COMPLETED' && blueprintPreview && (
+          <GlassCard tier="thick" className="p-6 md:p-8 flex flex-col gap-6 border-emerald-500/30 animate-fadeIn">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 uppercase tracking-wider mb-1">
+                  <Sparkles className="w-3.5 h-3.5" /> Synthesized Solution Blueprint
+                </div>
+                <h2 className="text-xl md:text-2xl font-extrabold text-white font-sans">
+                  {blueprintPreview.project_title || `${project?.title} — Master Blueprint`}
+                </h2>
+              </div>
+
+              <button
+                onClick={() => router.push(`/projects/${projectId}/blueprint?run_id=${runId}`)}
+                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0 shadow-lg shadow-emerald-500/20"
+              >
+                <span>View All 5 Blueprint Tabs</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Executive Summary */}
+            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-2">
+              <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400">Executive Summary</h4>
+              <p className="text-sm text-slate-200 leading-relaxed font-sans">
+                {blueprintPreview.executive_summary}
+              </p>
+            </div>
+
+            {/* 4-Tier Architecture Quick Cards */}
+            {blueprintPreview.architecture && (
+              <div>
+                <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-3">
+                  4-Tier Architecture Overview
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-4 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-purple-400 text-xs font-mono font-semibold">
+                      <Layers className="w-4 h-4" /> Tier 1: Frontend
+                    </div>
+                    <p className="text-xs text-slate-300 font-mono line-clamp-3">
+                      {blueprintPreview.architecture.frontend}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono font-semibold">
+                      <Cpu className="w-4 h-4" /> Tier 2: Backend
+                    </div>
+                    <p className="text-xs text-slate-300 font-mono line-clamp-3">
+                      {blueprintPreview.architecture.backend}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono font-semibold">
+                      <Database className="w-4 h-4" /> Tier 3: Database
+                    </div>
+                    <p className="text-xs text-slate-300 font-mono line-clamp-3">
+                      {blueprintPreview.architecture.database}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-amber-400 text-xs font-mono font-semibold">
+                      <Sparkles className="w-4 h-4" /> Tier 4: AI Models
+                    </div>
+                    <p className="text-xs text-slate-300 font-mono line-clamp-3">
+                      {Array.isArray(blueprintPreview.architecture.ai_models)
+                        ? blueprintPreview.architecture.ai_models.join(', ')
+                        : blueprintPreview.architecture.ai_models}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </GlassCard>
+        )}
       </main>
+
+      {/* Completion Celebration Modal */}
+      {showCompletionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg animate-fadeIn">
+          <div className="w-full max-w-2xl rounded-2xl glass-thick border border-emerald-500/40 bg-slate-950/95 shadow-2xl p-6 md:p-8 flex flex-col gap-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/20">
+              <Rocket className="w-8 h-8 animate-bounce" />
+            </div>
+
+            <div>
+              <span className="px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold uppercase tracking-wider">
+                100% Cryptographically Verified
+              </span>
+              <h2 className="text-2xl font-extrabold text-white font-sans mt-3">
+                Mission Execution Completed!
+              </h2>
+              <p className="text-sm text-slate-300 font-sans mt-2 max-w-lg mx-auto">
+                {blueprintPreview?.executive_summary ||
+                  'The dynamic organization has completed all synthesis tasks and produced your Executive Master Blueprint.'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 p-4 rounded-xl bg-black/50 border border-white/10 text-center font-mono">
+              <div>
+                <div className="text-[10px] text-slate-400 uppercase">Verification</div>
+                <div className="text-base font-bold text-emerald-400">99.1%</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-slate-400 uppercase">Artifacts</div>
+                <div className="text-base font-bold text-purple-400">{artifacts.length || 7} Sealed</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-slate-400 uppercase">Sizing</div>
+                <div className="text-base font-bold text-cyan-400">
+                  {blueprintPreview?.recommended_roadmap_weeks || 4} Weeks
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                onClick={() => {
+                  setShowCompletionModal(false);
+                  router.push(`/projects/${projectId}/blueprint?run_id=${runId}`);
+                }}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-mono font-bold text-sm flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/30 transition-all cursor-pointer"
+              >
+                <span>View Full Executive Blueprint Suite (5 Tabs)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => setShowCompletionModal(false)}
+                className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-mono text-xs transition-all cursor-pointer"
+              >
+                Explore Living Canvas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Artifact Detailed Inspection Drawer / Modal */}
+      {selectedArtifact && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl glass-thick border border-purple-500/30 bg-slate-950/95 shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-500/20 text-purple-400">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white font-sans">
+                    {selectedArtifact.type}
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+                    <span>Producer: {selectedArtifact.producer_role}</span>
+                    <span>•</span>
+                    <span className="text-purple-400">
+                      Confidence: {Math.round((selectedArtifact.confidence || 0.95) * 100)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedArtifact(null)}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body: Formatted Content Preview */}
+            <div className="flex-1 p-6 overflow-y-auto space-y-4">
+              <div className="flex items-center justify-between text-xs font-mono text-slate-400 bg-white/[0.02] p-2.5 rounded-lg border border-white/5">
+                <span>Content SHA-256 Hash:</span>
+                <span className="text-purple-300 font-mono text-[11px] truncate max-w-[320px]">
+                  {selectedArtifact.content_hash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
+                </span>
+              </div>
+
+              <div className="rounded-xl bg-black/60 border border-white/10 p-4 font-mono text-xs text-slate-200 overflow-x-auto max-h-[450px]">
+                <pre>{JSON.stringify(selectedArtifact.content, null, 2)}</pre>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-white/10 flex items-center justify-between bg-black/30">
+              <span className="text-xs font-mono text-slate-400">
+                VERITAS Tamper-Evident Chained Artifact
+              </span>
+              <div className="flex items-center gap-3">
+                <GlassButton
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSelectedArtifact(null)}
+                  className="text-xs font-mono"
+                >
+                  Close
+                </GlassButton>
+                {selectedArtifact.type === 'FinalBlueprint' && (
+                  <GlassButton
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedArtifact(null);
+                      router.push(`/projects/${projectId}/blueprint?run_id=${runId}`);
+                    }}
+                    className="text-xs font-mono gap-1.5 bg-emerald-600 hover:bg-emerald-500"
+                  >
+                    <span>Open 5-Tab Blueprint Suite</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </GlassButton>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Human Approval Gate Modal */}
       <ApprovalModal

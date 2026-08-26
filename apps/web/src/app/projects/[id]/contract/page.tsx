@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import {
   getProject,
+  getProjectContract,
   compileOrganization,
   type Project,
   type IdeaContract,
@@ -41,51 +42,63 @@ export default function IdeaContractPage({
   const [contract, setContract] = useState<IdeaContract | null>(null);
   const [compiledPlan, setCompiledPlan] = useState<OrganizationPlan | null>(null);
   const [mode, setMode] = useState<'FAST' | 'BALANCED' | 'DEEP'>('BALANCED');
+  const [modelPolicy, setModelPolicy] = useState<'AUTO' | 'BALANCE' | 'STRICT' | 'NOCAP'>('AUTO');
   const [loading, setLoading] = useState(true);
   const [compiling, setCompiling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Read query params if provided
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const m = urlParams.get('mode');
+      if (m === 'FAST' || m === 'BALANCED' || m === 'DEEP') setMode(m);
+      const p = urlParams.get('policy');
+      if (p === 'AUTO' || p === 'BALANCE' || p === 'STRICT' || p === 'NOCAP') setModelPolicy(p as any);
+    }
     // Fetch project details and stored contract
-    getProject(projectId)
-      .then((proj) => {
+    Promise.all([
+      getProject(projectId),
+      getProjectContract(projectId).catch(() => null),
+    ])
+      .then(([proj, storedContract]) => {
         setProject(proj);
-        // Default contract fallback derived from project if needed
-        setContract({
-          title: proj.title,
-          domain: 'edtech',
-          target_audience: 'B.Tech engineering students and university faculty',
-          problem_statement: proj.objective,
-          success_criteria: [
-            'Support for English, Hindi, Telugu, and Tamil with validated regional corpus',
-            'Personalized adaptive question practice and syllabus coverage',
-            'Privacy-preserving retention of student learning analytics',
-          ],
-          constraints: [
-            'Low-latency response across mobile devices',
-            'Strict compliance with student data retention policies (Policy P-02)',
-            'Regional language terminology accuracy',
-          ],
-          assumptions: [
-            'Target curriculum covers undergraduate engineering core subjects',
-            'Initial deployment targets responsive web client',
-          ],
-          data_sensitivity: 'student-data',
-          confidence: 0.88,
-          open_questions: [
-            'What specific regional languages should be prioritized for Phase 1?',
-            'Will institutional SSO integration be required?',
-          ],
-          suggested_specialists: [
-            'research_analyst',
-            'product_strategist',
-            'ai_architect',
-            'system_architect',
-            'privacy_risk',
-            'consistency_reviewer',
-            'solutions_officer',
-          ],
-        });
+        if (storedContract) {
+          setContract(storedContract);
+        } else {
+          // Dynamic fallback derived from project
+          const obj = proj.objective || '';
+          setContract({
+            title: proj.title,
+            domain: proj.classification || 'general',
+            target_audience: 'Target operators and end-users',
+            problem_statement: obj,
+            success_criteria: [
+              'Production-grade implementation with verified sub-second response times',
+              'Cryptographically audited workflow with zero policy violations',
+            ],
+            constraints: [
+              'Strict compliance with data governance and retention boundaries',
+            ],
+            assumptions: [
+              'System follows iterative milestone architecture execution',
+            ],
+            data_sensitivity: 'internal',
+            confidence: 0.9,
+            open_questions: [
+              'What are the primary target cloud deployment environments?',
+            ],
+            suggested_specialists: [
+              'research_analyst',
+              'product_strategist',
+              'ai_architect',
+              'system_architect',
+              'privacy_risk',
+              'consistency_reviewer',
+              'solutions_officer',
+            ],
+          });
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -101,7 +114,7 @@ export default function IdeaContractPage({
     }
     setCompiling(true);
     try {
-      const plan = await compileOrganization(projectId, mode, 'AUTO');
+      const plan = await compileOrganization(projectId, mode, modelPolicy);
       setCompiledPlan(plan);
       setCompiling(false);
       router.push(`/projects/${projectId}/canvas?run_id=${plan.run_id}`);
@@ -144,7 +157,10 @@ export default function IdeaContractPage({
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-4 text-xs font-mono text-slate-400 mr-2">
               <span
-                onClick={() => router.push(`/projects/${projectId}/canvas`)}
+                onClick={() => {
+                  const storedRun = typeof window !== 'undefined' ? localStorage.getItem(`nexus_last_run_${projectId}`) : null;
+                  router.push(`/projects/${projectId}/canvas${storedRun ? `?run_id=${storedRun}` : ''}`);
+                }}
                 className="hover:text-purple-300 cursor-pointer transition-colors"
               >
                 Canvas
@@ -312,7 +328,7 @@ export default function IdeaContractPage({
                   <div>Retrieved Atoms: {compiledPlan.retrieved_atoms.length}</div>
                 </div>
                 <button
-                  onClick={() => router.push(`/projects/${projectId}/canvas`)}
+                  onClick={() => router.push(`/projects/${projectId}/canvas?run_id=${compiledPlan.run_id}`)}
                   className="pt-2 text-[11px] font-mono text-purple-300 hover:text-purple-100 flex items-center gap-1 cursor-pointer"
                 >
                   Enter Living Canvas →
@@ -326,9 +342,10 @@ export default function IdeaContractPage({
       {/* Floating Bottom Sticky Action Bar (glass-thick) */}
       <div className="fixed bottom-6 inset-x-0 z-40 max-w-4xl mx-auto px-6">
         <GlassCard tier="thick" className="p-4 flex flex-wrap items-center justify-between gap-4 shadow-2xl shadow-purple-950/40 border-purple-500/30">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Depth Selector */}
             <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-              <span>Execution Depth:</span>
+              <span>Depth:</span>
               <div className="inline-flex rounded-lg p-1 bg-black/40 border border-white/10 text-xs">
                 {(['FAST', 'BALANCED', 'DEEP'] as const).map((m) => (
                   <button
@@ -341,6 +358,26 @@ export default function IdeaContractPage({
                     }`}
                   >
                     {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Policy Selector */}
+            <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+              <span>Policy:</span>
+              <div className="inline-flex rounded-lg p-1 bg-black/40 border border-white/10 text-xs">
+                {(['AUTO', 'BALANCE', 'STRICT', 'NOCAP'] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setModelPolicy(p)}
+                    className={`px-2.5 py-1 rounded-md transition-all font-mono ${
+                      modelPolicy === p
+                        ? 'bg-cyan-600 text-white font-semibold shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {p}
                   </button>
                 ))}
               </div>

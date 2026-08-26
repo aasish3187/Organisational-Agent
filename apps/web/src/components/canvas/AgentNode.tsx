@@ -49,6 +49,38 @@ const roleLabelMap: Record<string, string> = {
   organization_compiler: 'Org Compiler',
 };
 
+export const getRoleIcon = (role: string) => {
+  if (roleIconMap[role]) return roleIconMap[role];
+  const lower = role.toLowerCase();
+  if (lower.includes('security') || lower.includes('threat') || lower.includes('privacy') || lower.includes('risk') || lower.includes('compliance') || lower.includes('guard')) {
+    return <ShieldCheck className="w-4 h-4 text-amber-400" />;
+  }
+  if (lower.includes('ai') || lower.includes('model') || lower.includes('ml') || lower.includes('rag') || lower.includes('engineer')) {
+    return <Cpu className="w-4 h-4 text-indigo-400" />;
+  }
+  if (lower.includes('system') || lower.includes('infra') || lower.includes('ledger') || lower.includes('data') || lower.includes('iot')) {
+    return <Layers className="w-4 h-4 text-blue-400" />;
+  }
+  if (lower.includes('review') || lower.includes('audit') || lower.includes('consistency')) {
+    return <FileCheck2 className="w-4 h-4 text-cyan-400" />;
+  }
+  if (lower.includes('solution') || lower.includes('director') || lower.includes('officer') || lower.includes('lead')) {
+    return <CheckCircle className="w-4 h-4 text-emerald-400" />;
+  }
+  if (lower.includes('product') || lower.includes('market') || lower.includes('strategy') || lower.includes('curriculum')) {
+    return <Sparkles className="w-4 h-4 text-purple-400" />;
+  }
+  return <Search className="w-4 h-4 text-cyan-400" />;
+};
+
+export const formatRoleLabel = (role: string) => {
+  if (roleLabelMap[role]) return roleLabelMap[role];
+  return role
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+};
+
 export const AgentNode = memo(({ data, selected }: NodeProps<AgentNodeData>) => {
   const {
     role = 'specialist',
@@ -105,11 +137,11 @@ export const AgentNode = memo(({ data, selected }: NodeProps<AgentNodeData>) => 
 
         <div className="flex items-center gap-2.5 mb-2">
           <div className="p-1.5 rounded-lg bg-black/40 border border-white/10 shrink-0">
-            {roleIconMap[role] || <Cpu className="w-4 h-4 text-purple-400" />}
+            {getRoleIcon(role)}
           </div>
           <div className="min-w-0">
             <h4 className="text-xs font-semibold text-white truncate font-sans">
-              {roleLabelMap[role] || role}
+              {formatRoleLabel(role)}
             </h4>
             <span className="text-[10px] text-slate-400 font-mono block truncate">
               {role}

@@ -55,8 +55,8 @@ class Settings(BaseSettings):
 
     # API Keys & Endpoints
     GEMINI_API_KEY: str | None = None
-    GEMINI_MODEL_PRO: str = "gemini-2.5-pro"
-    GEMINI_MODEL_FLASH: str = "gemini-2.5-flash"
+    GEMINI_MODEL_PRO: str = "gemini-3.6-flash"
+    GEMINI_MODEL_FLASH: str = "gemini-3.5-flash"
 
     ANTHROPIC_API_KEY: str | None = None
     ANTHROPIC_MODEL_PRO: str = "claude-3-7-sonnet-latest"
@@ -67,9 +67,23 @@ class Settings(BaseSettings):
     OPENAI_MODEL_FLASH: str = "gpt-4o-mini"
 
     QWEN_ENABLED: bool = False
-    QWEN_BASE_URL: str = "http://localhost:8000/v1"
+    QWEN_BASE_URL: str = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
     QWEN_API_KEY: str | None = None
-    QWEN_MODEL: str = "Qwen/Qwen2.5-Coder-32B-Instruct"
+    QWEN_MODEL: str = "qwen-max"
+
+    # Groq (Ultra-low latency inference)
+    GROQ_API_KEY: str | None = None
+    GROQ_MODEL: str = "qwen/qwen3.6-27b"
+    GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
+
+    # OpenRouter (Universal Multi-Model Gateway)
+    OPENROUTER_API_KEY: str | None = None
+    OPENROUTER_MODEL: str = "qwen/qwen-2.5-72b-instruct"
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+
+    # Ollama (Local Privacy-Preserving Execution)
+    OLLAMA_BASE_URL: str = "http://localhost:11434/v1"
+    OLLAMA_MODEL: str = "qwen2.5:14b"
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod

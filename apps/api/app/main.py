@@ -7,11 +7,14 @@ from app.core.config import settings
 from app.core.database import engine
 from app.core.middleware import setup_production_middleware
 from app.core.redis_client import close_redis
+from app.routers.direct_query import router as direct_query_router
 from app.routers.events import router as events_router
 from app.routers.health import router as health_router
 from app.routers.lab import router as lab_router
 from app.routers.projects import router as projects_router
 from app.routers.runs import router as runs_router
+from app.routers.sandbox import router as sandbox_router
+from app.routers.streaming import router as streaming_router
 
 
 @asynccontextmanager
@@ -51,3 +54,6 @@ app.include_router(projects_router, prefix="/api")
 app.include_router(runs_router, prefix="/api")
 app.include_router(events_router, prefix="/api")
 app.include_router(lab_router, prefix="/api")
+app.include_router(streaming_router, prefix="/api")
+app.include_router(sandbox_router, prefix="/api")
+app.include_router(direct_query_router, prefix="/api")

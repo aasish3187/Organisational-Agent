@@ -14,7 +14,7 @@ from app.services.mnemos import retrieve_atoms
 
 class OrganizationCompilerAgent(BaseAgent):
     role = "organization_compiler"
-    mandate = "Compile minimal governed multi-agent organization and execution DAG from IdeaContract and MNEMOS memory."
+    mandate = "Compile minimal governed multi-agent organization and execution DAG dynamically tailored to IdeaContract and MNEMOS memory."
     non_goals = [
         "Activate unneeded agent roles by default",
         "Grant unrestricted write permissions to any agent",
@@ -48,17 +48,81 @@ class OrganizationCompilerAgent(BaseAgent):
         tasks: list[TaskSpec] = []
         human_gates: list[str] = []
 
-        # Always include Research & Product
+        # Determine dynamic domain-native role names
+        g_lower = goal.lower()
+        if domain == "food_redistribution" or "food" in g_lower or "redistribution" in g_lower:
+            r_research = "supply_chain_analyst"
+            r_product = "logistics_product_strategist"
+            r_ai = "perishability_ai_architect"
+            r_system = "geo_dispatch_systems_architect"
+            r_privacy = "food_safety_compliance_officer"
+            r_reviewer = "logistics_consistency_reviewer"
+            r_solutions = "logistics_solutions_officer"
+            gate_name = "food-safety-compliance-check"
+            gate_reason = "Food safety guidelines require verification of cold-chain and perishability time limits."
+        elif domain == "grievance" or "grievance" in g_lower or "complaint" in g_lower:
+            r_research = "civic_intelligence_analyst"
+            r_product = "public_service_product_strategist"
+            r_ai = "nlp_triage_ai_architect"
+            r_system = "e_governance_systems_architect"
+            r_privacy = "whistleblower_privacy_guard"
+            r_reviewer = "civic_consistency_reviewer"
+            r_solutions = "governance_solutions_officer"
+            gate_name = "sensitive-data-retention"
+            gate_reason = "Policy P-02 requires zero-knowledge citizen anonymization and retention authorization."
+        elif domain == "healthcare" or "health" in g_lower or "medical" in g_lower or "clinical" in g_lower:
+            r_research = "clinical_data_specialist"
+            r_product = "medical_product_architect"
+            r_ai = "biomedical_ai_engineer"
+            r_system = "hipaa_fhir_systems_architect"
+            r_privacy = "bioethics_privacy_officer"
+            r_reviewer = "clinical_consistency_auditor"
+            r_solutions = "healthcare_solutions_officer"
+            gate_name = "sensitive-data-retention"
+            gate_reason = "HIPAA and Policy P-02 require explicit human authorization for patient health telemetry."
+        elif domain == "fintech" or "finance" in g_lower or "trading" in g_lower or "banking" in g_lower:
+            r_research = "market_quantitative_analyst"
+            r_product = "fintech_product_strategist"
+            r_ai = "fraud_detection_ai_architect"
+            r_system = "ledger_transaction_architect"
+            r_privacy = "sec_regulatory_compliance_officer"
+            r_reviewer = "financial_consistency_reviewer"
+            r_solutions = "fintech_solutions_officer"
+            gate_name = "sensitive-data-retention"
+            gate_reason = "Financial compliance requires human audit approval for transaction logging policies."
+        elif domain == "cybersecurity" or "security" in g_lower or "threat" in g_lower:
+            r_research = "threat_intelligence_analyst"
+            r_product = "secops_product_strategist"
+            r_ai = "anomaly_detection_ai_engineer"
+            r_system = "zero_trust_systems_architect"
+            r_privacy = "vulnerability_compliance_officer"
+            r_reviewer = "security_consistency_reviewer"
+            r_solutions = "cybersecurity_solutions_officer"
+            gate_name = "sensitive-data-retention"
+            gate_reason = "Zero-trust protocol requires authorization for security audit retention waiver."
+        else:
+            # EdTech / Default standard specialization
+            r_research = "research_analyst"
+            r_product = "product_strategist"
+            r_ai = "ai_architect"
+            r_system = "system_architect"
+            r_privacy = "privacy_risk"
+            r_reviewer = "consistency_reviewer"
+            r_solutions = "solutions_officer"
+            gate_name = "sensitive-data-retention"
+            gate_reason = "Policy P-02 requires explicit human authorization for student diagnostic data retention."
+
+        # 1. Research Analyst Role
         rationale.append(
             SelectionRationale(
-                role="research_analyst",
-                reason="Mandatory grounding with verified domain evidence and source evaluation.",
+                role=r_research,
+                reason=f"Mandatory grounding with verified {domain} domain evidence and empirical source evaluation.",
             )
         )
         tasks.append(
             TaskSpec(
                 task_id="tsk_research",
-                role="research_analyst",
+                role=r_research,
                 depends_on=[],
                 allowed_tools=["web_search", "document_retrieval"],
                 input_artifacts=["IdeaContract"],
@@ -69,16 +133,17 @@ class OrganizationCompilerAgent(BaseAgent):
             )
         )
 
+        # 2. Product Strategist Role
         rationale.append(
             SelectionRationale(
-                role="product_strategist",
-                reason="Defines core features, user journey, and bounded MVP scope.",
+                role=r_product,
+                reason=f"Defines core {domain} feature specifications, user personas, and bounded MVP release criteria.",
             )
         )
         tasks.append(
             TaskSpec(
                 task_id="tsk_product",
-                role="product_strategist",
+                role=r_product,
                 depends_on=["tsk_research"],
                 allowed_tools=["document_retrieval"],
                 input_artifacts=["IdeaContract", "EvidenceBrief"],
@@ -89,96 +154,90 @@ class OrganizationCompilerAgent(BaseAgent):
             )
         )
 
-        # Domain-specific specialist activation & Policy P-02 check
-        if domain == "edtech" or "multilingual" in goal.lower():
-            # Check if reinforced by MNEMOS atom
-            atom_ref = next(
-                (a for a in retrieved_atoms if "multilingual" in a.get("tags", [])), None
-            )
-            rationale.append(
-                SelectionRationale(
-                    role="ai_architect",
-                    reason="Designs multilingual model selection, embeddings, and regional dataset validation.",
-                    source=f"mnemos_atom:{atom_ref['id']}" if atom_ref else None,
-                )
-            )
-            tasks.append(
-                TaskSpec(
-                    task_id="tsk_ai_arch",
-                    role="ai_architect",
-                    depends_on=["tsk_product"],
-                    allowed_tools=["document_retrieval"],
-                    input_artifacts=["ProductSpec"],
-                    output_schema="AIArchitecture",
-                    review_required=True,
-                    token_budget=5000,
-                    risk_level="medium",
-                )
-            )
-
-        # System Architecture
+        # 3. AI Architect Role
+        atom_ref = next((a for a in retrieved_atoms if "multilingual" in a.get("tags", []) or "ai" in a.get("tags", [])), None)
+        atom_ref_id = (atom_ref.get("atom_id") or atom_ref.get("id")) if atom_ref else None
         rationale.append(
             SelectionRationale(
-                role="system_architect",
-                reason="Architects service components, API contracts, data flows, and infrastructure tier.",
+                role=r_ai,
+                reason=f"Designs foundation model tiers, embeddings, vector indexing, and RAG prompt topologies for {domain}.",
+                source=f"mnemos_atom:{atom_ref_id}" if atom_ref_id else None,
+            )
+        )
+        tasks.append(
+            TaskSpec(
+                task_id="tsk_ai_arch",
+                role=r_ai,
+                depends_on=["tsk_product"],
+                allowed_tools=["document_retrieval"],
+                input_artifacts=["ProductSpec"],
+                output_schema="AIArchitectureSpec",
+                review_required=True,
+                token_budget=5000,
+                risk_level="medium",
+            )
+        )
+
+        # 4. System Architect Role
+        rationale.append(
+            SelectionRationale(
+                role=r_system,
+                reason=f"Architects microservice APIs, database schemas, Redis event queues, and Docker infrastructure for {domain}.",
             )
         )
         tasks.append(
             TaskSpec(
                 task_id="tsk_sys_arch",
-                role="system_architect",
+                role=r_system,
                 depends_on=["tsk_product"],
                 allowed_tools=["document_retrieval"],
                 input_artifacts=["ProductSpec"],
-                output_schema="SystemDesign",
+                output_schema="SystemArchitectureSpec",
                 review_required=True,
                 token_budget=5000,
                 risk_level="low",
             )
         )
 
-        # Policy P-02: Personal/Student/Health data activates Privacy/Risk Analyst
-        if (
-            data_sensitivity in ["student-data", "health", "financial", "high"]
-            or domain == "edtech"
-        ):
-            atom_ref = next((a for a in retrieved_atoms if "privacy" in a.get("tags", [])), None)
-            rationale.append(
-                SelectionRationale(
-                    role="privacy_risk",
-                    reason=f"Policy P-02: {data_sensitivity} requires dedicated threat modeling and retention limits.",
-                    source=f"mnemos_atom:{atom_ref['id']}" if atom_ref else None,
-                )
-            )
-            human_gates.append("sensitive-data-retention")
-            tasks.append(
-                TaskSpec(
-                    task_id="tsk_privacy_risk",
-                    role="privacy_risk",
-                    depends_on=["tsk_sys_arch"],
-                    allowed_tools=["document_retrieval"],
-                    input_artifacts=["SystemDesign", "ProductSpec"],
-                    output_schema="RiskRegister",
-                    review_required=True,
-                    token_budget=5000,
-                    risk_level="high",
-                )
-            )
-
-        # Consistency Reviewer (Assurance layer)
+        # 5. Privacy & Risk Governance Role (Policy P-02)
+        atom_ref_priv = next((a for a in retrieved_atoms if "privacy" in a.get("tags", [])), None)
+        atom_ref_priv_id = (atom_ref_priv.get("atom_id") or atom_ref_priv.get("id")) if atom_ref_priv else None
         rationale.append(
             SelectionRationale(
-                role="consistency_reviewer",
-                reason="Cross-artifact verification checking contradictions, missing evidence, and policy adherence.",
+                role=r_privacy,
+                reason=f"Policy P-02: {data_sensitivity} requires dedicated threat modeling and retention limits. {gate_reason}",
+                source=f"mnemos_atom:{atom_ref_priv_id}" if atom_ref_priv_id else None,
+            )
+        )
+        human_gates.append(gate_name)
+        tasks.append(
+            TaskSpec(
+                task_id="tsk_privacy_risk",
+                role=r_privacy,
+                depends_on=["tsk_sys_arch"],
+                allowed_tools=["document_retrieval"],
+                input_artifacts=["SystemArchitectureSpec", "ProductSpec"],
+                output_schema="RiskAssessment",
+                review_required=True,
+                token_budget=5000,
+                risk_level="high",
+            )
+        )
+
+        # 6. Consistency Reviewer Assurance Role
+        rationale.append(
+            SelectionRationale(
+                role=r_reviewer,
+                reason="Cross-artifact verification checking contradictions, missing evidence, and policy compliance.",
             )
         )
         tasks.append(
             TaskSpec(
                 task_id="tsk_reviewer",
-                role="consistency_reviewer",
-                depends_on=[t.task_id for t in tasks if t.task_id != "tsk_reviewer"],
+                role=r_reviewer,
+                depends_on=["tsk_ai_arch", "tsk_privacy_risk"],
                 allowed_tools=["document_retrieval"],
-                input_artifacts=["EvidenceBrief", "ProductSpec", "SystemDesign"],
+                input_artifacts=["EvidenceBrief", "ProductSpec", "SystemArchitectureSpec", "RiskAssessment"],
                 output_schema="ReviewReport",
                 review_required=False,
                 token_budget=4000,
@@ -186,20 +245,20 @@ class OrganizationCompilerAgent(BaseAgent):
             )
         )
 
-        # Solutions Officer (Final synthesis)
+        # 7. Solutions Officer Synthesis Role
         rationale.append(
             SelectionRationale(
-                role="solutions_officer",
-                reason="Synthesizes verified inputs into a coherent, exportable Final Blueprint.",
+                role=r_solutions,
+                reason=f"Synthesizes all verified {domain} inputs into an exportable Master Blueprint with code scaffolds and VERITAS seal.",
             )
         )
         tasks.append(
             TaskSpec(
                 task_id="tsk_final_blueprint",
-                role="solutions_officer",
+                role=r_solutions,
                 depends_on=["tsk_reviewer"],
                 allowed_tools=["document_retrieval"],
-                input_artifacts=["ProductSpec", "SystemDesign", "ReviewReport"],
+                input_artifacts=["ProductSpec", "SystemArchitectureSpec", "ReviewReport"],
                 output_schema="FinalBlueprint",
                 review_required=False,
                 token_budget=6000,

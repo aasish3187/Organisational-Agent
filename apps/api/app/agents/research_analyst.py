@@ -90,6 +90,7 @@ class ResearchAnalystAgent(BaseAgent):
                 user_prompt=user_prompt,
                 schema=EvidenceBrief,
                 tier="PRO",
+                preferred_provider="openrouter",
                 demo_fallback_data=default_brief.model_dump(),
             )
             brief_obj = EvidenceBrief.model_validate(content_dict)

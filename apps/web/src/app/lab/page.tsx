@@ -30,9 +30,11 @@ import {
   type PolicyItem,
   type SimulationResult,
 } from '@/lib/api';
+import { PolicyInterceptorModal } from '@/components/ui/PolicyInterceptorModal';
 
 export default function CounterfactualLabPage() {
   const router = useRouter();
+  const [showThreatSimulator, setShowThreatSimulator] = useState(false);
 
   const [policies, setPolicies] = useState<PolicyItem[]>([]);
   const [activePolicies, setActivePolicies] = useState<string[]>([
@@ -148,21 +150,20 @@ export default function CounterfactualLabPage() {
               <span className="font-bold text-white text-sm md:text-base">
                 Governance Lab & Policy Sandbox
               </span>
-              <span className="text-xs font-mono text-purple-400 font-normal px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20">
-                Screen F
+              <span className="text-xs font-mono text-purple-400 font-normal px-2.5 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20">
+                Interactive Sandbox
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-4 text-xs font-mono text-slate-400 mr-2">
-              <span
-                onClick={() => router.push('/')}
-                className="hover:text-purple-300 cursor-pointer transition-colors"
-              >
-                Mission Intake
-              </span>
-            </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowThreatSimulator(true)}
+              className="px-3 py-1.5 rounded-lg text-xs font-mono bg-rose-500/10 text-rose-300 border border-rose-500/30 hover:bg-rose-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+              <span>Live Threat Simulator</span>
+            </button>
             <span className="bg-purple-500/10 text-purple-300 text-xs font-mono px-3 py-1 rounded-full border border-purple-500/30 flex items-center gap-1.5">
               <Terminal className="w-3.5 h-3.5 text-purple-400" />
               Counterfactual Sandbox
@@ -478,6 +479,13 @@ export default function CounterfactualLabPage() {
           </div>
         </GlassCard>
       </main>
+
+      {/* Live Policy Interceptor Threat Simulator Modal */}
+      <PolicyInterceptorModal
+        runId="run_demo_primary"
+        isOpen={showThreatSimulator}
+        onClose={() => setShowThreatSimulator(false)}
+      />
     </div>
   );
 }

@@ -104,11 +104,18 @@ async def emit_event(
 async def verify_chain(session: AsyncSession, run_id: str) -> dict[str, Any]:
     """
     Recompute the chain. Reads payload_canonical from storage (never re-serializes).
-    Returns: {valid: bool, event_count: int, broken_at_index: int | None, message: str}
+    Returns: {valid: bool, event_count: int, broken_at_index: int | None, message: str, merkle_root: str, blocks: list}
     """
     stmt = (
         select(
-            Event.sequence, Event.prev_hash, Event.hash, Event.payload_canonical, Event.timestamp
+            Event.id,
+            Event.sequence,
+            Event.prev_hash,
+            Event.hash,
+            Event.payload_canonical,
+            Event.timestamp,
+            Event.type,
+            Event.actor,
         )
         .where(Event.run_id == run_id)
         .order_by(Event.sequence.asc())
@@ -120,33 +127,63 @@ async def verify_chain(session: AsyncSession, run_id: str) -> dict[str, Any]:
             "valid": False,
             "event_count": 0,
             "broken_at_index": None,
+            "merkle_root": GENESIS_HASH,
             "message": "No events found for this run.",
+            "blocks": [],
         }
 
     expected_prev = GENESIS_HASH
+    blocks = []
+    hashes = []
+
     for evt in events:
-        seq, prev_h, current_h, payload_str, ts = evt
+        evt_id, seq, prev_h, current_h, payload_str, ts, evt_type, actor = evt
         ts_str = format_timestamp(ts)
         expected_hash = compute_hash(prev_h, payload_str, ts_str)
+        is_valid = (prev_h == expected_prev) and (current_h == expected_hash)
+
+        blocks.append({
+            "id": evt_id,
+            "sequence": seq,
+            "type": evt_type,
+            "actor": actor,
+            "prev_hash": prev_h,
+            "hash": current_h,
+            "timestamp": ts_str,
+            "payload_canonical": payload_str,
+            "is_valid": is_valid,
+        })
+        hashes.append(current_h)
+
         if prev_h != expected_prev:
             return {
                 "valid": False,
                 "event_count": len(events),
                 "broken_at_index": seq,
+                "merkle_root": GENESIS_HASH,
                 "message": f"Chain broken at event {seq}: prev_hash mismatch.",
+                "blocks": blocks,
             }
         if current_h != expected_hash:
             return {
                 "valid": False,
                 "event_count": len(events),
                 "broken_at_index": seq,
+                "merkle_root": GENESIS_HASH,
                 "message": f"Chain broken at event {seq}: hash mismatch (payload tampered?).",
+                "blocks": blocks,
             }
         expected_prev = current_h
+
+    # Compute Merkle Root across all leaf hashes
+    combined_leaves = "".join(hashes)
+    merkle_root = hashlib.sha256(combined_leaves.encode("utf-8")).hexdigest()
 
     return {
         "valid": True,
         "event_count": len(events),
         "broken_at_index": None,
+        "merkle_root": merkle_root,
         "message": f"All {len(events)} events verified. Chain intact.",
+        "blocks": blocks,
     }

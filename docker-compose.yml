@@ -40,13 +40,12 @@ services:
       dockerfile: Dockerfile
     container_name: nexus-api
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql+asyncpg://nexus:nexus_secret@db:5432/nexus_db
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=production
-      - DEMO_REPLAY=true
-      - PRIMARY_PROVIDER=gemini
-      - FALLBACK_PROVIDER=anthropic
       - RATE_LIMIT_ENABLED=true
     ports:
       - "8000:8000"

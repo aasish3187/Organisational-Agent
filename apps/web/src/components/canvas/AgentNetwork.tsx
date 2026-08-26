@@ -50,31 +50,47 @@ export function AgentNetwork({ agents, tasks, onNodeClick }: AgentNetworkProps) 
   useEffect(() => {
     if (!agents || agents.length === 0) return;
 
-    // Define positions in an organic, governed hierarchy:
-    // Left: Research, Product
-    // Center: AI Architect, System Architect, Privacy/Risk
-    // Right: Reviewer, Solutions Officer
-    const rolePositions: Record<string, { x: number; y: number }> = {
-      mission_interpreter: { x: 50, y: 150 },
-      research_analyst: { x: 50, y: 320 },
-      product_strategist: { x: 280, y: 220 },
-      ai_architect: { x: 520, y: 120 },
-      system_architect: { x: 520, y: 320 },
-      privacy_risk: { x: 520, y: 480 },
-      consistency_reviewer: { x: 780, y: 220 },
-      solutions_officer: { x: 1020, y: 220 },
-    };
-
+    // Dynamically calculate positions in an organic multi-tier hierarchy
+    const totalAgents = agents.length;
     const initialNodes: Node<AgentNodeData>[] = agents.map((agt, i) => {
-      const pos = rolePositions[agt.role] || {
-        x: 200 + (i % 3) * 240,
-        y: 100 + Math.floor(i / 3) * 180,
-      };
+      // Calculate level based on role heuristics or index
+      let x = 100;
+      let y = 200;
+
+      const lower = agt.role.toLowerCase();
+      if (lower.includes('research') || lower.includes('intelligence') || lower.includes('market') || lower.includes('interpreter')) {
+        x = 60;
+        y = 140 + (i % 2) * 200;
+      } else if (lower.includes('product') || lower.includes('strategist') || lower.includes('operations')) {
+        x = 280;
+        y = 220;
+      } else if (lower.includes('ai') || lower.includes('model') || lower.includes('rag')) {
+        x = 520;
+        y = 100;
+      } else if (lower.includes('system') || lower.includes('infra') || lower.includes('ledger') || lower.includes('iot')) {
+        x = 520;
+        y = 280;
+      } else if (lower.includes('privacy') || lower.includes('risk') || lower.includes('compliance') || lower.includes('guard')) {
+        x = 520;
+        y = 460;
+      } else if (lower.includes('reviewer') || lower.includes('auditor') || lower.includes('consistency')) {
+        x = 780;
+        y = 220;
+      } else if (lower.includes('solution') || lower.includes('director') || lower.includes('officer') || lower.includes('lead')) {
+        x = 1020;
+        y = 220;
+      } else {
+        // Organic grid distribution
+        const col = Math.floor((i / totalAgents) * 4);
+        const row = i % 3;
+        x = 80 + col * 260;
+        y = 120 + row * 180;
+      }
 
       return {
         id: agt.id || `node_${agt.role}`,
         type: 'agentNode',
-        position: pos,
+        position: { x, y },
         data: {
           role: agt.role,
           status: agt.status || 'PENDING',
@@ -85,38 +101,56 @@ export function AgentNetwork({ agents, tasks, onNodeClick }: AgentNetworkProps) 
       };
     });
 
-    // Generate edges connecting the governance workflow
-    const edgeConnections = [
-      { source: 'research_analyst', target: 'product_strategist' },
-      { source: 'product_strategist', target: 'ai_architect' },
-      { source: 'product_strategist', target: 'system_architect' },
-      { source: 'system_architect', target: 'privacy_risk' },
-      { source: 'ai_architect', target: 'consistency_reviewer' },
-      { source: 'system_architect', target: 'consistency_reviewer' },
-      { source: 'privacy_risk', target: 'consistency_reviewer' },
-      { source: 'consistency_reviewer', target: 'solutions_officer' },
-    ];
-
+    // Generate dynamic edges from task dependencies or sequential pipeline
     const initialEdges: Edge[] = [];
-    edgeConnections.forEach((conn, idx) => {
-      const srcNode = initialNodes.find((n) => n.data.role === conn.source);
-      const tgtNode = initialNodes.find((n) => n.data.role === conn.target);
-      if (srcNode && tgtNode) {
+    if (tasks && tasks.length > 0) {
+      tasks.forEach((t) => {
+        const targetNode = initialNodes.find((n) => n.data.role === t.role || n.id === t.id);
+        if (targetNode && t.depends_on) {
+          t.depends_on.forEach((depId) => {
+            const srcTask = tasks.find((tk) => tk.id === depId);
+            const srcRole = srcTask ? srcTask.role : depId;
+            const srcNode = initialNodes.find((n) => n.data.role === srcRole || n.id === depId);
+            if (srcNode && targetNode && srcNode.id !== targetNode.id) {
+              const edgeId = `e_${srcNode.id}_${targetNode.id}`;
+              if (!initialEdges.some((e) => e.id === edgeId)) {
+                initialEdges.push({
+                  id: edgeId,
+                  source: srcNode.id,
+                  target: targetNode.id,
+                  type: 'dataPacket',
+                  data: {
+                    active:
+                      srcNode.data.status === 'ACTIVE' ||
+                      targetNode.data.status === 'ACTIVE' ||
+                      srcNode.data.status === 'COMPLETED',
+                  },
+                });
+              }
+            }
+          });
+        }
+      });
+    }
+
+    // Fallback pipeline edges if no task edges generated
+    if (initialEdges.length === 0 && initialNodes.length > 1) {
+      for (let i = 0; i < initialNodes.length - 1; i++) {
         initialEdges.push({
-          id: `e_${srcNode.id}_${tgtNode.id}`,
-          source: srcNode.id,
-          target: tgtNode.id,
+          id: `e_${initialNodes[i].id}_${initialNodes[i + 1].id}`,
+          source: initialNodes[i].id,
+          target: initialNodes[i + 1].id,
           type: 'dataPacket',
           data: {
-            active: srcNode.data.status === 'ACTIVE' || tgtNode.data.status === 'ACTIVE' || srcNode.data.status === 'COMPLETED',
+            active: initialNodes[i].data.status === 'ACTIVE' || initialNodes[i].data.status === 'COMPLETED',
           },
         });
       }
-    });
+    }
 
     setNodes(initialNodes);
     setEdges(initialEdges);
-  }, [agents, setNodes, setEdges]);
+  }, [agents, tasks, setNodes, setEdges]);
 
   const handleNodeClick = useCallback(
     (_: any, node: Node<AgentNodeData>) => {
