@@ -261,15 +261,15 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen relative overflow-hidden bg-[#050810]">
+    <div className="flex-1 flex flex-col min-h-screen relative overflow-x-clip bg-[#050810]">
       {/* Ambient Radial Aurora Background Glows */}
       <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-purple-900/15 blur-[120px] pointer-events-none" />
       <div className="absolute top-[10%] right-[-10%] w-[650px] h-[650px] rounded-full bg-cyan-900/15 blur-[140px] pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[30%] w-[700px] h-[700px] rounded-full bg-indigo-900/10 blur-[150px] pointer-events-none" />
 
-      {/* Top Floating Pill Navigation Bar */}
-      <div className="w-full pt-6 pb-2 px-6 flex justify-center sticky top-0 z-50">
-        <header className="floating-nav-pill px-5 py-2.5 flex items-center justify-between gap-6 max-w-3xl w-full">
+      {/* Top Floating Pill Navigation Bar (Fixed on Scroll with Glassmorphism) */}
+      <div className="fixed top-4 left-0 right-0 z-50 px-4 sm:px-6 flex justify-center pointer-events-none">
+        <header className="floating-nav-pill px-5 py-2.5 flex items-center justify-between gap-6 max-w-3xl w-full pointer-events-auto shadow-2xl shadow-black/80 border border-white/15 backdrop-blur-2xl">
           {/* Logo Badge */}
           <div
             onClick={() => router.push('/')}
@@ -309,8 +309,8 @@ export default function LandingPage() {
         </header>
       </div>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-5xl mx-auto px-6 pt-8 pb-16 flex flex-col items-center w-full z-10">
+      {/* Main Content Area with pt-24 for Floating Navbar */}
+      <main className="flex-1 max-w-5xl mx-auto px-6 pt-24 pb-16 flex flex-col items-center w-full z-10">
         {/* Version Badge Pill */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-950/30 backdrop-blur-md mb-6 shadow-sm shadow-cyan-950/40">
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
