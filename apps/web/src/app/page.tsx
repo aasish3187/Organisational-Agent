@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   Cpu,
   Database,
-  Sparkles,
   ArrowRight,
   Zap,
   Layers,
@@ -677,65 +676,6 @@ export default function LandingPage() {
               <span>{errorMessage}</span>
             </div>
           )}
-        </div>
-
-        {/* 1-Click Flagship Expo Blueprints Gallery */}
-        <div className="w-full max-w-4xl mb-12 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-mono uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              Flagship Expo Blueprints (1-Click Explore)
-            </h3>
-            <span className="text-xs font-mono text-slate-500">Verified Benchmarks</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {SAMPLE_MISSIONS.slice(0, 3).map((sample) => (
-              <div
-                key={sample.id}
-                className="liquid-glass-card p-5 rounded-2xl flex flex-col justify-between gap-4 border border-white/10 hover:border-purple-500/40 transition-all group"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-mono text-cyan-400 uppercase font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
-                      {sample.domain}
-                    </span>
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
-                      {sample.stats.score}
-                    </span>
-                  </div>
-                  <h4 className="font-bold text-white text-sm group-hover:text-purple-300 transition-colors">
-                    {sample.title}
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-                    {sample.idea}
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-white/5 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
-                    <span>{sample.stats.time}</span>
-                    <span>·</span>
-                    <span className="text-amber-400">{sample.stats.budget}</span>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      if (sample.id === 'edtech') {
-                        router.push('/projects/prj_demo/blueprint');
-                      } else {
-                        handleSelectSample(sample);
-                      }
-                    }}
-                    className="text-xs font-mono text-purple-300 hover:text-white flex items-center gap-1 cursor-pointer font-semibold"
-                  >
-                    <span>{sample.id === 'edtech' ? 'View Blueprint' : 'Load Mission'}</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* 3-Step Interactive "How ORGagent Works" Visual Workflow */}
