@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     DEMO_REPLAY: bool = True
 
     # LLM Gateway & Multi-Model Routing
-    PRIMARY_PROVIDER: str = "gemini"  # gemini | anthropic | openai | qwen
+    PRIMARY_PROVIDER: str = "gemini"  # gemini | deepseek | glm | anthropic | openai | qwen
     FALLBACK_PROVIDER: str = "anthropic"
     MODEL_POLICY: str = "AUTO"  # STRICT | BALANCE | NOCAP | AUTO
 
@@ -71,6 +71,18 @@ class Settings(BaseSettings):
     QWEN_API_KEY: str | None = None
     QWEN_MODEL: str = "qwen-max"
 
+    # DeepSeek (DeepSeek-R1 Deep Reasoning & DeepSeek-V3)
+    DEEPSEEK_API_KEY: str | None = None
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com/v1"
+    DEEPSEEK_MODEL_PRO: str = "deepseek-reasoner"  # DeepSeek-R1 Reasoning Engine
+    DEEPSEEK_MODEL_FLASH: str = "deepseek-chat"    # DeepSeek-V3 Chat Engine
+
+    # GLM 5.2 / GLM-4 (Zhipu AI General Language Model)
+    GLM_API_KEY: str | None = None
+    GLM_BASE_URL: str = "https://open.bigmodel.cn/api/paas/v4"
+    GLM_MODEL_PRO: str = "glm-5.2"                 # GLM 5.2 Flagship Engine
+    GLM_MODEL_FLASH: str = "glm-4-flash"           # Fast Low-Latency Tier
+
     # Groq (Ultra-low latency inference)
     GROQ_API_KEY: str | None = None
     GROQ_MODEL: str = "qwen/qwen3.6-27b"
@@ -78,12 +90,12 @@ class Settings(BaseSettings):
 
     # OpenRouter (Universal Multi-Model Gateway)
     OPENROUTER_API_KEY: str | None = None
-    OPENROUTER_MODEL: str = "qwen/qwen-2.5-72b-instruct"
+    OPENROUTER_MODEL: str = "deepseek/deepseek-r1"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
     # Ollama (Local Privacy-Preserving Execution)
     OLLAMA_BASE_URL: str = "http://localhost:11434/v1"
-    OLLAMA_MODEL: str = "qwen2.5:14b"
+    OLLAMA_MODEL: str = "deepseek-r1:14b"
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod

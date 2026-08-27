@@ -798,38 +798,60 @@ export default function LandingPage() {
               </button>
             </div>
 
-            <div className="space-y-4 text-xs font-mono">
-              <div className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-2">
+            <div className="space-y-3 text-xs font-mono max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
+              <div className="p-3 rounded-xl bg-black/40 border border-emerald-500/20 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-bold">Google Gemini</span>
-                  <span className="text-emerald-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Active (gemini-3.6-flash)
+                  <span className="text-emerald-300 font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    DeepSeek-R1
                   </span>
+                  <span className="text-emerald-400 font-semibold">deepseek-reasoner</span>
                 </div>
-                <p className="text-slate-500">Primary reasoning engine for DAG synthesis &amp; contract compilation.</p>
+                <p className="text-slate-400 text-[11px]">Deep chain-of-thought mathematical &amp; algorithmic reasoning with native &lt;think&gt; parsing.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-2">
+              <div className="p-3 rounded-xl bg-black/40 border border-teal-500/20 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-bold">Groq Cloud</span>
-                  <span className="text-emerald-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Active (qwen/qwen3.6-27b)
+                  <span className="text-teal-300 font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+                    GLM 5.2 (Zhipu AI)
                   </span>
+                  <span className="text-teal-400 font-semibold">glm-5.2</span>
                 </div>
-                <p className="text-slate-500">Ultra-fast sub-200ms fallback inference pool.</p>
+                <p className="text-slate-400 text-[11px]">Enterprise General Language Model specialized in cross-lingual synthesis and contract audit.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-2">
+              <div className="p-3 rounded-xl bg-black/40 border border-blue-500/20 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-bold">OpenRouter Gateway</span>
-                  <span className="text-cyan-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                    Configured (qwen-2.5-72b)
+                  <span className="text-blue-300 font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    Google Gemini
                   </span>
+                  <span className="text-blue-400 font-semibold">gemini-2.5-pro / flash</span>
                 </div>
-                <p className="text-slate-500">Universal routing pool for multi-agent diversity.</p>
+                <p className="text-slate-400 text-[11px]">Dual-tier reasoning engine for multi-agent DAG synthesis and sub-50ms RAG retrieval.</p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-black/40 border border-amber-500/20 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-amber-300 font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    Groq Cloud
+                  </span>
+                  <span className="text-amber-400 font-semibold">llama-3.3-70b</span>
+                </div>
+                <p className="text-slate-400 text-[11px]">Ultra-fast sub-200ms high-throughput inference pool.</p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-black/40 border border-purple-500/20 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-purple-300 font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-purple-400" />
+                    OpenRouter Gateway
+                  </span>
+                  <span className="text-purple-400 font-semibold">deepseek/deepseek-r1</span>
+                </div>
+                <p className="text-slate-400 text-[11px]">Universal routing pool for multi-agent diversity.</p>
               </div>
             </div>
 

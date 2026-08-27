@@ -7,6 +7,8 @@ from app.core.config import settings
 class ModelTier(str, Enum):
     FAST = "fast"
     REASONING = "reasoning"
+    DEEPSEEK_R1 = "deepseek-r1"
+    GLM_5_2 = "glm-5.2"
     LOCAL = "local"
     QWEN = "qwen"
     MOCK = "mock"
@@ -31,12 +33,24 @@ class ModelRouter:
     def get_tier_name(self, tier: ModelTier) -> str:
         if self.demo_mode:
             return "mock-deterministic"
+        if tier == ModelTier.DEEPSEEK_R1:
+            return "deepseek-reasoner"
+        if tier == ModelTier.GLM_5_2:
+            return "glm-5.2"
         if tier == ModelTier.QWEN and self.qwen_enabled:
             return "qwen-3.8-max"
         if tier == ModelTier.REASONING:
-            return "claude-sonnet-4-6" if self.primary_provider == "anthropic" else "gpt-4.1"
+            if self.primary_provider == "deepseek":
+                return "deepseek-reasoner"
+            elif self.primary_provider == "glm":
+                return "glm-5.2"
+            elif self.primary_provider == "anthropic":
+                return "claude-3-7-sonnet"
+            return "gemini-2.5-pro"
         return (
-            "claude-haiku-4-5-20251001" if self.primary_provider == "anthropic" else "gpt-4o-mini"
+            "deepseek-chat" if self.primary_provider == "deepseek"
+            else "glm-4-flash" if self.primary_provider == "glm"
+            else "gemini-2.5-flash"
         )
 
 

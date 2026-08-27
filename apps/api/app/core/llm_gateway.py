@@ -19,6 +19,12 @@ PROVIDER_PRICING: dict[str, tuple[float, float]] = {
     # Gemini
     "gemini-2.5-pro": (1.25, 5.00),
     "gemini-2.5-flash": (0.075, 0.30),
+    # DeepSeek
+    "deepseek-reasoner": (0.55, 2.19),  # DeepSeek-R1 Deep Reasoning
+    "deepseek-chat": (0.14, 0.28),      # DeepSeek-V3 High-Throughput
+    # GLM
+    "glm-5.2": (0.50, 1.50),            # GLM 5.2 General Language Model
+    "glm-4-flash": (0.01, 0.01),        # Fast Low-Latency
     # Anthropic
     "claude-3-7-sonnet-latest": (3.00, 15.00),
     "claude-3-5-haiku-latest": (0.80, 4.00),
@@ -76,6 +82,14 @@ class LLMGateway:
                 settings.CIRCUIT_BREAKER_FAILURE_THRESHOLD,
                 settings.CIRCUIT_BREAKER_RESET_TIMEOUT_SEC,
             ),
+            "deepseek": CircuitBreaker(
+                settings.CIRCUIT_BREAKER_FAILURE_THRESHOLD,
+                settings.CIRCUIT_BREAKER_RESET_TIMEOUT_SEC,
+            ),
+            "glm": CircuitBreaker(
+                settings.CIRCUIT_BREAKER_FAILURE_THRESHOLD,
+                settings.CIRCUIT_BREAKER_RESET_TIMEOUT_SEC,
+            ),
             "anthropic": CircuitBreaker(
                 settings.CIRCUIT_BREAKER_FAILURE_THRESHOLD,
                 settings.CIRCUIT_BREAKER_RESET_TIMEOUT_SEC,
@@ -95,6 +109,10 @@ class LLMGateway:
         """Resolve exact model identifier by provider and tier (PRO vs FLASH/CHEAP)."""
         if provider == "gemini":
             return settings.GEMINI_MODEL_PRO if tier == "PRO" else settings.GEMINI_MODEL_FLASH
+        elif provider == "deepseek":
+            return settings.DEEPSEEK_MODEL_PRO if tier == "PRO" else settings.DEEPSEEK_MODEL_FLASH
+        elif provider == "glm":
+            return settings.GLM_MODEL_PRO if tier == "PRO" else settings.GLM_MODEL_FLASH
         elif provider == "anthropic":
             return settings.ANTHROPIC_MODEL_PRO if tier == "PRO" else settings.ANTHROPIC_MODEL_FLASH
         elif provider == "openai":
@@ -257,6 +275,59 @@ class LLMGateway:
             payload = {
                 "model": model,
                 "response_format": {"type": "json_object"},
+                "messages": [
+                    {"role": "system", "content": enriched_system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.2,
+            }
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                res = await client.post(url, headers=headers, json=payload)
+                res.raise_for_status()
+                res_data = res.json()
+                text = res_data["choices"][0]["message"]["content"]
+                tokens = res_data.get("usage", {}).get("total_tokens", 1100)
+                parsed = self.parse_schema(text, schema, demo_fallback)
+                return parsed, tokens, model
+
+        elif provider == "deepseek":
+            if not settings.DEEPSEEK_API_KEY:
+                raise ValueError("DEEPSEEK_API_KEY not configured")
+            url = f"{settings.DEEPSEEK_BASE_URL.rstrip('/')}/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": enriched_system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.2 if model != "deepseek-reasoner" else 0.6,
+            }
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                res = await client.post(url, headers=headers, json=payload)
+                res.raise_for_status()
+                res_data = res.json()
+                msg = res_data["choices"][0]["message"]
+                text = msg.get("content", "")
+                # Strip DeepSeek-R1 <think> reasoning tags if embedded in output
+                text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
+                tokens = res_data.get("usage", {}).get("total_tokens", 1400)
+                parsed = self.parse_schema(text, schema, demo_fallback)
+                return parsed, tokens, model
+
+        elif provider == "glm":
+            if not settings.GLM_API_KEY:
+                raise ValueError("GLM_API_KEY not configured")
+            url = f"{settings.GLM_BASE_URL.rstrip('/')}/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {settings.GLM_API_KEY}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "model": model,
                 "messages": [
                     {"role": "system", "content": enriched_system_prompt},
                     {"role": "user", "content": user_prompt},
@@ -473,6 +544,55 @@ class LLMGateway:
                 tokens = res_data.get("usage", {}).get("total_tokens", 450)
                 return text, tokens, model
 
+        elif provider == "deepseek":
+            if not settings.DEEPSEEK_API_KEY:
+                raise ValueError("DEEPSEEK_API_KEY not configured")
+            url = f"{settings.DEEPSEEK_BASE_URL.rstrip('/')}/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.3 if model != "deepseek-reasoner" else 0.6,
+            }
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                res = await client.post(url, headers=headers, json=payload)
+                res.raise_for_status()
+                res_data = res.json()
+                text = res_data["choices"][0]["message"]["content"]
+                text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
+                tokens = res_data.get("usage", {}).get("total_tokens", 550)
+                return text, tokens, model
+
+        elif provider == "glm":
+            if not settings.GLM_API_KEY:
+                raise ValueError("GLM_API_KEY not configured")
+            url = f"{settings.GLM_BASE_URL.rstrip('/')}/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {settings.GLM_API_KEY}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.3,
+            }
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                res = await client.post(url, headers=headers, json=payload)
+                res.raise_for_status()
+                res_data = res.json()
+                text = res_data["choices"][0]["message"]["content"]
+                tokens = res_data.get("usage", {}).get("total_tokens", 480)
+                return text, tokens, model
+
         raise ValueError(f"Unsupported provider: {provider}")
 
     async def generate_text(
@@ -486,6 +606,10 @@ class LLMGateway:
         live_candidates = []
         if settings.GROQ_API_KEY:
             live_candidates.append("groq")
+        if settings.DEEPSEEK_API_KEY:
+            live_candidates.append("deepseek")
+        if settings.GLM_API_KEY:
+            live_candidates.append("glm")
         if settings.GEMINI_API_KEY:
             live_candidates.append("gemini")
         if settings.OPENROUTER_API_KEY:
@@ -559,6 +683,10 @@ class LLMGateway:
         live_candidates = []
         if settings.GROQ_API_KEY:
             live_candidates.append("groq")
+        if settings.DEEPSEEK_API_KEY:
+            live_candidates.append("deepseek")
+        if settings.GLM_API_KEY:
+            live_candidates.append("glm")
         if settings.OPENROUTER_API_KEY:
             live_candidates.append("openrouter")
         if settings.GEMINI_API_KEY:
