@@ -403,26 +403,38 @@ class LLMGateway:
                 "HTTP-Referer": "https://github.com/aasish3187/Organisational-Agent",
                 "X-Title": "ORGagent Organization OS",
             }
-            payload = {
-                "model": settings.OPENROUTER_MODEL,
-                "messages": [
-                    {"role": "system", "content": enriched_system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                "reasoning": {"effort": "medium"},
-                "temperature": 0.2,
-            }
+            or_candidates = [
+                settings.OPENROUTER_MODEL,
+                "deepseek/deepseek-r1",
+                "z-ai/glm-5.2:free",
+                "minimax/minimax-m3:free",
+            ]
+            last_err = None
             async with httpx.AsyncClient(timeout=timeout) as client:
-                res = await client.post(url, headers=headers, json=payload)
-                res.raise_for_status()
-                res_data = res.json()
-                msg = res_data["choices"][0]["message"]
-                text = msg.get("content", "")
-                # Strip <think> tags if reasoning tokens are in content
-                text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
-                tokens = res_data.get("usage", {}).get("total_tokens", 1050)
-                parsed = self.parse_schema(text, schema, demo_fallback)
-                return parsed, tokens, settings.OPENROUTER_MODEL
+                for candidate_model in or_candidates:
+                    payload = {
+                        "model": candidate_model,
+                        "messages": [
+                            {"role": "system", "content": enriched_system_prompt},
+                            {"role": "user", "content": user_prompt},
+                        ],
+                        "reasoning": {"effort": "medium"},
+                        "temperature": 0.2,
+                    }
+                    try:
+                        res = await client.post(url, headers=headers, json=payload)
+                        res.raise_for_status()
+                        res_data = res.json()
+                        msg = res_data["choices"][0]["message"]
+                        text = msg.get("content", "")
+                        text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
+                        tokens = res_data.get("usage", {}).get("total_tokens", 1050)
+                        parsed = self.parse_schema(text, schema, demo_fallback)
+                        return parsed, tokens, candidate_model
+                    except Exception as e:
+                        last_err = e
+                        continue
+            raise last_err or ValueError("OpenRouter candidates exhausted")
 
         elif provider == "ollama":
             url = f"{settings.OLLAMA_BASE_URL.rstrip('/')}/chat/completions"
@@ -510,24 +522,37 @@ class LLMGateway:
                 "HTTP-Referer": "https://github.com/aasish3187/Organisational-Agent",
                 "X-Title": "ORGagent Organization OS",
             }
-            payload = {
-                "model": settings.OPENROUTER_MODEL,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                "reasoning": {"effort": "medium"},
-                "temperature": 0.3,
-            }
+            or_candidates = [
+                settings.OPENROUTER_MODEL,
+                "deepseek/deepseek-r1",
+                "z-ai/glm-5.2:free",
+                "minimax/minimax-m3:free",
+            ]
+            last_err = None
             async with httpx.AsyncClient(timeout=timeout) as client:
-                res = await client.post(url, headers=headers, json=payload)
-                res.raise_for_status()
-                res_data = res.json()
-                msg = res_data["choices"][0]["message"]
-                text = msg.get("content", "")
-                text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
-                tokens = res_data.get("usage", {}).get("total_tokens", 480)
-                return text, tokens, settings.OPENROUTER_MODEL
+                for candidate_model in or_candidates:
+                    payload = {
+                        "model": candidate_model,
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt},
+                        ],
+                        "reasoning": {"effort": "medium"},
+                        "temperature": 0.3,
+                    }
+                    try:
+                        res = await client.post(url, headers=headers, json=payload)
+                        res.raise_for_status()
+                        res_data = res.json()
+                        msg = res_data["choices"][0]["message"]
+                        text = msg.get("content", "")
+                        text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
+                        tokens = res_data.get("usage", {}).get("total_tokens", 480)
+                        return text, tokens, candidate_model
+                    except Exception as e:
+                        last_err = e
+                        continue
+            raise last_err or ValueError("OpenRouter text candidates exhausted")
 
         elif provider == "qwen":
             url = f"{settings.QWEN_BASE_URL.rstrip('/')}/chat/completions"
