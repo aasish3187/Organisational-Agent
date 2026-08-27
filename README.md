@@ -244,6 +244,8 @@ ORGagent/
 
 ## Quickstart & Local Installation
 
+> Looking to deploy live online? Check out the **[Cloud Deployment Guide (Vercel & Render)](docs/DEPLOYMENT_GUIDE.md)**.
+
 ### 1. Prerequisites
 - **Python 3.11+**
 - **Node.js 18+** & **npm**
