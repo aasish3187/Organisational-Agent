@@ -9,8 +9,12 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  images: {
+    unoptimized: true,
+  },
   async rewrites() {
-    const backendUrl = process.env.BACKEND_INTERNAL_URL || "http://127.0.0.1:8000";
+    const rawUrl = process.env.BACKEND_INTERNAL_URL || "https://organisational-agent.onrender.com";
+    const backendUrl = rawUrl.replace(/\/+$/, "");
     return [
       {
         source: "/api/:path*",
