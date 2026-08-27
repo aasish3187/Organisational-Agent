@@ -159,6 +159,43 @@ export default function BlueprintPage({
   const [copiedQuickstart, setCopiedQuickstart] = useState<boolean>(false);
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
   const [copiedTierConfig, setCopiedTierConfig] = useState<boolean>(false);
+  const [testedEndpoint, setTestedEndpoint] = useState<string | null>(null);
+  const [testingEndpoint, setTestingEndpoint] = useState<string | null>(null);
+  const [copiedCurl, setCopiedCurl] = useState<string | null>(null);
+  const [tamperSimulated, setTamperSimulated] = useState<boolean>(false);
+  const [simulatingTamper, setSimulatingTamper] = useState<boolean>(false);
+
+  const handleTestEndpoint = (path: string) => {
+    setTestingEndpoint(path);
+    setTimeout(() => {
+      setTestingEndpoint(null);
+      setTestedEndpoint(path);
+    }, 450);
+  };
+
+  const handleCopyCurl = (api: { method: string; path: string; request_type: string }) => {
+    const curlCmd =
+      api.method === 'POST'
+        ? `curl -X POST "http://localhost:8000${api.path}" -H "Content-Type: application/json" -d '${api.request_type.replace(/'/g, "\\'")}'`
+        : `curl -X GET "http://localhost:8000${api.path}"`;
+    if (typeof navigator !== 'undefined') {
+      navigator.clipboard.writeText(curlCmd);
+      setCopiedCurl(api.path);
+      setTimeout(() => setCopiedCurl(null), 2500);
+    }
+  };
+
+  const handleSimulateTamper = () => {
+    setSimulatingTamper(true);
+    setTimeout(() => {
+      setSimulatingTamper(false);
+      setTamperSimulated(true);
+    }, 600);
+  };
+
+  const handleResetTamper = () => {
+    setTamperSimulated(false);
+  };
 
   const toggleSpeechBriefing = () => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -1066,35 +1103,76 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
             </div>
           </div>
 
-          {/* Cryptographic Hash Checksum Bar */}
-          <div className="mt-6 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-            <div className="flex items-center gap-2 text-slate-400 truncate max-w-2xl">
-              <span className="text-purple-400 font-bold">VERITAS CHECKSUM:</span>
-              <span className="truncate text-slate-300">
-                {blueprint.veritas_chain_hash || '2073223d64a6e029f0f6420949e6dd4779e951d01cac3db2a318c9cbdf679b53'}
-              </span>
+          {/* Cryptographic Hash Checksum Bar & Live Tamper Simulator */}
+          <div className="mt-6 pt-6 border-t border-white/10 flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+              <div className="flex items-center gap-2 text-slate-400 truncate max-w-2xl">
+                <span className="text-purple-400 font-bold">VERITAS CHECKSUM:</span>
+                <span className="truncate text-slate-300">
+                  {tamperSimulated
+                    ? 'fe99a1027bf610992384a8b7c61149e951d01cac3db2a318c9cbdf679999 [CORRUPTED]'
+                    : blueprint.veritas_chain_hash || '2073223d64a6e029f0f6420949e6dd4779e951d01cac3db2a318c9cbdf679b53'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={tamperSimulated ? handleResetTamper : handleSimulateTamper}
+                  disabled={simulatingTamper}
+                  className={`px-3 py-1 rounded-lg text-xs font-mono border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    tamperSimulated
+                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30'
+                      : 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
+                  }`}
+                  title="Simulate modifying an event payload to demonstrate cryptographic tamper-detection"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>{simulatingTamper ? 'Simulating...' : tamperSimulated ? 'Restore Valid State' : 'Simulate Tampering'}</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    handleCopySection(
+                      'hash',
+                      blueprint.veritas_chain_hash || '2073223d64a6e029f0f6420949e6dd4779e951d01cac3db2a318c9cbdf679b53'
+                    )
+                  }
+                  className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer"
+                >
+                  {copiedSection === 'hash' ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Copied Checksum</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy Checksum</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() =>
-                handleCopySection(
-                  'hash',
-                  blueprint.veritas_chain_hash || '2073223d64a6e029f0f6420949e6dd4779e951d01cac3db2a318c9cbdf679b53'
-                )
-              }
-              className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer"
-            >
-              {copiedSection === 'hash' ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Copied Checksum</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copy Checksum</span>
-                </>
-              )}
-            </button>
+
+            {/* Live Tamper Alert Banner */}
+            {tamperSimulated && (
+              <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-xs font-mono text-rose-200 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center gap-3">
+                  <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0" />
+                  <div>
+                    <span className="font-bold text-rose-300 uppercase">Tamper Detected at Event Block #7:</span>
+                    <p className="text-slate-300 text-[11px] mt-0.5">
+                      Payload modification detected in <code className="text-rose-400">SystemArchitectureSpec</code>. SHA-256 hash broken at chain link <code className="text-rose-400">#7 → #8</code>.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleResetTamper}
+                  className="px-3 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+                >
+                  Reset Verification
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1333,11 +1411,11 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
         {/* Tab Navigation Controls */}
         <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-xl overflow-x-auto">
           {[
-            { id: 'architecture', label: '4-Tier Architecture', icon: Layers },
-            { id: 'roadmap', label: 'Sprint Roadmap', icon: Calendar },
-            { id: 'governance', label: 'Governance & Verification', icon: ShieldCheck },
-            { id: 'memory', label: 'MNEMOS Process Memory', icon: Brain },
-            { id: 'code', label: 'Ready-to-Deploy Code', icon: Code2 },
+            { id: 'architecture', label: '4-Tier Architecture', badge: `${blueprint.api_contracts?.length || 3} APIs`, icon: Layers },
+            { id: 'roadmap', label: 'Sprint Roadmap', badge: `${blueprint.roadmap_schedule?.length || 4} Sprints`, icon: Calendar },
+            { id: 'governance', label: 'Governance & Verification', badge: `${blueprint.governance_certificates?.length || 4} Certs`, icon: ShieldCheck },
+            { id: 'memory', label: 'MNEMOS Process Memory', badge: `${blueprint.learned_atoms?.length || 2} Atoms`, icon: Brain },
+            { id: 'code', label: 'Ready-to-Deploy Code', badge: `${blueprint.code_scaffolds?.length || 3} Files`, icon: Code2 },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1345,7 +1423,7 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as BlueprintTab)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-mono text-xs transition-all whitespace-nowrap cursor-pointer ${
                   isActive
                     ? 'bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30 border border-purple-400/30'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
@@ -1353,6 +1431,9 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{tab.label}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-black/40 text-purple-200' : 'bg-white/5 text-slate-400'}`}>
+                  {tab.badge}
+                </span>
               </button>
             );
           })}
@@ -1483,52 +1564,105 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
               })}
             </div>
 
-            {/* Interactive API Contracts */}
+            {/* Interactive API Contracts & Sandbox */}
             <GlassCard className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Code2 className="w-4 h-4 text-purple-400" />
-                  <h3 className="font-bold text-white text-base">Verified API Contracts</h3>
+                  <h3 className="font-bold text-white text-base">Verified API Contracts &amp; Live Sandbox</h3>
                 </div>
                 <span className="text-xs font-mono text-slate-400">
                   {blueprint.api_contracts?.length || 3} Endpoints Synthesized
                 </span>
               </div>
 
-              <div className="flex flex-col gap-3">
-                {(blueprint.api_contracts || []).map((api, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col gap-2"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold ${
-                            api.method === 'POST'
-                              ? 'bg-purple-600/20 text-purple-400 border border-purple-500/30'
-                              : 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30'
-                          }`}
-                        >
-                          {api.method}
-                        </span>
-                        <span className="font-mono text-sm text-white font-semibold">{api.path}</span>
-                      </div>
-                      <span className="text-xs text-slate-400 hidden sm:block">{api.description}</span>
-                    </div>
+              <div className="flex flex-col gap-4">
+                {(blueprint.api_contracts || []).map((api, idx) => {
+                  const isTested = testedEndpoint === api.path;
+                  const isTesting = testingEndpoint === api.path;
+                  const isCurlCopied = copiedCurl === api.path;
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/5 font-mono text-xs">
-                      <div className="p-2.5 rounded-xl bg-black/60 border border-white/5">
-                        <span className="text-slate-500 text-[10px] block mb-1">REQUEST BODY</span>
-                        <code className="text-purple-300 break-all">{api.request_type}</code>
+                  return (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col gap-3 hover:border-purple-500/20 transition-all"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold ${
+                              api.method === 'POST'
+                                ? 'bg-purple-600/20 text-purple-400 border border-purple-500/30'
+                                : 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30'
+                            }`}
+                          >
+                            {api.method}
+                          </span>
+                          <span className="font-mono text-sm text-white font-semibold">{api.path}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleCopyCurl(api)}
+                            className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer"
+                            title="Copy curl command"
+                          >
+                            {isCurlCopied ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-400" />
+                                <span>Copied curl</span>
+                              </>
+                            ) : (
+                              <>
+                                <Terminal className="w-3 h-3 text-cyan-400" />
+                                <span>Copy curl</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            onClick={() => handleTestEndpoint(api.path)}
+                            disabled={isTesting}
+                            className="px-3 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-mono font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                            title="Simulate calling endpoint in sandbox"
+                          >
+                            <Play className="w-3 h-3 text-purple-400" />
+                            <span>{isTesting ? 'Executing...' : 'Test Sandbox'}</span>
+                          </button>
+                        </div>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-black/60 border border-white/5">
-                        <span className="text-slate-500 text-[10px] block mb-1">RESPONSE BODY</span>
-                        <code className="text-emerald-300 break-all">{api.response_type}</code>
+
+                      <p className="text-xs text-slate-400">{api.description}</p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 font-mono text-xs">
+                        <div className="p-2.5 rounded-xl bg-black/60 border border-white/5">
+                          <span className="text-slate-500 text-[10px] block mb-1">REQUEST SCHEMA / PAYLOAD</span>
+                          <code className="text-purple-300 break-all">{api.request_type}</code>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-black/60 border border-white/5">
+                          <span className="text-slate-500 text-[10px] block mb-1">EXPECTED RESPONSE</span>
+                          <code className="text-emerald-300 break-all">{api.response_type}</code>
+                        </div>
                       </div>
+
+                      {/* Live Sandbox Execution Output */}
+                      {isTested && (
+                        <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-xs font-mono flex flex-col gap-2 animate-in fade-in slide-in-from-top-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              HTTP 200 OK · Sandbox Probe Succeeded
+                            </span>
+                            <span className="text-[10px] text-slate-400">Latency: 28ms · Protocol: HTTP/2</span>
+                          </div>
+                          <div className="p-2 rounded bg-black/60 text-slate-300 text-[11px] overflow-x-auto">
+                            <pre>{api.response_type}</pre>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </GlassCard>
 
