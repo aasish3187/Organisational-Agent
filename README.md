@@ -39,14 +39,14 @@
 
 ---
 
-## 🎯 Executive Summary & Pitch
+## Executive Summary & Pitch
 
-> **A user types a single raw idea or attaches an architecture diagram / SQL schema.**  
+> **A user provides a raw idea or attaches an architecture diagram / SQL schema.**  
 > **ORGagent** analyzes the mission, synthesizes a formal **Idea Contract**, dynamically compiles a specialized 7-agent organization DAG, assigns structured tasks with strict token and tool sandboxing, enforces organizational policies with human approval gates, cryptographically chains every prompt, tool execution, and diff using SHA-256 (VERITAS), and returns a sealed, verified **Master Tech Blueprint** with copyable Docker Compose configurations, OpenAPI schemas, and sprint roadmaps.
 
 ---
 
-## 🛑 The 5 Problem Statements of Autonomous AI Agents
+## The 5 Problem Statements of Autonomous AI Agents
 
 1. **Unregulated Agent Swarms & Tool Abuse**: Unrestricted agents running in loose chat loops create runaway token costs, execute arbitrary shell commands, hallucinate dependencies, and create severe security liabilities.
 2. **Ephemeral Hallucinations & Zero Audit Proof**: Standard agent frameworks provide no tamper-evident proof of *why* an architectural decision was made, who verified it, or what policy constraints were enforced.
@@ -56,11 +56,11 @@
 
 ---
 
-## 🛡️ How ORGagent Solves Them (Core Architectural Pillars)
+## How ORGagent Solves Them (Core Architectural Pillars)
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                 ORGagent ORGANIZATION OS                                  │
+│                                 ORGagent ORGANIZATION OS                               │
 ├───────────────────────┬──────────────────────────┬─────────────────────────────────────┤
 │ 1. DYNAMIC COMPILER   │ 2. VERITAS LEDGER        │ 3. MNEMOS REUSABLE MEMORY           │
 │ Phase-Gated 7-Agent   │ SHA-256 Merkle Chain of  │ Hybrid Tag Filtering & Semantic     │
@@ -98,22 +98,22 @@ ORGagent routes inference dynamically across providers to ensure high availabili
 
 ---
 
-## 🏛️ System Architecture Diagram
+## System Architecture Diagram
 
 ```mermaid
 graph TD
-    User["👤 Human Engineer / Architect"] -->|Text Prompt + Diagrams + Schemas| Intake["🚀 Screen A: Multimodal Intake Capsule"]
-    Intake -->|Intake Payload| Interpreter["🎯 Mission Interpreter Agent"]
+    User["Human Engineer / Architect"] -->|Text Prompt + Diagrams + Schemas| Intake["Screen A: Multimodal Intake Capsule"]
+    Intake -->|Intake Payload| Interpreter["Mission Interpreter Agent"]
     
-    Interpreter -->|Validates Pydantic Schema| Contract["📋 Screen B: Structured Idea Contract"]
-    Contract -->|Approved by Human| Compiler["⚙️ Organization Compiler Agent"]
+    Interpreter -->|Validates Pydantic Schema| Contract["Screen B: Structured Idea Contract"]
+    Contract -->|Approved by Human| Compiler["Organization Compiler Agent"]
     
     subgraph Governance & Organizational Memory
-        Compiler <-->|Query Process Atoms| MNEMOS[("🧠 MNEMOS Memory Bank")]
-        Compiler <-->|Evaluate Policy P-01 to P-09| PolicyEngine["🛡️ Policy Engine"]
+        Compiler <-->|Query Process Atoms| MNEMOS[("MNEMOS Memory Bank")]
+        Compiler <-->|Evaluate Policy P-01 to P-09| PolicyEngine["Policy Engine"]
     end
     
-    Compiler -->|Spawns Governed DAG| Canvas["🌐 Screen C: Living 3D Agent Network Canvas"]
+    Compiler -->|Spawns Governed DAG| Canvas["Screen C: Living 3D Agent Network Canvas"]
     
     subgraph Governed 7-Agent Execution DAG
         Canvas --> Ag1["1. Research Analyst (EvidenceBrief)"]
@@ -121,22 +121,22 @@ graph TD
         Ag2 --> Ag3["3. AI Architect (AIArchitectureSpec)"]
         Ag2 --> Ag4["4. System Architect (SystemArchitectureSpec)"]
         Ag4 --> Ag5["5. Privacy & Risk Auditor (Policy P-02)"]
-        Ag5 --> Gate{"🛑 Screen D: Human-in-the-Loop Gate"}
+        Ag5 --> Gate{"Screen D: Human-in-the-Loop Gate"}
         Gate -- "Approve & Resume" --> Ag6["6. Consistency Reviewer (ReviewReport)"]
         Ag6 --> Ag7["7. Solutions Officer (FinalBlueprint)"]
     end
     
     subgraph Cryptographic Proof Ledger
-        Ag1 & Ag2 & Ag3 & Ag4 & Ag5 & Ag6 & Ag7 -.->|Every Event Stamped| VERITAS[("🔗 VERITAS SHA-256 Merkle Chain")]
+        Ag1 & Ag2 & Ag3 & Ag4 & Ag5 & Ag6 & Ag7 -.->|Every Event Stamped| VERITAS[("VERITAS SHA-256 Merkle Chain")]
     end
     
-    Ag7 --> Blueprint["📑 Screen E: Verified Master Tech Blueprint"]
-    Blueprint --> Lab["🔬 Screen F: Counterfactual Policy Lab & Tamper Sandbox"]
+    Ag7 --> Blueprint["Screen E: Verified Master Tech Blueprint"]
+    Blueprint --> Lab["Screen F: Counterfactual Policy Lab & Tamper Sandbox"]
 ```
 
 ---
 
-## 🤖 The 7-Agent Governed Specialist Swarm
+## Governed Specialist Swarm
 
 | # | Specialist Agent Role | Mandate & Responsibilities | Output Schema | Permitted Tools | Model Tier |
 |---|---|---|---|---|---|
@@ -151,12 +151,12 @@ graph TD
 
 ---
 
-## 🖥️ Screen-by-Screen User Journey
+## Screen-by-Screen User Journey
 
 ### 1. Screen A: Multimodal Mission Intake (`/`)
 - **Typewriter Hero**: Animated, looping headline explaining the organization compiler.
-- **Enterprise Proof Ribbon**: Real-time stats (`1.8s Synthesis`, `100% Policy-Enforced`, `SHA-256 Chained`, `$0.045 Cost`).
-- **Unified Search Container**: Integrated **`[📎 Attach]`** pin for diagrams, SQL schemas, and PRDs.
+- **Enterprise Proof Ribbon**: Real-time metrics (`1.8s Synthesis`, `100% Policy-Enforced`, `SHA-256 Chained`, `$0.045 Cost`).
+- **Unified Search Container**: Integrated attachment controls for diagrams, SQL schemas, and PRDs.
 - **Single-Line Prompt Enhancer**: 1-click addition of `<50ms SLA`, `pgvector RAG`, `Policy P-02 Zero-PII`, and `Docker Setup`.
 - **Flagship Blueprints Gallery**: 1-click instant exploration of pre-compiled blueprints.
 
@@ -189,7 +189,7 @@ graph TD
 
 ---
 
-## 📁 Repository Structure (Monorepo)
+## Repository Structure (Monorepo)
 
 ```
 ORGagent/
@@ -242,7 +242,7 @@ ORGagent/
 
 ---
 
-## ⚡ Quickstart & Local Installation
+## Quickstart & Local Installation
 
 ### 1. Prerequisites
 - **Python 3.11+**
@@ -304,7 +304,7 @@ docker compose up --build
 
 ---
 
-## 🧪 Testing & Verification Suite
+## Testing & Verification Suite
 
 ORGagent includes complete test coverage across both backend and frontend layers:
 
@@ -323,7 +323,7 @@ npm run test
 
 ---
 
-## 🔒 Security & Policy Governance
+## Security & Policy Governance
 
 - **Zero API Key Leakage**: API keys and secrets are never committed or rendered to client bundles. Handled strictly via server-side environment variables.
 - **Zero Unrestricted Tooling**: Agents operate under read-only tool catalogs with strictly bounded input parameters. No arbitrary shell execution or unsafe code eval.
@@ -332,7 +332,7 @@ npm run test
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
@@ -342,3 +342,4 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
   <b>ORGagent Organization OS</b> · <i>Autonomous AI Team &amp; Architecture Compiler</i><br>
   Designed &amp; Developed by <b><a href="https://github.com/aasish3187">Aasish</a></b>
 </p>
+
