@@ -1,0 +1,24 @@
+{
+  "domain": "EdTech",
+  "title": "Multilingual AI Exam Prep for B.Tech Students in India",
+  "synthesis_time_sec": 1.64,
+  "total_tokens": 4890,
+  "total_cost_usd": 0.0381,
+  "veritas_merkle_root": "b7c29e1d84f02a3c981eaa51b8f04c5d2e7a8119bc6340de18a6070df02387ab",
+  "status": "VERIFIED_PRODUCTION_GRADE",
+  "supported_languages": [
+    "English",
+    "Hindi",
+    "Telugu",
+    "Tamil",
+    "Kannada",
+    "Bengali",
+    "Marathi"
+  ],
+  "pedagogy_pillars": [
+    "Bloom Taxonomy Cognitive Question Generator",
+    "Real-Time LaTeX Mathematical Code Rendering",
+    "Adaptive Knowledge Graph & Weakness Remediation",
+    "Zero-Latency Voice Tutor & Explainer"
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "domain": "Fintech",
+  "title": "Adaptive Fraud Detection & Double-Entry Ledger Engine",
+  "synthesis_time_sec": 1.82,
+  "total_tokens": 5420,
+  "total_cost_usd": 0.0452,
+  "veritas_merkle_root": "a3f89b1c74d82e4e892cbb41a7f05c6d3e8a9120bc7451de29a7081df03498ac",
+  "status": "VERIFIED_PRODUCTION_GRADE",
+  "models_used": {
+    "research": "groq/llama-3.3-70b-versatile",
+    "strategy": "deepseek/deepseek-reasoner",
+    "ai_architecture": "deepseek/deepseek-reasoner",
+    "system_architecture": "google/gemini-2.5-pro",
+    "compliance_audit": "zhipu/glm-5.2",
+    "consistency_review": "deepseek/deepseek-reasoner",
+    "blueprint_synthesis": "google/gemini-2.5-pro"
+  },
+  "tier_specifications": {
+    "tier_1_edge": {
+      "name": "Cloudflare Edge + WAF",
+      "p99_sla_ms": 15,
+      "protocol": "HTTPS/QUIC"
+    },
+    "tier_2_api": {
+      "name": "FastAPI Transaction Gateway",
+      "p99_sla_ms": 45,
+      "concurrency": "10,000 req/sec"
+    },
+    "tier_3_ai_risk": {
+      "name": "Real-Time Fraud Inference Worker",
+      "p99_sla_ms": 80,
+      "engine": "ONNX / PyTorch"
+    },
+    "tier_4_data": {
+      "name": "PostgreSQL + pgvector + Redis Cache",
+      "p99_sla_ms": 8,
+      "isolation": "SERIALIZABLE"
+    }
+  },
+  "policy_compliance": {
+    "policy_P01_least_privilege": "PASSED",
+    "policy_P02_zero_pii_retention": "PASSED_ENFORCED",
+    "policy_P03_deterministic_audit": "PASSED_SEALED"
+  }
+}

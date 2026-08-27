@@ -166,6 +166,69 @@ graph TD
 
 ---
 
+## Visual UI Showcase & Screen Gallery
+
+<p align="center">
+  <b>Screen A: Multimodal Mission Intake</b><br>
+  <img src="docs/screenshots/screen_a_landing.png" width="900" alt="Screen A: Mission Intake" />
+</p>
+
+<p align="center">
+  <b>Screen B: Structured Idea Contract & Human Governance Gate</b><br>
+  <img src="docs/screenshots/screen_b_contract.png" width="900" alt="Screen B: Structured Idea Contract" />
+</p>
+
+<p align="center">
+  <b>Screen C: Living 3D Agent Network Canvas & Real-Time Event Ledger</b><br>
+  <img src="docs/screenshots/screen_c_canvas.png" width="900" alt="Screen C: Living 3D Agent Network Canvas" />
+</p>
+
+<p align="center">
+  <b>Screen E: Verified Master Tech Blueprint & 4-Tier SLA Inspector</b><br>
+  <img src="docs/screenshots/screen_e_blueprint.png" width="900" alt="Screen E: Verified Master Tech Blueprint" />
+</p>
+
+<p align="center">
+  <b>Screen F: Counterfactual Policy Lab & Cryptographic Tamper Sandbox</b><br>
+  <img src="docs/screenshots/screen_f_lab_tampered.png" width="900" alt="Screen F: Policy Lab & Tamper Sandbox" />
+</p>
+
+---
+
+## Sample Blueprint Outputs & Cryptographic Audit Proofs
+
+Full compiled JSON blueprints and cryptographic audit ledgers are archived in [`outputs/`](outputs/):
+
+- **Fintech Adaptive Fraud Engine**: [`outputs/sample_blueprints/fintech_fraud_engine.json`](outputs/sample_blueprints/fintech_fraud_engine.json)
+- **EdTech Multilingual AI Exam Prep**: [`outputs/sample_blueprints/edtech_multilingual_prep.json`](outputs/sample_blueprints/edtech_multilingual_prep.json)
+- **VERITAS SHA-256 Merkle Chain Proof**: [`outputs/veritas_audit_proofs/veritas_merkle_proof.json`](outputs/veritas_audit_proofs/veritas_merkle_proof.json)
+
+<details>
+<summary><b>🔍 Click to View Sample VERITAS Merkle Ledger Proof Output</b></summary>
+
+```json
+{
+  "run_id": "run_expo_fintech_7741",
+  "project_id": "proj_fintech_01",
+  "chain_length": 7,
+  "merkle_root": "a3f89b1c74d82e4e892cbb41a7f05c6d3e8a9120bc7451de29a7081df03498ac",
+  "verification_timestamp": "2026-08-27T19:45:00Z",
+  "tamper_evident_integrity": "100% VALID",
+  "events": [
+    {"step": 1, "agent": "mission_interpreter", "hash": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"},
+    {"step": 2, "agent": "organization_compiler", "hash": "1c9bb7c8c366ffefef23fbb5b1f9b3f3b6d274a4fa8fb7b7ec25b21fcbc8b488"},
+    {"step": 3, "agent": "research_analyst", "hash": "7e3d8f1a2b4c5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f"},
+    {"step": 4, "agent": "product_strategist", "hash": "3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b"},
+    {"step": 5, "agent": "system_architect", "hash": "9f0e1d2c3b4a5f6e7d8c9b0a1f2e3d4c5b6a7f8e9d0c1b2a3f4e5d6c7b8a9f0e"},
+    {"step": 6, "agent": "privacy_risk", "hash": "5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d"},
+    {"step": 7, "agent": "solutions_officer", "hash": "a3f89b1c74d82e4e892cbb41a7f05c6d3e8a9120bc7451de29a7081df03498ac"}
+  ]
+}
+```
+</details>
+
+---
+
 ## Screen-by-Screen User Journey
 
 ### 1. Screen A: Multimodal Mission Intake (`/`)

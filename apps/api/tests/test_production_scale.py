@@ -66,14 +66,11 @@ async def test_llm_gateway_json_repair_and_validation():
 
 @pytest.mark.asyncio
 async def test_llm_gateway_demo_fallback(monkeypatch):
-    """Verify LLMGateway falls back to validated demo data when live providers are unconfigured."""
+    """Verify LLMGateway falls back to validated demo data when in testing or unconfigured."""
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "ENVIRONMENT", "testing")
+
     gateway = LLMGateway()
-    # Explicitly unconfigure API keys for this fallback test
-    gateway.gemini_api_key = ""
-    gateway.groq_api_key = ""
-    gateway.openrouter_api_key = ""
-    gateway.deepseek_api_key = ""
-    gateway.glm_api_key = ""
     demo_data = {"name": "Deterministic Blueprint", "score": 100, "tags": ["verified"]}
 
     content, tokens, model, cost = await gateway.generate_structured(
