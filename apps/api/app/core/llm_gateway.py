@@ -122,26 +122,63 @@ class LLMGateway:
         cleaned = re.sub(r",\s*([\]}])", r"\1", cleaned)
         return cleaned
 
-    def parse_schema(self, raw_text: str, schema: type[BaseModel]) -> dict[str, Any]:
-        """Strictly parse and validate JSON against Pydantic schema model."""
+    def parse_schema(
+        self,
+        raw_text: str,
+        schema: type[BaseModel],
+        demo_fallback: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Strictly parse and validate JSON against Pydantic schema model with auto-healing."""
         cleaned = self.clean_json_string(raw_text)
         try:
             data = json.loads(cleaned)
         except json.JSONDecodeError as err:
             logger.error("JSON decode error: %s. Raw: %s", err, raw_text[:200])
+            if demo_fallback:
+                return schema.model_validate(demo_fallback).model_dump()
             raise ValueError(f"Invalid JSON from LLM: {err}") from err
 
-        # If LLM returned a JSON Schema definition or nested dict, unwrap
         if isinstance(data, dict):
             if "$schema" in data and "properties" in data:
-                # Extract dummy sample from properties
                 props = data.get("properties", {})
                 data = {k: v.get("example") or v.get("default") or f"Sample {k}" for k, v in props.items()}
             elif "data" in data and isinstance(data["data"], dict) and not all(k in data for k in schema.model_fields):
                 data = data["data"]
 
-        validated = schema.model_validate(data)
-        return validated.model_dump()
+            # Key alias normalization
+            aliases = {
+                "title": ["idea_name", "project_name", "name", "mission_title"],
+                "domain": ["category", "industry", "sector"],
+                "target_audience": ["audience", "users", "target_users"],
+                "problem_statement": ["problem", "challenge", "issue"],
+                "success_criteria": ["criteria", "acceptance_criteria", "goals"],
+                "constraints": ["limitations", "rules"],
+                "assumptions": ["premises", "hypotheses"],
+                "data_sensitivity": ["sensitivity", "privacy_level", "data_classification"],
+                "suggested_specialists": ["specialists", "roles", "agents", "team"],
+                "open_questions": ["questions", "clarifications", "unknowns"],
+            }
+            for target_k, alt_keys in aliases.items():
+                if target_k in schema.model_fields and target_k not in data:
+                    for alt in alt_keys:
+                        if alt in data:
+                            data[target_k] = data[alt]
+                            break
+
+            # If fallback values are provided, fill any remaining missing required fields
+            if demo_fallback:
+                for k, v in demo_fallback.items():
+                    if k not in data or data[k] is None:
+                        data[k] = v
+
+        try:
+            validated = schema.model_validate(data)
+            return validated.model_dump()
+        except Exception as val_err:
+            if demo_fallback:
+                merged = {**demo_fallback, **{k: v for k, v in data.items() if k in schema.model_fields}}
+                return schema.model_validate(merged).model_dump()
+            raise val_err
 
     async def execute_provider_request(
         self,
@@ -150,16 +187,24 @@ class LLMGateway:
         system_prompt: str,
         user_prompt: str,
         schema: type[BaseModel],
+        demo_fallback: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], int, str]:
         """Execute request against live provider endpoint with timeout."""
-        timeout = httpx.Timeout(timeout=10.0, connect=4.0)
+        timeout = httpx.Timeout(timeout=12.0, connect=4.0)
+
+        schema_json = json.dumps(schema.model_json_schema(), indent=2)
+        enriched_system_prompt = (
+            f"{system_prompt}\n\n"
+            f"REQUIRED JSON SCHEMA:\n```json\n{schema_json}\n```\n"
+            f"You MUST output valid JSON conforming strictly to this schema. Do NOT use unlisted keys."
+        )
 
         if provider == "gemini":
             if not settings.GEMINI_API_KEY:
                 raise ValueError("GEMINI_API_KEY not configured")
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={settings.GEMINI_API_KEY}"
             payload = {
-                "system_instruction": {"parts": [{"text": system_prompt}]},
+                "system_instruction": {"parts": [{"text": enriched_system_prompt}]},
                 "contents": [{"parts": [{"text": user_prompt}]}],
                 "generationConfig": {
                     "response_mime_type": "application/json",
@@ -172,7 +217,7 @@ class LLMGateway:
                 res_data = res.json()
                 text = res_data["candidates"][0]["content"]["parts"][0]["text"]
                 tokens = res_data.get("usageMetadata", {}).get("totalTokenCount", 1200)
-                parsed = self.parse_schema(text, schema)
+                parsed = self.parse_schema(text, schema, demo_fallback)
                 return parsed, tokens, model
 
         elif provider == "anthropic":
@@ -187,7 +232,7 @@ class LLMGateway:
             payload = {
                 "model": model,
                 "max_tokens": 4096,
-                "system": system_prompt,
+                "system": enriched_system_prompt,
                 "messages": [{"role": "user", "content": user_prompt}],
                 "temperature": 0.2,
             }
@@ -198,7 +243,7 @@ class LLMGateway:
                 text = res_data["content"][0]["text"]
                 usage = res_data.get("usage", {})
                 tokens = usage.get("input_tokens", 500) + usage.get("output_tokens", 700)
-                parsed = self.parse_schema(text, schema)
+                parsed = self.parse_schema(text, schema, demo_fallback)
                 return parsed, tokens, model
 
         elif provider == "openai":
@@ -213,7 +258,7 @@ class LLMGateway:
                 "model": model,
                 "response_format": {"type": "json_object"},
                 "messages": [
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": enriched_system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
                 "temperature": 0.2,
@@ -224,7 +269,7 @@ class LLMGateway:
                 res_data = res.json()
                 text = res_data["choices"][0]["message"]["content"]
                 tokens = res_data.get("usage", {}).get("total_tokens", 1100)
-                parsed = self.parse_schema(text, schema)
+                parsed = self.parse_schema(text, schema, demo_fallback)
                 return parsed, tokens, model
 
         elif provider == "qwen":
@@ -235,7 +280,7 @@ class LLMGateway:
             payload = {
                 "model": model,
                 "messages": [
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": enriched_system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
                 "temperature": 0.2,
@@ -246,7 +291,7 @@ class LLMGateway:
                 res_data = res.json()
                 text = res_data["choices"][0]["message"]["content"]
                 tokens = res_data.get("usage", {}).get("total_tokens", 900)
-                parsed = self.parse_schema(text, schema)
+                parsed = self.parse_schema(text, schema, demo_fallback)
                 return parsed, tokens, model
 
         elif provider == "groq":
@@ -259,9 +304,11 @@ class LLMGateway:
             }
             payload = {
                 "model": settings.GROQ_MODEL,
-                "response_format": {"type": "json_object"},
                 "messages": [
-                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "system",
+                        "content": enriched_system_prompt,
+                    },
                     {"role": "user", "content": user_prompt},
                 ],
                 "temperature": 0.2,
@@ -272,7 +319,7 @@ class LLMGateway:
                 res_data = res.json()
                 text = res_data["choices"][0]["message"]["content"]
                 tokens = res_data.get("usage", {}).get("total_tokens", 950)
-                parsed = self.parse_schema(text, schema)
+                parsed = self.parse_schema(text, schema, demo_fallback)
                 return parsed, tokens, settings.GROQ_MODEL
 
         elif provider == "openrouter":
@@ -547,6 +594,7 @@ class LLMGateway:
                         system_prompt=system_prompt,
                         user_prompt=user_prompt,
                         schema=schema,
+                        demo_fallback=demo_fallback_data,
                     )
                     if cb:
                         cb.record_success()

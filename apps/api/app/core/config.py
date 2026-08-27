@@ -47,11 +47,11 @@ class Settings(BaseSettings):
     MODEL_POLICY: str = "AUTO"  # STRICT | BALANCE | NOCAP | AUTO
 
     # LLM Resilience
-    LLM_MAX_RETRIES: int = 3
-    LLM_RETRY_BACKOFF_FACTOR: float = 1.5
-    LLM_REQUEST_TIMEOUT_SEC: int = 60
-    CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = 3
-    CIRCUIT_BREAKER_RESET_TIMEOUT_SEC: int = 30
+    LLM_MAX_RETRIES: int = 2
+    LLM_RETRY_BACKOFF_FACTOR: float = 1.2
+    LLM_REQUEST_TIMEOUT_SEC: int = 12
+    CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = 2
+    CIRCUIT_BREAKER_RESET_TIMEOUT_SEC: int = 20
 
     # API Keys & Endpoints
     GEMINI_API_KEY: str | None = None
