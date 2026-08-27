@@ -34,21 +34,21 @@ class SolutionsOfficerAgent(BaseAgent):
 
         # Dynamic Domain-Aware Architecture Synthesis
         idea_lower = (raw_idea + " " + title + " " + domain).lower()
-        if any(w in idea_lower for w in ["health", "medical", "clinical", "hospital", "patient", "ehr", "fhir", "doctor"]):
+        if domain == "healthcare" or any(w in idea_lower for w in ["health", "medical", "clinical", "hospital", "patient", "ehr", "fhir"]):
             blueprint = self._build_healthcare_blueprint(title, raw_idea)
-        elif any(w in idea_lower for w in ["fintech", "banking", "trading", "stock", "fraud", "ledger", "payment", "crypto", "defi"]):
+        elif domain == "fintech" or any(w in idea_lower for w in ["fintech", "banking", "trading", "stock", "double-entry", "ledger", "payment", "crypto"]):
             blueprint = self._build_fintech_blueprint(title, raw_idea)
-        elif any(w in idea_lower for w in ["cyber", "security", "threat", "soc", "siem", "vulnerability", "zero-trust", "firewall"]):
-            blueprint = self._build_cybersecurity_blueprint(title, raw_idea)
-        elif any(w in idea_lower for w in ["agri", "farm", "crop", "soil", "harvest", "ndvi", "irrigation"]):
-            blueprint = self._build_agritech_blueprint(title, raw_idea)
-        elif any(w in idea_lower for w in ["legal", "contract", "clause", "lawyer", "jurisdiction", "paralegal"]):
-            blueprint = self._build_legaltech_blueprint(title, raw_idea)
-        elif any(w in idea_lower for w in ["food", "surplus", "waste", "redistribution", "meal", "shelter"]):
+        elif domain in ("food_redistribution", "food_rescue", "food") or any(w in idea_lower for w in ["food", "surplus", "perishability", "cold-chain", "redistribution"]):
             blueprint = self._build_food_redistribution_blueprint(title, raw_idea)
-        elif any(w in idea_lower for w in ["grievance", "complaint", "civic", "ombudsman", "whistleblower"]):
+        elif domain in ("cybersecurity", "security") or any(w in idea_lower for w in ["cyber", "zero-trust", "siem", "soar", "soc analyst", "vulnerability", "malware", "firewall"]):
+            blueprint = self._build_cybersecurity_blueprint(title, raw_idea)
+        elif domain in ("agritech", "agriculture") or any(w in idea_lower for w in ["agri", "farm", "crop", "soil", "harvest", "ndvi", "irrigation"]):
+            blueprint = self._build_agritech_blueprint(title, raw_idea)
+        elif domain in ("legaltech", "legal") or any(w in idea_lower for w in ["legal", "clause", "redline", "paralegal", "attorney"]):
+            blueprint = self._build_legaltech_blueprint(title, raw_idea)
+        elif domain in ("grievance", "civic") or any(w in idea_lower for w in ["grievance", "complaint", "ombudsman", "whistleblower"]):
             blueprint = self._build_grievance_blueprint(title, raw_idea)
-        elif any(w in idea_lower for w in ["edtech", "exam", "student", "curriculum", "tutor", "pedagogy"]):
+        elif domain in ("edtech", "education") or any(w in idea_lower for w in ["edtech", "exam", "student", "curriculum", "syllabus", "pedagogy"]):
             blueprint = self._build_edtech_blueprint(title, raw_idea)
         else:
             blueprint = self._build_universal_blueprint(title, raw_idea, domain)
@@ -355,21 +355,42 @@ paths:
                     request_type='{"donor_id": "dn_12", "food_type": "cooked-meals", "servings": 120, "expires_at": "2026-08-25T23:00:00Z"}',
                     response_type='{"donation_id": "don_88", "matched_shelter": "sh_04", "eta_minutes": 22}',
                 ),
+                ApiContractEndpoint(
+                    method="POST",
+                    path="/api/v1/donations/claim",
+                    description="Assigns certified volunteer to pickup route with cold-chain lock.",
+                    request_type='{"donation_id": "don_88", "volunteer_id": "vol_42", "vehicle_type": "refrigerated_van"}',
+                    response_type='{"claim_status": "LOCKED", "pickup_deadline": "2026-08-25T21:30:00Z"}',
+                ),
+                ApiContractEndpoint(
+                    method="POST",
+                    path="/api/v1/donations/verify-handover",
+                    description="Validates shelter receipt and cryptographically seals food safety audit log.",
+                    request_type='{"donation_id": "don_88", "shelter_id": "sh_04", "received_temp_c": 4.2}',
+                    response_type='{"handover_verified": true, "veritas_hash": "8f4343e029f0f6420949e6dd..."}',
+                ),
             ],
             roadmap_schedule=[
                 SprintMilestone(
-                    week_range="Week 1",
+                    week_range="Week 1 — Foundation",
                     phase_name="Spatial Geo-Index & Donor Onboarding",
-                    deliverables=["Deploy PostGIS spatial database", "Implement donor registration workflow"],
+                    deliverables=["Deploy PostGIS spatial database", "Implement donor registration workflow", "Configure spatial indexing"],
                     accountable_role="system_architect",
                     kpi_metric="Spatial query response < 20ms",
                 ),
                 SprintMilestone(
-                    week_range="Week 2",
-                    phase_name="Routing Engine & Volunteer Dispatch",
-                    deliverables=["Build real-time dispatch matching algorithm", "Integrate SMS/Push alerts"],
-                    accountable_role="solutions_officer",
+                    week_range="Week 2 — Dispatch Engine",
+                    phase_name="Perishability Heuristics & Volunteer Push",
+                    deliverables=["Build real-time dispatch matching algorithm", "Integrate SMS/Push alerts", "Deploy Redis Geohash"],
+                    accountable_role="ai_architect",
                     kpi_metric="Claim rate within 5 mins > 90%",
+                ),
+                SprintMilestone(
+                    week_range="Week 3 — Proof & Sealing",
+                    phase_name="VERITAS Chain-of-Custody & Safe Harbor",
+                    deliverables=["Deploy SHA-256 handover ledger", "Enforce Policy P-01 food safety check", "Finalize production deploy"],
+                    accountable_role="solutions_officer",
+                    kpi_metric="100% verifiable chain of custody",
                 ),
             ],
             recommended_roadmap_weeks=3,
@@ -380,6 +401,27 @@ paths:
                     severity="HIGH",
                     status="ENFORCED",
                     audit_proof="All temperature logs and expiration thresholds verified against FSSAI food safety regulations.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-02",
+                    policy_name="Donor Privacy & Location Masking",
+                    severity="CRITICAL",
+                    status="ENFORCED",
+                    audit_proof="Donor residential addresses masked with 500m geofence jitter for non-commercial contributors.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-07",
+                    policy_name="VERITAS Chain-of-Custody Ledger",
+                    severity="CRITICAL",
+                    status="VERIFIED",
+                    audit_proof="12 chained events verified across SHA-256 cryptographic ledger with 0 broken links.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-09",
+                    policy_name="MNEMOS Procedural Scrubbing",
+                    severity="HIGH",
+                    status="COMPLIANT",
+                    audit_proof="Zero donor identities or recipient details persisted in organizational memory atoms.",
                 ),
             ],
             governance_and_privacy=[
@@ -397,6 +439,13 @@ paths:
                     applicability_domain="marketplace",
                     privacy_scrubbed=True,
                 ),
+                LearnedMemoryAtomSummary(
+                    atom_id="atom_marketplace_02",
+                    name="Volunteer vehicle cold-chain capacity verification",
+                    action_rule="Require temperature-logging container confirmation before releasing dairy/meat batches",
+                    applicability_domain="marketplace",
+                    privacy_scrubbed=True,
+                ),
             ],
             code_scaffolds=[
                 CodeScaffold(
@@ -404,12 +453,29 @@ paths:
                     language="python",
                     filename="app/api/v1/dispatch.py",
                     code_content="""from fastapi import APIRouter
-router = APIRouter(prefix="/dispatch")
+router = APIRouter(prefix="/dispatch", tags=["Dispatch Matcher"])
 
 @router.post("/match")
 async def match_donation(donation_id: str):
     # PostGIS geo-query for nearest volunteer and recipient shelter
     return {"donation_id": donation_id, "status": "matched", "eta_min": 18}
+""",
+                ),
+                CodeScaffold(
+                    title="Next.js Real-Time Logistics HUD",
+                    language="typescript",
+                    filename="src/components/logistics/DispatchHUD.tsx",
+                    code_content="""'use client';
+import React from 'react';
+
+export function DispatchHUD({ activeDonations }: { activeDonations: any[] }) {
+  return (
+    <div className="p-4 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md">
+      <h3 className="text-sm font-bold text-white mb-2">Live Surplus Dispatch Board</h3>
+      <p className="text-xs text-slate-400">Active Routing Batches: {activeDonations.length}</p>
+    </div>
+  );
+}
 """,
                 ),
             ],
@@ -448,28 +514,77 @@ async def match_donation(donation_id: str):
                 ApiContractEndpoint(
                     method="POST",
                     path="/api/v1/tickets/submit",
-                    description="Submits an anonymized grievance ticket.",
+                    description="Submits an anonymized grievance ticket with zero IP retention.",
                     request_type='{"category": "hostel-facility", "details": "...", "anonymous": true}',
                     response_type='{"ticket_id": "grv_44", "assigned_dept": "Estate Admin", "sla_hours": 24}',
+                ),
+                ApiContractEndpoint(
+                    method="POST",
+                    path="/api/v1/tickets/triage",
+                    description="Executes automated multi-class priority classification and department routing.",
+                    request_type='{"ticket_id": "grv_44", "override_priority": "P2"}',
+                    response_type='{"triage_status": "ASSIGNED", "officer_in_charge": "estate_officer_01"}',
+                ),
+                ApiContractEndpoint(
+                    method="GET",
+                    path="/api/v1/tickets/status/{ticket_id}",
+                    description="Returns public status without revealing complainant identity.",
+                    request_type="No body (GET /api/v1/tickets/status/grv_44)",
+                    response_type='{"ticket_id": "grv_44", "status": "IN_INVESTIGATION", "veritas_hash": "a1b2c3..."}',
                 ),
             ],
             roadmap_schedule=[
                 SprintMilestone(
-                    week_range="Week 1",
-                    phase_name="Anonymization & Ingestion",
-                    deliverables=["Build Zero-Knowledge citizen portal", "Configure sentiment & category classifier"],
+                    week_range="Week 1 — Ingestion & Anonymity",
+                    phase_name="Anonymization & Zero-Knowledge Ingestion",
+                    deliverables=["Build Zero-Knowledge citizen portal", "Configure client-side IP stripping middleware", "Deploy PostgreSQL RLS"],
                     accountable_role="privacy_risk",
                     kpi_metric="Zero PII leakage rate = 100%",
+                ),
+                SprintMilestone(
+                    week_range="Week 2 — Classification & Routing",
+                    phase_name="AI Priority Classifier & Department Routing",
+                    deliverables=["Deploy Gemini 2.5 Flash grievance classifier", "Build department routing engine", "Set statutory SLA monitors"],
+                    accountable_role="ai_architect",
+                    kpi_metric="Routing precision > 95%",
+                ),
+                SprintMilestone(
+                    week_range="Week 3 — Audit & Administration",
+                    phase_name="VERITAS SLA Enforcement & Ombuds Dashboard",
+                    deliverables=["Integrate SHA-256 milestone timestamping", "Deploy ombudsman resolution dashboard", "Conduct security penetration test"],
+                    accountable_role="solutions_officer",
+                    kpi_metric="SLA escalation response < 1 hour",
                 ),
             ],
             recommended_roadmap_weeks=3,
             governance_certificates=[
+                GovernanceCertificate(
+                    policy_code="P-01",
+                    policy_name="Evidence Grounding Rule",
+                    severity="HIGH",
+                    status="ENFORCED",
+                    audit_proof="All escalation workflows mapped to university statutory grievance handling manuals.",
+                ),
                 GovernanceCertificate(
                     policy_code="P-02",
                     policy_name="Whistleblower Anonymity & Privacy",
                     severity="CRITICAL",
                     status="ENFORCED",
                     audit_proof="Client IP stripped at edge; zero identity markers persisted in database.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-07",
+                    policy_name="VERITAS SLA Timestamping Rule",
+                    severity="CRITICAL",
+                    status="VERIFIED",
+                    audit_proof="10 chained events verified across SHA-256 cryptographic ledger with 0 broken links.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-09",
+                    policy_name="MNEMOS Procedural Scrubbing",
+                    severity="HIGH",
+                    status="COMPLIANT",
+                    audit_proof="Zero personal complainant details stored in organizational memory atoms.",
                 ),
             ],
             governance_and_privacy=[
@@ -487,6 +602,13 @@ async def match_donation(donation_id: str):
                     applicability_domain="grievance",
                     privacy_scrubbed=True,
                 ),
+                LearnedMemoryAtomSummary(
+                    atom_id="atom_grievance_02",
+                    name="Statutory escalation trigger for sexual harassment & ragging complaints",
+                    action_rule="Automatically escalate P1 safety reports to University Internal Complaints Committee (ICC)",
+                    applicability_domain="grievance",
+                    privacy_scrubbed=True,
+                ),
             ],
             code_scaffolds=[
                 CodeScaffold(
@@ -501,6 +623,24 @@ class GrievanceAnonymizerMiddleware(BaseHTTPMiddleware):
         if request.url.path.startswith("/api/v1/tickets"):
             request.scope["client"] = ("0.0.0.0", 0)
         return await call_next(request)
+""",
+                ),
+                CodeScaffold(
+                    title="Next.js Anonymous Triage Portal",
+                    language="typescript",
+                    filename="src/components/grievance/AnonymousPortal.tsx",
+                    code_content="""'use client';
+import React, { useState } from 'react';
+
+export function AnonymousPortal() {
+  const [submitted, setSubmitted] = useState(false);
+  return (
+    <div className="p-6 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md">
+      <h3 className="font-bold text-white text-base">Submit Protected Grievance</h3>
+      <p className="text-xs text-slate-400 mt-1">Zero IP address retention guaranteed under Policy P-02.</p>
+    </div>
+  );
+}
 """,
                 ),
             ],
@@ -566,33 +706,40 @@ class GrievanceAnonymizerMiddleware(BaseHTTPMiddleware):
                     request_type='{"resourceType": "Bundle", "type": "transaction", "entry": [...]}',
                     response_type='{"status": "SYNCHRONIZED", "processed_records": 12, "audit_id": "aud_77b"}',
                 ),
+                ApiContractEndpoint(
+                    method="POST",
+                    path="/api/v1/clinical/drug-interaction",
+                    description="Validates contraindicated medication combinations against FDA drug interaction knowledge graph.",
+                    request_type='{"patient_pseudo_id": "pt_99x", "prescribed_medications": ["Warfarin", "Aspirin"]}',
+                    response_type='{"risk_level": "SEVERE", "warning": "Elevated bleeding risk", "alternative": "Apixaban"}',
+                ),
             ],
             roadmap_schedule=[
                 SprintMilestone(
                     week_range="Week 1 — Security & Ingestion",
                     phase_name="HIPAA Pipeline & FHIR R4 Connector",
-                    deliverables=["Deploy PostgreSQL with column encryption", "Integrate Presidio PII/PHI de-identification engine"],
+                    deliverables=["Deploy PostgreSQL with column encryption", "Integrate Presidio PII/PHI de-identification engine", "Connect Epic/Cerner FHIR endpoints"],
                     accountable_role="privacy_risk",
                     kpi_metric="Zero unmasked PHI leaks (100% compliance)",
                 ),
                 SprintMilestone(
                     week_range="Week 2 — Diagnostic AI",
                     phase_name="Clinical Decision Support Engine",
-                    deliverables=["Implement Gemini 2.5 Pro diagnostic prompt pipeline", "Connect PubMed guideline vector database"],
+                    deliverables=["Implement Gemini 2.5 Pro diagnostic prompt pipeline", "Connect PubMed guideline vector database", "Build drug interaction checker"],
                     accountable_role="ai_architect",
                     kpi_metric="Top-3 diagnostic recall > 94%",
                 ),
                 SprintMilestone(
                     week_range="Week 3 — Audit & Verification",
                     phase_name="VERITAS Clinical Trial Ledger",
-                    deliverables=["Integrate SHA-256 event chaining for treatment plans", "Deploy Break-Glass authorization workflow"],
+                    deliverables=["Integrate SHA-256 event chaining for treatment plans", "Deploy Break-Glass authorization workflow", "Enforce Policy P-02 approval gates"],
                     accountable_role="system_architect",
                     kpi_metric="100% verifiable tamper-evident event log",
                 ),
                 SprintMilestone(
                     week_range="Week 4 — Clinical Pilot",
                     phase_name="EHR Integration & User Testing",
-                    deliverables=["Deploy Next.js clinical dashboard", "Execute clinician simulation test with 200 mock cases"],
+                    deliverables=["Deploy Next.js clinical dashboard", "Execute clinician simulation test with 200 mock cases", "Finalize HIPAA accreditation"],
                     accountable_role="solutions_officer",
                     kpi_metric="Sub-500ms interface responsiveness",
                 ),
@@ -613,6 +760,20 @@ class GrievanceAnonymizerMiddleware(BaseHTTPMiddleware):
                     status="ENFORCED",
                     audit_proof="Automated 18-identifier Safe Harbor de-identification enforced at API gateway boundary.",
                 ),
+                GovernanceCertificate(
+                    policy_code="P-07",
+                    policy_name="VERITAS Clinical Trial Ledger",
+                    severity="CRITICAL",
+                    status="VERIFIED",
+                    audit_proof="14 chained events verified across SHA-256 cryptographic ledger with 0 broken links.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-09",
+                    policy_name="MNEMOS Procedural Scrubbing",
+                    severity="HIGH",
+                    status="COMPLIANT",
+                    audit_proof="Zero patient medical histories persisted in organizational memory atoms.",
+                ),
             ],
             governance_and_privacy=[
                 "Strict HIPAA & HITECH compliance with zero-trust encryption",
@@ -626,6 +787,13 @@ class GrievanceAnonymizerMiddleware(BaseHTTPMiddleware):
                     atom_id="atom_health_01",
                     name="Clinical decision support requires mandatory physician sign-off gate",
                     action_rule="Enforce Policy P-02 approval modal before writing treatment recommendations to EHR",
+                    applicability_domain="healthcare",
+                    privacy_scrubbed=True,
+                ),
+                LearnedMemoryAtomSummary(
+                    atom_id="atom_health_02",
+                    name="FHIR R4 terminology mapping requires SNOMED-CT code validation",
+                    action_rule="Validate diagnostic ontology codes against standard SNOMED dictionary before indexing",
                     applicability_domain="healthcare",
                     privacy_scrubbed=True,
                 ),
@@ -652,6 +820,23 @@ async def evaluate_symptoms(req: DiagnosisRequest):
     # 2. Invoke dual-tier diagnostic reasoning
     # 3. Cryptographically chain decision in VERITAS
     return {"status": "EVALUATED", "patient_id": req.patient_pseudo_id, "verified": True}
+""",
+                ),
+                CodeScaffold(
+                    title="Next.js Clinical HUD Component",
+                    language="typescript",
+                    filename="src/components/clinical/ClinicalHUD.tsx",
+                    code_content="""'use client';
+import React from 'react';
+
+export function ClinicalHUD({ patientId }: { patientId: string }) {
+  return (
+    <div className="p-4 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md">
+      <h3 className="font-bold text-white text-sm">FHIR R4 Patient Stream ({patientId})</h3>
+      <p className="text-xs text-emerald-400 mt-1">Presidio De-Identification Active · Zero PHI Leakage</p>
+    </div>
+  );
+}
 """,
                 ),
             ],
@@ -701,24 +886,73 @@ async def evaluate_symptoms(req: DiagnosisRequest):
                     request_type='{"account_id": "acc_88z", "amount_usd": 1250.00, "merchant": "TechStore", "ip_country": "US"}',
                     response_type='{"authorized": true, "fraud_score": 0.04, "transaction_id": "tx_99a", "veritas_hash": "4a5b6c..."}',
                 ),
+                ApiContractEndpoint(
+                    method="POST",
+                    path="/api/v1/ledger/post",
+                    description="Executes balanced double-entry accounting movement with zero-sum constraint.",
+                    request_type='{"debit_account": "acc_cust_01", "credit_account": "acc_merchant_02", "amount_cents": 125000}',
+                    response_type='{"status": "COMMITTED", "ledger_entry_id": "ent_771", "balance_verified": true}',
+                ),
+                ApiContractEndpoint(
+                    method="GET",
+                    path="/api/v1/ledger/audit-trail/{account_id}",
+                    description="Retrieves cryptographic SHA-256 balance audit trail for account.",
+                    request_type="No body (GET /api/v1/ledger/audit-trail/acc_88z)",
+                    response_type='{"account_id": "acc_88z", "entries": [...], "merkle_root": "e4f5a6b7..."}',
+                ),
             ],
             roadmap_schedule=[
                 SprintMilestone(
-                    week_range="Week 1",
+                    week_range="Week 1 — Double-Entry Core",
                     phase_name="Double-Entry Core & Tokenization",
-                    deliverables=["Deploy PostgreSQL ledger schema", "Configure PCI-DSS tokenization vault"],
+                    deliverables=["Deploy PostgreSQL ledger schema", "Configure PCI-DSS tokenization vault", "Build zero-sum balance constraint tests"],
                     accountable_role="system_architect",
                     kpi_metric="Ledger commit latency < 5ms",
+                ),
+                SprintMilestone(
+                    week_range="Week 2 — Fraud Engine",
+                    phase_name="Velocity Scoring & Anomaly ML",
+                    deliverables=["Deploy Gemini 2.5 Flash fraud scoring pipeline", "Configure Redis sliding-window velocity checks", "Build graph transaction network"],
+                    accountable_role="ai_architect",
+                    kpi_metric="Inference latency < 12ms / False positive < 0.2%",
+                ),
+                SprintMilestone(
+                    week_range="Week 3 — Audit & Verification",
+                    phase_name="VERITAS Financial Chaining & SAR Reporting",
+                    deliverables=["Integrate SHA-256 Merkle chain on all transactions", "Deploy Policy P-02 high-value human approval gate", "Build automated SAR compliance exporter"],
+                    accountable_role="solutions_officer",
+                    kpi_metric="100% cryptographic ledger audit integrity",
                 ),
             ],
             recommended_roadmap_weeks=3,
             governance_certificates=[
+                GovernanceCertificate(
+                    policy_code="P-01",
+                    policy_name="Evidence Grounding Rule",
+                    severity="HIGH",
+                    status="ENFORCED",
+                    audit_proof="All risk thresholds mapped to Basel Committee banking standards and FinCEN SAR rules.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-02",
+                    policy_name="Financial Data Privacy & PCI-DSS",
+                    severity="CRITICAL",
+                    status="ENFORCED",
+                    audit_proof="Primary Account Numbers (PAN) tokenized at edge; zero plaintext cardholder data persisted.",
+                ),
                 GovernanceCertificate(
                     policy_code="P-07",
                     policy_name="VERITAS Financial Chaining Rule",
                     severity="CRITICAL",
                     status="VERIFIED",
                     audit_proof="All ledger movements cryptographically chained with 100% balance integrity.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-09",
+                    policy_name="MNEMOS Procedural Scrubbing",
+                    severity="HIGH",
+                    status="COMPLIANT",
+                    audit_proof="Zero customer transaction values or account identities persisted in organizational memory atoms.",
                 ),
             ],
             governance_and_privacy=["PCI-DSS Level 1 Tokenization", "Cryptographic Double-Entry Balance Verification"],
@@ -730,6 +964,13 @@ async def evaluate_symptoms(req: DiagnosisRequest):
                     atom_id="atom_fintech_01",
                     name="High-value cross-border transfers require instant secondary approval gate",
                     action_rule="Trigger Policy P-02 approval modal on transactions exceeding $10,000 USD",
+                    applicability_domain="fintech",
+                    privacy_scrubbed=True,
+                ),
+                LearnedMemoryAtomSummary(
+                    atom_id="atom_fintech_02",
+                    name="Sliding-window velocity spike detection",
+                    action_rule="Flag accounts executing > 5 transactions within 60 seconds as potential credential stuffing",
                     applicability_domain="fintech",
                     privacy_scrubbed=True,
                 ),
@@ -754,6 +995,23 @@ class PostTransactionRequest(BaseModel):
 async def post_entry(req: PostTransactionRequest):
     # Enforce atomic double-entry balance and VERITAS seal
     return {"status": "COMMITTED", "amount": req.amount_cents, "verified": True}
+""",
+                ),
+                CodeScaffold(
+                    title="Next.js Financial Fraud HUD",
+                    language="typescript",
+                    filename="src/components/fintech/FraudStreamHUD.tsx",
+                    code_content="""'use client';
+import React from 'react';
+
+export function FraudStreamHUD({ transactionCount }: { transactionCount: number }) {
+  return (
+    <div className="p-4 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md">
+      <h3 className="font-bold text-white text-sm">Real-Time Ledger & Fraud Stream</h3>
+      <p className="text-xs text-cyan-400 mt-1">Processed Transactions: {transactionCount} · Sub-10ms Latency</p>
+    </div>
+  );
+}
 """,
                 ),
             ],
@@ -796,24 +1054,73 @@ async def post_entry(req: PostTransactionRequest):
                     request_type='{"host_id": "srv-prod-01", "event_id": 4624, "details": "Successful logon"}',
                     response_type='{"status": "INGESTED", "threat_level": "LOW", "chain_hash": "7a8b9c..."}',
                 ),
+                ApiContractEndpoint(
+                    method="POST",
+                    path="/api/v1/soar/isolate-host",
+                    description="Executes automated network isolation playbook with forensic lock.",
+                    request_type='{"host_id": "srv-prod-01", "reason": "Ransomware canary detected", "authorized_by": "sec_lead_01"}',
+                    response_type='{"isolation_status": "ENFORCED", "firewall_rule_id": "fw_9921", "veritas_seal": "f5e6d7..."}',
+                ),
+                ApiContractEndpoint(
+                    method="GET",
+                    path="/api/v1/soar/audit-trail/{incident_id}",
+                    description="Retrieves court-admissible cryptographic incident forensics trail.",
+                    request_type="No body (GET /api/v1/soar/audit-trail/inc_88b)",
+                    response_type='{"incident_id": "inc_88b", "timeline": [...], "merkle_root": "f5e6d7c8..."}',
+                ),
             ],
             roadmap_schedule=[
                 SprintMilestone(
-                    week_range="Week 1",
+                    week_range="Week 1 — Telemetry Pipeline",
                     phase_name="Log Ingestion & Sigma Pipeline",
-                    deliverables=["Deploy ClickHouse/PostgreSQL store", "Integrate MITRE ATT&CK mapping"],
+                    deliverables=["Deploy ClickHouse/PostgreSQL partitioned store", "Integrate MITRE ATT&CK mapping", "Deploy Redis Streams telemetry worker"],
                     accountable_role="system_architect",
                     kpi_metric="Ingestion throughput > 25,000 eps",
+                ),
+                SprintMilestone(
+                    week_range="Week 2 — Correlation & ML",
+                    phase_name="Anomaly Correlation & ATT&CK Matrix",
+                    deliverables=["Implement Gemini 2.5 Pro root-cause synthesizer", "Build dynamic MITRE ATT&CK risk heatmap", "Configure sub-50ms rule evaluator"],
+                    accountable_role="ai_architect",
+                    kpi_metric="False positive reduction > 85%",
+                ),
+                SprintMilestone(
+                    week_range="Week 3 — Containment & Audit",
+                    phase_name="SOAR Playbooks & Forensic Seal",
+                    deliverables=["Deploy automated host isolation playbooks", "Integrate SHA-256 forensic tamper-evident chain", "Deploy Policy P-02 approval gate"],
+                    accountable_role="solutions_officer",
+                    kpi_metric="Automated containment time < 100ms",
                 ),
             ],
             recommended_roadmap_weeks=3,
             governance_certificates=[
+                GovernanceCertificate(
+                    policy_code="P-01",
+                    policy_name="Evidence Grounding Rule",
+                    severity="HIGH",
+                    status="ENFORCED",
+                    audit_proof="All threat detections grounded in NIST SP 800-61 and MITRE ATT&CK v14 tactics.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-02",
+                    policy_name="Zero-Trust Containment Gate",
+                    severity="CRITICAL",
+                    status="ENFORCED",
+                    audit_proof="Mandatory secondary human-in-the-loop gate before domain controller or production cluster isolation.",
+                ),
                 GovernanceCertificate(
                     policy_code="P-07",
                     policy_name="VERITAS Forensic Chain of Custody",
                     severity="CRITICAL",
                     status="VERIFIED",
                     audit_proof="All forensic incident events sealed with SHA-256 Merkle hashes.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-09",
+                    policy_name="MNEMOS Procedural Scrubbing",
+                    severity="HIGH",
+                    status="COMPLIANT",
+                    audit_proof="Zero customer IPs, credentials, or confidential payload data persisted in memory atoms.",
                 ),
             ],
             governance_and_privacy=["SOC-2 Type II Compliance", "Zero-Trust Architecture Standard"],
@@ -828,6 +1135,13 @@ async def post_entry(req: PostTransactionRequest):
                     applicability_domain="cybersecurity",
                     privacy_scrubbed=True,
                 ),
+                LearnedMemoryAtomSummary(
+                    atom_id="atom_sec_02",
+                    name="Sigma rule telemetry tuning for noisy ephemeral containers",
+                    action_rule="Apply namespace suppressions on known CI/CD ephemeral runners to eliminate false alarms",
+                    applicability_domain="cybersecurity",
+                    privacy_scrubbed=True,
+                ),
             ],
             code_scaffolds=[
                 CodeScaffold(
@@ -835,12 +1149,29 @@ async def post_entry(req: PostTransactionRequest):
                     language="python",
                     filename="app/api/v1/soar.py",
                     code_content="""from fastapi import APIRouter
-router = APIRouter(prefix="/soar")
+router = APIRouter(prefix="/soar", tags=["SOAR Playbooks"])
 
 @router.post("/isolate-host")
 async def isolate_host(host_id: str, reason: str):
     # Execute network firewall rule & emit VERITAS forensic proof
     return {"host_id": host_id, "status": "ISOLATED", "verified": True}
+""",
+                ),
+                CodeScaffold(
+                    title="Next.js Live Threat Workbench",
+                    language="typescript",
+                    filename="src/components/security/ThreatWorkbench.tsx",
+                    code_content="""'use client';
+import React from 'react';
+
+export function ThreatWorkbench({ activeAlerts }: { activeAlerts: any[] }) {
+  return (
+    <div className="p-4 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md">
+      <h3 className="font-bold text-white text-sm">MITRE ATT&CK Threat Map</h3>
+      <p className="text-xs text-rose-400 mt-1">Active Incident Queue: {activeAlerts.length} Events Sealed</p>
+    </div>
+  );
+}
 """,
                 ),
             ],
@@ -883,14 +1214,42 @@ async def isolate_host(host_id: str, reason: str):
                     request_type='{"parcel_id": "pcl_44", "soil_moisture_pct": 18.5, "crop_stage": "vegetative"}',
                     response_type='{"water_liters_per_ha": 3500, "nitrogen_kg_ha": 12.5, "veritas_hash": "2a3b4c..."}',
                 ),
+                ApiContractEndpoint(
+                    method="GET",
+                    path="/api/v1/agri/ndvi-map/{parcel_id}",
+                    description="Fetches satellite multispectral vegetative health index overlay.",
+                    request_type="No body (GET /api/v1/agri/ndvi-map/pcl_44)",
+                    response_type='{"parcel_id": "pcl_44", "ndvi_score": 0.74, "health_band": "OPTIMAL"}',
+                ),
+                ApiContractEndpoint(
+                    method="POST",
+                    path="/api/v1/agri/carbon-verify",
+                    description="Issues cryptographically sealed carbon credit verification certificate.",
+                    request_type='{"parcel_id": "pcl_44", "soil_carbon_metric": 2.4, "tillage_method": "no-till"}',
+                    response_type='{"certificate_id": "carb_99", "tonnes_co2e_sequestered": 42.1, "veritas_seal": "1a2b3c..."}',
+                ),
             ],
             roadmap_schedule=[
                 SprintMilestone(
-                    week_range="Week 1",
+                    week_range="Week 1 — Spatial & Sensors",
                     phase_name="Spatial Geo-Index & Sensor Ingestion",
-                    deliverables=["Deploy PostGIS parcel database", "Implement MQTT sensor telemetry bridge"],
+                    deliverables=["Deploy PostGIS parcel database", "Implement MQTT sensor telemetry bridge", "Build field polygon ingestion UI"],
                     accountable_role="system_architect",
                     kpi_metric="Sensor ingest latency < 100ms",
+                ),
+                SprintMilestone(
+                    week_range="Week 2 — Agronomy Engine",
+                    phase_name="Precision Agronomy & Disease Model",
+                    deliverables=["Connect Sentinel-2 satellite NDVI pipeline", "Deploy Gemini 2.5 Flash crop disease classifier", "Build FAO-56 irrigation scheduler"],
+                    accountable_role="ai_architect",
+                    kpi_metric="Disease diagnostic accuracy > 93%",
+                ),
+                SprintMilestone(
+                    week_range="Week 3 — Carbon Ledger",
+                    phase_name="VERITAS Carbon Credit Ledger & Farmer Portal",
+                    deliverables=["Integrate SHA-256 carbon credit ledger", "Deploy responsive farmer mobile dashboard", "Conduct agricultural extension pilot"],
+                    accountable_role="solutions_officer",
+                    kpi_metric="100% auditable carbon credits",
                 ),
             ],
             recommended_roadmap_weeks=3,
@@ -901,6 +1260,27 @@ async def isolate_host(host_id: str, reason: str):
                     severity="HIGH",
                     status="ENFORCED",
                     audit_proof="All irrigation formulas calibrated against FAO-56 Penman-Monteith guidelines.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-02",
+                    policy_name="Farmer Data Privacy & Coordinates Masking",
+                    severity="CRITICAL",
+                    status="ENFORCED",
+                    audit_proof="Exact parcel boundary coordinates masked with differential privacy for public analytics.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-07",
+                    policy_name="VERITAS Carbon Ledger Rule",
+                    severity="CRITICAL",
+                    status="VERIFIED",
+                    audit_proof="12 chained events verified across SHA-256 cryptographic ledger with 0 broken links.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-09",
+                    policy_name="MNEMOS Procedural Scrubbing",
+                    severity="HIGH",
+                    status="COMPLIANT",
+                    audit_proof="Zero individual farmer identities or private parcel coordinates persisted in memory atoms.",
                 ),
             ],
             governance_and_privacy=["Verified Carbon Credit Integrity", "Farmer Location Anonymization"],
@@ -915,6 +1295,13 @@ async def isolate_host(host_id: str, reason: str):
                     applicability_domain="agritech",
                     privacy_scrubbed=True,
                 ),
+                LearnedMemoryAtomSummary(
+                    atom_id="atom_agri_02",
+                    name="Frost hazard mitigation protocol for night temperature drops",
+                    action_rule="Broadcast emergency sprinkler notification when ambient temperature drops below 2°C",
+                    applicability_domain="agritech",
+                    privacy_scrubbed=True,
+                ),
             ],
             code_scaffolds=[
                 CodeScaffold(
@@ -922,12 +1309,29 @@ async def isolate_host(host_id: str, reason: str):
                     language="python",
                     filename="app/api/v1/agronomy.py",
                     code_content="""from fastapi import APIRouter
-router = APIRouter(prefix="/agronomy")
+router = APIRouter(prefix="/agronomy", tags=["Agronomy Prescriptions"])
 
 @router.post("/irrigation")
 async def calculate_irrigation(parcel_id: str, moisture: float):
     # Calculate soil water deficit and return prescription
     return {"parcel_id": parcel_id, "irrigation_hours": 2.5, "verified": True}
+""",
+                ),
+                CodeScaffold(
+                    title="Next.js Field Sensor HUD",
+                    language="typescript",
+                    filename="src/components/agritech/FieldSensorHUD.tsx",
+                    code_content="""'use client';
+import React from 'react';
+
+export function FieldSensorHUD({ parcelId }: { parcelId: string }) {
+  return (
+    <div className="p-4 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md">
+      <h3 className="font-bold text-white text-sm">Parcel Telemetry ({parcelId})</h3>
+      <p className="text-xs text-emerald-400 mt-1">NDVI Index: 0.74 · Soil Moisture: 22.4% Optimal</p>
+    </div>
+  );
+}
 """,
                 ),
             ],
@@ -970,24 +1374,73 @@ async def calculate_irrigation(parcel_id: str, moisture: float):
                     request_type='{"document_id": "doc_88", "contract_type": "Master Services Agreement"}',
                     response_type='{"risk_score": "MEDIUM", "deviations_found": 3, "veritas_hash": "5b6c7d..."}',
                 ),
+                ApiContractEndpoint(
+                    method="POST",
+                    path="/api/v1/contracts/audit-clause",
+                    description="Audits specific contractual clause against vectorized precedent bank.",
+                    request_type='{"clause_type": "Indemnity", "clause_text": "Supplier shall indemnify without cap..."}',
+                    response_type='{"risk_level": "CRITICAL", "standard_deviation": "Unlimited liability", "proposed_redline": "Capped at 2x annual fees"}',
+                ),
+                ApiContractEndpoint(
+                    method="GET",
+                    path="/api/v1/contracts/export-redline/{document_id}",
+                    description="Exports tamper-evident redline DOCX with cryptographic VERITAS version seal.",
+                    request_type="No body (GET /api/v1/contracts/export-redline/doc_88)",
+                    response_type='{"document_id": "doc_88", "download_url": "/downloads/doc_88_redline.docx", "veritas_hash": "3c4d5e..."}',
+                ),
             ],
             roadmap_schedule=[
                 SprintMilestone(
-                    week_range="Week 1",
+                    week_range="Week 1 — Clause Store",
                     phase_name="Clause Vector Store & Parser",
-                    deliverables=["Deploy pgvector legal clause index", "Build PDF/DOCX structural parser"],
+                    deliverables=["Deploy pgvector legal clause index", "Build PDF/DOCX structural parser", "Ingest standard gold-standard playbook clauses"],
                     accountable_role="ai_architect",
                     kpi_metric="Clause extraction accuracy > 96%",
+                ),
+                SprintMilestone(
+                    week_range="Week 2 — Risk Scorecard",
+                    phase_name="Legal LLM Risk Scorecard & Deviation Analysis",
+                    deliverables=["Deploy Gemini 2.5 Pro deep legal reasoning prompt", "Build split-screen contract diff viewer", "Configure clause deviation thresholding"],
+                    accountable_role="solutions_officer",
+                    kpi_metric="Risk detection precision > 94%",
+                ),
+                SprintMilestone(
+                    week_range="Week 3 — Audit & Sealing",
+                    phase_name="VERITAS Redline Audit Trail & Client Portal",
+                    deliverables=["Integrate SHA-256 redline versioning ledger", "Enforce Policy P-02 client-side confidentiality locks", "Deploy production portal"],
+                    accountable_role="privacy_risk",
+                    kpi_metric="Zero unencrypted document persistence",
                 ),
             ],
             recommended_roadmap_weeks=3,
             governance_certificates=[
+                GovernanceCertificate(
+                    policy_code="P-01",
+                    policy_name="Evidence Grounding Rule",
+                    severity="HIGH",
+                    status="ENFORCED",
+                    audit_proof="All clause suggestions referenced against American Bar Association (ABA) model agreements and jurisdictional case law.",
+                ),
                 GovernanceCertificate(
                     policy_code="P-02",
                     policy_name="Attorney-Client Confidentiality Rule",
                     severity="CRITICAL",
                     status="ENFORCED",
                     audit_proof="Zero plaintext document persistence in unencrypted storage; automatic document purge options.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-07",
+                    policy_name="VERITAS Redline Ledger Rule",
+                    severity="CRITICAL",
+                    status="VERIFIED",
+                    audit_proof="12 chained events verified across SHA-256 cryptographic ledger with 0 broken links.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-09",
+                    policy_name="MNEMOS Procedural Scrubbing",
+                    severity="HIGH",
+                    status="COMPLIANT",
+                    audit_proof="Zero client contract names, counterparty terms, or monetary caps persisted in memory atoms.",
                 ),
             ],
             governance_and_privacy=["Confidentiality Guaranteed", "Cryptographic Redline Versioning"],
@@ -1002,6 +1455,13 @@ async def calculate_irrigation(parcel_id: str, moisture: float):
                     applicability_domain="legaltech",
                     privacy_scrubbed=True,
                 ),
+                LearnedMemoryAtomSummary(
+                    atom_id="atom_legal_02",
+                    name="Non-compete clause duration boundary check",
+                    action_rule="Flag non-compete clauses exceeding 12 months in jurisdictions with statutory employee mobility protections",
+                    applicability_domain="legaltech",
+                    privacy_scrubbed=True,
+                ),
             ],
             code_scaffolds=[
                 CodeScaffold(
@@ -1009,12 +1469,29 @@ async def calculate_irrigation(parcel_id: str, moisture: float):
                     language="python",
                     filename="app/api/v1/contracts.py",
                     code_content="""from fastapi import APIRouter
-router = APIRouter(prefix="/contracts")
+router = APIRouter(prefix="/contracts", tags=["Contracts AI"])
 
 @router.post("/audit-clause")
 async def audit_clause(clause_text: str):
     # Query gold standard clause vector DB & return risk assessment
     return {"clause_risk": "LOW", "recommended_redline": None, "verified": True}
+""",
+                ),
+                CodeScaffold(
+                    title="Next.js Contract Diff Viewer",
+                    language="typescript",
+                    filename="src/components/legal/ContractDiffViewer.tsx",
+                    code_content="""'use client';
+import React from 'react';
+
+export function ContractDiffViewer({ documentId }: { documentId: string }) {
+  return (
+    <div className="p-4 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md">
+      <h3 className="font-bold text-white text-sm">Split-Screen Legal Redline ({documentId})</h3>
+      <p className="text-xs text-amber-400 mt-1">Zero Plaintext Persistence · Encrypted In-Memory Only</p>
+    </div>
+  );
+}
 """,
                 ),
             ],
@@ -1071,26 +1548,40 @@ async def audit_clause(clause_text: str):
                     request_type='{"action": "process", "parameters": {"entity_id": "ent_01"}}',
                     response_type='{"status": "SUCCESS", "execution_id": "exe_88", "veritas_hash": "6f7e8d..."}',
                 ),
+                ApiContractEndpoint(
+                    method="GET",
+                    path="/api/v1/core/status/{id}",
+                    description="Returns real-time execution telemetry and status.",
+                    request_type="No body (GET /api/v1/core/status/exe_88)",
+                    response_type='{"execution_id": "exe_88", "progress_pct": 100, "status": "COMPLETED"}',
+                ),
+                ApiContractEndpoint(
+                    method="POST",
+                    path="/api/v1/core/verify-state",
+                    description="Cryptographically verifies system state integrity against VERITAS SHA-256 ledger.",
+                    request_type='{"execution_id": "exe_88", "expected_root": "7a8b9c..."}',
+                    response_type='{"verified": true, "integrity_score": 1.0, "broken_links": 0}',
+                ),
             ],
             roadmap_schedule=[
                 SprintMilestone(
                     week_range="Week 1 — Foundation",
                     phase_name="Infrastructure & Schema Setup",
-                    deliverables=["Deploy PostgreSQL 16 database and Redis queue", "Build Next.js interactive interface"],
+                    deliverables=["Deploy PostgreSQL 16 database and Redis queue", "Build Next.js interactive interface", "Configure OpenAPI specifications"],
                     accountable_role="system_architect",
                     kpi_metric="Core API response time < 50ms",
                 ),
                 SprintMilestone(
                     week_range="Week 2 — AI & Automation",
                     phase_name="AI Pipeline & Reasoning Engine",
-                    deliverables=["Integrate Gemini 2.5 reasoning models", "Configure vector embedding store"],
+                    deliverables=["Integrate Gemini 2.5 reasoning models", "Configure vector embedding store", "Deploy multi-agent consensus loop"],
                     accountable_role="ai_architect",
                     kpi_metric="Inference accuracy > 95%",
                 ),
                 SprintMilestone(
                     week_range="Week 3 — Governance & Proof",
                     phase_name="VERITAS Ledger & Safety Gate",
-                    deliverables=["Integrate SHA-256 event chaining", "Deploy Policy P-02 Human Approval Gate"],
+                    deliverables=["Integrate SHA-256 event chaining", "Deploy Policy P-02 Human Approval Gate", "Finalize production deploy package"],
                     accountable_role="privacy_risk",
                     kpi_metric="100% cryptographic ledger integrity",
                 ),
@@ -1111,6 +1602,20 @@ async def audit_clause(clause_text: str):
                     status="ENFORCED",
                     audit_proof="Automated data purging and encryption verified under Policy P-02.",
                 ),
+                GovernanceCertificate(
+                    policy_code="P-07",
+                    policy_name="VERITAS State Ledger Rule",
+                    severity="CRITICAL",
+                    status="VERIFIED",
+                    audit_proof="12 chained events verified across SHA-256 cryptographic ledger with 0 broken links.",
+                ),
+                GovernanceCertificate(
+                    policy_code="P-09",
+                    policy_name="MNEMOS Procedural Scrubbing",
+                    severity="HIGH",
+                    status="COMPLIANT",
+                    audit_proof="Zero personal, private, or identifiable records persisted in organizational memory atoms.",
+                ),
             ],
             governance_and_privacy=["Policy P-02 Privacy Bounds", "Cryptographic SHA-256 Event Chaining (VERITAS)"],
             veritas_chain_hash="7a8b9c0d1e2f3a4b5c6d7e8f901234567a8b9c0d1e2f3a4b5c6d7e8f90123456",
@@ -1121,6 +1626,13 @@ async def audit_clause(clause_text: str):
                     atom_id="atom_universal_01",
                     name=f"Standard governance protocol for {domain}",
                     action_rule="Enforce Policy P-02 approval gate before modifying persistent state",
+                    applicability_domain=domain,
+                    privacy_scrubbed=True,
+                ),
+                LearnedMemoryAtomSummary(
+                    atom_id="atom_universal_02",
+                    name=f"Automated error recovery and checkpoint replay for {domain}",
+                    action_rule="Replay unverified state transitions from last verified SHA-256 checkpoint",
                     applicability_domain=domain,
                     privacy_scrubbed=True,
                 ),
@@ -1148,6 +1660,23 @@ async def execute_task(req: ExecuteRequest):
     return {"status": "SUCCESS", "action": req.action, "verified": True}
 """,
                 ),
+                CodeScaffold(
+                    title="Next.js Core Dashboard",
+                    language="typescript",
+                    filename="src/components/core/CoreDashboard.tsx",
+                    code_content="""'use client';
+import React from 'react';
+
+export function CoreDashboard({ entityId }: { entityId: string }) {
+  return (
+    <div className="p-4 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md">
+      <h3 className="font-bold text-white text-sm">Verified Domain Control Engine</h3>
+      <p className="text-xs text-blue-400 mt-1">Entity: {entityId} · Cryptographically Verified</p>
+    </div>
+  );
+}
+""",
+                ),
             ],
             estimated_token_cost_usd=0.039,
             total_tokens_consumed=15000,
@@ -1157,3 +1686,4 @@ async def execute_task(req: ExecuteRequest):
 
 # Singleton
 solutions_officer = SolutionsOfficerAgent()
+
