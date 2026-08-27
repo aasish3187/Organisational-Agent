@@ -1,8 +1,9 @@
 # ORGagent Organization OS — Governed Multi-Agent Architecture Compiler
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-Expo_Ready_v1.0.0-8B5CF6?style=for-the-badge&logo=rocket&logoColor=white" alt="Status" />
-  <img src="https://img.shields.io/badge/Security-VERITAS_Cryptographic_Proof-06B6D4?style=for-the-badge&logo=shieldcheck&logoColor=white" alt="VERITAS" />
+  <a href="https://organisational-agent-6up4.vercel.app/"><img src="https://img.shields.io/badge/Live_App-organisational--agent--6up4.vercel.app-8B5CF6?style=for-the-badge&logo=vercel&logoColor=white" alt="Live App" /></a>
+  <a href="https://organisational-agent.onrender.com/docs"><img src="https://img.shields.io/badge/Live_API-organisational--agent.onrender.com-06B6D4?style=for-the-badge&logo=render&logoColor=white" alt="Live API" /></a>
+  <img src="https://img.shields.io/badge/Security-VERITAS_Cryptographic_Proof-10B981?style=for-the-badge&logo=shieldcheck&logoColor=white" alt="VERITAS" />
   <img src="https://img.shields.io/badge/Memory-MNEMOS_Process_Atoms-6366F1?style=for-the-badge&logo=databricks&logoColor=white" alt="MNEMOS" />
 </p>
 
@@ -12,8 +13,9 @@
   <img src="https://img.shields.io/badge/React_19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Python_3.12-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.12" />
-  <img src="https://img.shields.io/badge/Pydantic_v2-E92063?style=flat-square&logo=pydantic&logoColor=white" alt="Pydantic v2" />
-  <img src="https://img.shields.io/badge/Google_Gemini-8E75B2?style=flat-square&logo=google&logoColor=white" alt="Gemini" />
+  <img src="https://img.shields.io/badge/DeepSeek_R1-10B981?style=flat-square&logo=deepseek&logoColor=white" alt="DeepSeek-R1" />
+  <img src="https://img.shields.io/badge/GLM_5.2-14B8A6?style=flat-square&logo=openai&logoColor=white" alt="GLM 5.2" />
+  <img src="https://img.shields.io/badge/Google_Gemini_2.5-8E75B2?style=flat-square&logo=google&logoColor=white" alt="Gemini" />
   <img src="https://img.shields.io/badge/Groq_LLaMA_3.3-F55036?style=flat-square&logo=meta&logoColor=white" alt="Groq" />
   <img src="https://img.shields.io/badge/TailwindCSS_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="TailwindCSS" />
   <img src="https://img.shields.io/badge/React_Flow-FF0072?style=flat-square&logo=diagramsdotnet&logoColor=white" alt="React Flow" />
@@ -27,15 +29,25 @@
   <img src="https://img.shields.io/github/forks/aasish3187/Organisational-Agent?style=flat-square&color=green" alt="Forks" />
   <img src="https://img.shields.io/github/issues/aasish3187/Organisational-Agent?style=flat-square&color=red" alt="Issues" />
   <img src="https://img.shields.io/github/last-commit/aasish3187/Organisational-Agent?style=flat-square&color=purple" alt="Last Commit" />
-  <img src="https://img.shields.io/github/repo-size/aasish3187/Organisational-Agent?style=flat-square&color=orange" alt="Repo Size" />
 </p>
+
+---
+
+### 🌐 Live 24/7 Cloud Deployments
+
+| Component | Platform | Live URL | Status |
+|---|---|---|---|
+| **Frontend Web App** | **Vercel** | [https://organisational-agent-6up4.vercel.app/](https://organisational-agent-6up4.vercel.app/) | `● Live (Edge CDN)` |
+| **FastAPI REST Backend** | **Render** | [https://organisational-agent.onrender.com](https://organisational-agent.onrender.com) | `● Live (Oregon)` |
+| **Interactive Swagger Docs** | **Render / OpenAPI 3.1** | [https://organisational-agent.onrender.com/docs](https://organisational-agent.onrender.com/docs) | `● Active` |
+| **API Health Probe** | **Render** | [https://organisational-agent.onrender.com/health](https://organisational-agent.onrender.com/health) | `● 200 OK` |
 
 ---
 
 **ORGagent Organization OS** is an autonomous multi-agent operating system and architecture compiler. It dynamically instantiates governed teams of specialized AI agents (*Researchers, System Architects, Security Officers, Consistency Reviewers*) to turn raw human ideas, architecture diagrams, and database schemas into verified, production-grade software blueprints — backed by **cryptographic proof (VERITAS)** and **reusable organizational memory (MNEMOS)**.
 
-> **Built by Aasish** | *Lumina Systems Engineering / Advanced Multi-Agent Computing*  
-> **Repository:** [aasish3187/Organisational-Agent](https://github.com/aasish3187/Organisational-Agent) | **API Docs:** `http://localhost:8000/docs` | **Client App:** `http://localhost:3000`
+> **Built by Aasish** | *Advanced Multi-Agent Computing*  
+> **Repository:** [aasish3187/Organisational-Agent](https://github.com/aasish3187/Organisational-Agent)
 
 ---
 
@@ -90,11 +102,13 @@ Completed runs distill reusable organizational lessons into **Process Atoms** (e
 Users can attach architecture wireframes (`.png`, `.jpg`, `.webp`), database schemas (`.sql`, `.json`, `.yaml`), and specification documents (`.pdf`, `.md`, `.txt`). The `MissionInterpreterAgent` and downstream architects extract, cite, and ground their technical requirements directly in user-provided diagrams and schemas.
 
 ### 5. Multi-Model LLM Gateway Cascade
-ORGagent routes inference dynamically across providers to ensure high availability, zero vendor lock-in, and sub-second compilation:
-- **Google Gemini 2.5 Pro / Flash**: Primary complex reasoning, multimodal vision, and deep system architecture synthesis.
-- **Groq Cloud (LLaMA 3.3 70B / Qwen 2.5)**: Sub-200ms ultra-fast fallback inference pool.
-- **OpenRouter (Qwen 2.5 72B)**: High-diversity multi-agent reasoning.
-- **Ollama Private Cloud**: Zero-data-leakage local inference.
+ORGagent routes inference dynamically across specialized foundation models to ensure highest architectural reasoning quality, strict policy compliance, and sub-second compilation:
+- **DeepSeek-R1** (`deepseek-reasoner` / `deepseek-r1`): Deep Chain-of-Thought mathematical optimization, edge-case failure mode analysis, and multi-step formal verification with automatic `<think>` tag parsing.
+- **GLM 5.2 (Zhipu AI)** (`glm-5.2` / `z-ai/glm-5.2:free`): Multilingual taxonomy grounding, statutory regulation adherence, and strict Policy P-02 compliance validation.
+- **Google Gemini 2.5 Pro & Flash**: Primary 1M-token context window processing, multimodal diagram grounding, and microservices architecture synthesis.
+- **Groq Cloud (LLaMA 3.3 70B Versatile)**: Sub-200ms ultra-fast evidence retrieval and token-efficient RAG indexing.
+- **OpenRouter Universal Multi-Candidate Gateway**: High-availability dynamic fallback cascade across reasoning models.
+- **Ollama Private Cloud**: Zero-data-leakage enterprise local inference option.
 
 ---
 
@@ -116,14 +130,14 @@ graph TD
     Compiler -->|Spawns Governed DAG| Canvas["Screen C: Living 3D Agent Network Canvas"]
     
     subgraph Governed 7-Agent Execution DAG
-        Canvas --> Ag1["1. Research Analyst (EvidenceBrief)"]
-        Ag1 --> Ag2["2. Product Strategist (ProductSpec)"]
-        Ag2 --> Ag3["3. AI Architect (AIArchitectureSpec)"]
-        Ag2 --> Ag4["4. System Architect (SystemArchitectureSpec)"]
-        Ag4 --> Ag5["5. Privacy & Risk Auditor (Policy P-02)"]
+        Canvas --> Ag1["1. Research Analyst (Groq / Gemini)"]
+        Ag1 --> Ag2["2. Product Strategist (DeepSeek-R1)"]
+        Ag2 --> Ag3["3. AI Architect (DeepSeek-R1)"]
+        Ag2 --> Ag4["4. System Architect (Gemini 2.5 Pro)"]
+        Ag4 --> Ag5["5. Privacy & Risk Auditor (GLM 5.2)"]
         Ag5 --> Gate{"Screen D: Human-in-the-Loop Gate"}
-        Gate -- "Approve & Resume" --> Ag6["6. Consistency Reviewer (ReviewReport)"]
-        Ag6 --> Ag7["7. Solutions Officer (FinalBlueprint)"]
+        Gate -- "Approve & Resume" --> Ag6["6. Consistency Reviewer (DeepSeek-R1)"]
+        Ag6 --> Ag7["7. Solutions Officer (Gemini 2.5 Pro)"]
     end
     
     subgraph Cryptographic Proof Ledger
@@ -136,18 +150,19 @@ graph TD
 
 ---
 
-## Governed Specialist Swarm
+## Governed Specialist Swarm & Model Allocation Matrix
 
-| # | Specialist Agent Role | Mandate & Responsibilities | Output Schema | Permitted Tools | Model Tier |
+| # | Specialist Agent Role | Mandate & Responsibilities | Output Schema | Permitted Tools | Best-in-Class Model |
 |---|---|---|---|---|---|
-| **1** | `mission_interpreter` | Translates raw prompt, diagrams, and schemas into structured SLAs & criteria | `IdeaContract` | Schema Parser, Image Vision | PRO |
-| **2** | `organization_compiler` | Assembles custom specialist agent DAG, token budgets & policy gates | `OrganizationPlan` | MNEMOS Query, Policy Matrix | PRO |
-| **3** | `research_analyst` | Conducts domain literature search, accreditation standards & evidence | `EvidenceBrief` | Semantic Search, Docs DB | FLASH |
-| **4** | `product_strategist` | Outlines user personas, MVP feature scope, user journeys & success metrics | `ProductSpec` | Persona Engine, Scoper | PRO |
-| **5** | `system_architect` | Generates 4-tier microservices, database schemas, APIs & Docker compose | `SystemArchitectureSpec` | Schema DDL, YAML Generator | PRO |
-| **6** | `privacy_risk` | Audits data retention, PII exposure, and statutory compliance (Policy P-02) | `RiskAuditReport` | PII Scanner, Compliance Gate | FLASH |
-| **7** | `consistency_reviewer` | Verifies cross-artifact coherence, contract adherence, and claim support | `ReviewReport` | Claim Verifier, Diff Engine | PRO |
-| **8** | `solutions_officer` | Synthesizes master blueprint, OpenAPI contracts, sprint roadmap & proofs | `FinalBlueprint` | Blueprint Packager, Zip Export | PRO |
+| **1** | `mission_interpreter` | Translates raw prompt, diagrams, and schemas into structured SLAs & criteria | `IdeaContract` | Schema Parser, Image Vision | **Google Gemini 2.5 Pro** |
+| **2** | `organization_compiler` | Assembles custom specialist agent DAG, token budgets & policy gates | `OrganizationPlan` | MNEMOS Query, Policy Matrix | **Google Gemini 2.5 Pro** |
+| **3** | `research_analyst` | Conducts domain literature search, accreditation standards & evidence | `EvidenceBrief` | Semantic Search, Docs DB | **Groq Cloud / Gemini Flash** |
+| **4** | `product_strategist` | Outlines user personas, MVP feature scope, user journeys & success metrics | `ProductSpec` | Persona Engine, Scoper | **DeepSeek-R1 (Reasoner)** |
+| **5** | `ai_architect` | Formulates model selection matrix, token context math & vector indexing | `AIArchitectureSpec` | Token Calculator, RAG Analyzer | **DeepSeek-R1 (Reasoner)** |
+| **6** | `system_architect` | Generates 4-tier microservices, database schemas, APIs & Docker compose | `SystemArchitectureSpec` | Schema DDL, YAML Generator | **Google Gemini 2.5 Pro** |
+| **7** | `privacy_risk` | Audits data retention, PII exposure, and statutory compliance (Policy P-02) | `RiskAuditReport` | PII Scanner, Compliance Gate | **GLM 5.2 (Zhipu AI)** |
+| **8** | `consistency_reviewer` | Verifies cross-artifact coherence, contract adherence, and claim support | `ReviewReport` | Claim Verifier, Diff Engine | **DeepSeek-R1 (Reasoner)** |
+| **9** | `solutions_officer` | Synthesizes master blueprint, OpenAPI contracts, sprint roadmap & proofs | `FinalBlueprint` | Blueprint Packager, Zip Export | **Google Gemini 2.5 Pro** |
 
 ---
 
