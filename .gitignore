@@ -38,6 +38,7 @@ coverage/
 out/
 build/
 *.tsbuildinfo
+.playwright-mcp/
 next-env.d.ts
 
 # Environment Variables & Secrets
