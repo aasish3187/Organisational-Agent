@@ -19,6 +19,13 @@ from app.routers.streaming import router as streaming_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Auto-create all relational tables on startup (critical for SQLite & cloud deployments)
+    from app.core.database import Base
+    import app.models  # noqa: F401 - register all model schemas with Base.metadata
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
     yield
     await close_redis()
     await engine.dispose()
