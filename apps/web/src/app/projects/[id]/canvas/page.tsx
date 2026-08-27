@@ -565,7 +565,7 @@ export default function CanvasPage({
             <div className="w-full md:w-auto shrink-0 flex flex-wrap items-center gap-3">
               <button
                 onClick={() => {
-                  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                  const apiUrl = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? window.location.origin : '');
                   window.open(`${apiUrl}/api/projects/${projectId}/export/zip`, '_blank');
                 }}
                 className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs md:text-sm flex items-center justify-center gap-2 border border-white/20 transition-all cursor-pointer"

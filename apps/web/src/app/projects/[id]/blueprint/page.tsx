@@ -1096,7 +1096,7 @@ paths:
   const [analyticsData, setAnalyticsData] = useState<any>(null);
 
   const handleDownloadZip = () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? window.location.origin : '');
     window.open(`${apiUrl}/api/projects/${projectId}/export/zip`, '_blank');
   };
 

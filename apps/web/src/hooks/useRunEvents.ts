@@ -3,7 +3,14 @@
 import { useEffect, useState, useRef } from 'react';
 import type { FeedEvent } from '@/components/ui/LiveEventFeed';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    return process.env.NEXT_PUBLIC_API_URL || '';
+  }
+  return process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface AgentState {
   id: string;
