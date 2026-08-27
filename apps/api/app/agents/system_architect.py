@@ -154,7 +154,7 @@ class SystemArchitectAgent(BaseAgent):
 
         # Dynamic synthesis with LLM Gateway
         system_prompt = (
-            "You are the NEXUS Principal System Architect. Design high-throughput microservices, "
+            "You are the ORGagent Principal System Architect. Design high-throughput microservices, "
             "database schemas (table names, primary keys, indexes, encryption), caching tiers, and event pub/sub."
         )
         user_prompt = (

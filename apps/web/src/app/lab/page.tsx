@@ -67,7 +67,7 @@ export default function CounterfactualLabPage() {
           { code: 'P-03', name: 'Architectural Feasibility Rule', description: 'Frontend, backend, and DB schemas must maintain strict protocol compatibility.', severity: 'HIGH', default_enabled: true, parameters: {} },
           { code: 'P-04', name: 'Multi-Model Tier Routing Rule', description: 'Model assignment must adhere to selected policy with bounded context limits.', severity: 'MEDIUM', default_enabled: true, parameters: {} },
           { code: 'P-05', name: 'Review Convergence Rule', description: 'Consistency Reviewer must resolve all contradictions before Final Blueprint synthesis.', severity: 'HIGH', default_enabled: true, parameters: {} },
-          { code: 'P-06', name: 'Tool Catalog Isolation Rule', description: 'NEXUS agents operate strictly in read-only analysis tools.', severity: 'CRITICAL', default_enabled: true, parameters: {} },
+          { code: 'P-06', name: 'Tool Catalog Isolation Rule', description: 'ORGagent agents operate strictly in read-only analysis tools.', severity: 'CRITICAL', default_enabled: true, parameters: {} },
           { code: 'P-07', name: 'VERITAS Event Chaining Rule', description: 'Every state change must be SHA-256 hashed and chained in atomic DB transactions.', severity: 'CRITICAL', default_enabled: true, parameters: {} },
           { code: 'P-08', name: 'Token Budget & Cost Rule', description: 'Tasks exceeding 120% allocated token budget trigger graceful degradation.', severity: 'MEDIUM', default_enabled: true, parameters: {} },
           { code: 'P-09', name: 'MNEMOS Privacy Leakage Guard', description: 'Learned process atoms must never contain verbatim human user text > 12 words.', severity: 'HIGH', default_enabled: true, parameters: {} },

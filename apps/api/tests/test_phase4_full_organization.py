@@ -76,7 +76,7 @@ async def test_full_governed_organization_and_approval_gate(
     assert bp_res.status_code == 200
     bp_data = bp_res.json()
     assert bp_data["type"] == "FinalBlueprint"
-    assert "NEXUS" in bp_data["content"]["project_title"]
+    assert "ORGagent" in bp_data["content"]["project_title"]
 
     # 8. Verify VERITAS Cryptographic Hash Chain
     ver_res = await client.get(f"/api/runs/{run_id}/verify")

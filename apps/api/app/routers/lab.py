@@ -42,7 +42,7 @@ class TamperRequest(BaseModel):
 
 @router.get("/policies")
 async def list_policies() -> list[dict[str, Any]]:
-    """Returns the full catalog of NEXUS governance policies P-01 through P-09."""
+    """Returns the full catalog of ORGagent governance policies P-01 through P-09."""
     return policy_engine.list_policies()
 
 

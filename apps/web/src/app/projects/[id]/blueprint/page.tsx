@@ -170,7 +170,7 @@ export default function BlueprintPage({
     }
 
     const summaryText = blueprint?.executive_summary || 
-      `NEXUS Autonomous Organization verified master blueprint for ${project?.title || 'this mission'}. The architecture employs a 4-tier model with dual-tier AI reasoning across Gemini, Groq, and OpenRouter, achieving a 98.4% governance score and tamper-evident VERITAS audit trail.`;
+      `ORGagent Autonomous Organization verified master blueprint for ${project?.title || 'this mission'}. The architecture employs a 4-tier model with dual-tier AI reasoning across Gemini, Groq, and OpenRouter, achieving a 98.4% governance score and tamper-evident VERITAS audit trail.`;
 
     const utterance = new SpeechSynthesisUtterance(summaryText);
     utterance.rate = 1.05;
@@ -198,7 +198,7 @@ export default function BlueprintPage({
         } catch (e) {
           proj = {
             id: projectId,
-            title: projectId === 'prj_demo' ? 'NEXUS Autonomous Organization' : `Project ${projectId}`,
+            title: projectId === 'prj_demo' ? 'ORGagent Autonomous Organization' : `Project ${projectId}`,
             objective: 'Design a multilingual AI exam-prep platform for B.Tech students in India',
             classification: 'internal',
             owner_session: 'session_demo',
@@ -737,7 +737,7 @@ export function MultilingualExamHUD({
               filename: 'openapi.yaml',
               code_content: `openapi: 3.1.0
 info:
-  title: NEXUS Multilingual Exam OS API
+  title: ORGagent Multilingual Exam OS API
   version: 1.0.0
   description: Enterprise multi-agent exam generation engine with VERITAS proof chaining.
 paths:
@@ -1241,12 +1241,12 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
               </div>
             </div>
 
-            {/* Value Comparison Matrix: Traditional Agency vs NEXUS */}
+            {/* Value Comparison Matrix: Traditional Agency vs ORGagent */}
             <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                   <Scale className="w-3.5 h-3.5 text-cyan-400" />
-                  Comparative Analysis: Traditional Engineering vs. NEXUS AI Organization
+                  Comparative Analysis: Traditional Engineering vs. ORGagent AI Organization
                 </h3>
                 <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
                   99.9% Cost &amp; Time Reduction
@@ -1290,12 +1290,12 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
                   </div>
                 </div>
 
-                {/* NEXUS AI Organization Column */}
+                {/* ORGagent AI Organization Column */}
                 <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 flex flex-col gap-3 shadow-lg shadow-cyan-950/40">
                   <div className="flex items-center justify-between pb-2 border-b border-cyan-500/20">
                     <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-cyan-400" />
-                      NEXUS Governed AI Organization
+                      ORGagent Governed AI Organization
                     </span>
                     <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                       Autonomous &amp; Verified

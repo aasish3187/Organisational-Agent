@@ -22,7 +22,7 @@ class ProductStrategistAgent(BaseAgent):
     ) -> AgentResult:
         domain = inputs.get("domain", "general")
         raw_idea = inputs.get("raw_idea") or inputs.get("problem_statement") or "Enterprise Solution"
-        title = inputs.get("title") or "NEXUS Solution"
+        title = inputs.get("title") or "ORGagent Solution"
 
         # Construct default domain-tailored product spec
         if domain == "food_redistribution" or "food" in raw_idea.lower():
@@ -127,7 +127,7 @@ class ProductStrategistAgent(BaseAgent):
 
         # Dynamic synthesis with LLM Gateway
         system_prompt = (
-            "You are the NEXUS Principal Product Strategist. Translate research evidence and mission goals "
+            "You are the ORGagent Principal Product Strategist. Translate research evidence and mission goals "
             "into prioritized MVP feature specifications, target personas, value propositions, and explicit non-goals."
         )
         user_prompt = (

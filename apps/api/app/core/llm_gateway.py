@@ -283,7 +283,7 @@ class LLMGateway:
                 "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": "http://localhost:3000",
-                "X-Title": "NEXUS Organization OS",
+                "X-Title": "ORGagent Organization OS",
             }
             payload = {
                 "model": settings.OPENROUTER_MODEL,
@@ -387,7 +387,7 @@ class LLMGateway:
                 "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": "http://localhost:3000",
-                "X-Title": "NEXUS Organization OS",
+                "X-Title": "ORGagent Organization OS",
             }
             payload = {
                 "model": settings.OPENROUTER_MODEL,
@@ -478,7 +478,7 @@ class LLMGateway:
         fallback_text = (
             f"### Direct Query Response\n\n"
             f"**Query**: {user_prompt}\n\n"
-            f"**Analysis**: This query was processed directly by NEXUS Autonomous Single-Agent Engine.\n\n"
+            f"**Analysis**: This query was processed directly by ORGagent Autonomous Single-Agent Engine.\n\n"
             f"```python\n"
             f"# Direct execution script\ndef handle_query():\n    return '{user_prompt[:40]}... processed successfully'\n"
             f"```\n\n"

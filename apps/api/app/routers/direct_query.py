@@ -33,7 +33,7 @@ class DirectQueryResponse(BaseModel):
 async def handle_direct_query(payload: DirectQueryRequest) -> DirectQueryResponse:
     start_time = time.time()
     system_prompt = (
-        "You are NEXUS Single-Agent Engine, a world-class AI system architect and engineer. "
+        "You are ORGagent Single-Agent Engine, a world-class AI system architect and engineer. "
         "Provide a direct, authoritative, crystal-clear, structured response to the user's question or task. "
         "Include clean markdown formatting, concise explanations, and production-grade code examples where applicable. "
         "Be direct and helpful without fluff."

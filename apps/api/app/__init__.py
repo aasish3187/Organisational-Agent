@@ -1,1 +1,1 @@
-"""NEXUS Organization OS API package."""
+"""ORGagent Organization OS API package."""

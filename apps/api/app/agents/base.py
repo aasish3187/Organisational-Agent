@@ -22,7 +22,7 @@ class BaseAgent:
     def system_prompt(self) -> str:
         non_goals_str = "\n".join(f"- {g}" for g in self.non_goals)
         return (
-            f"You are the NEXUS {self.role}.\n\n"
+            f"You are the ORGagent {self.role}.\n\n"
             f"MANDATE: {self.mandate}\n\n"
             f"NON-GOALS (never do these):\n"
             f"{non_goals_str}\n\n"

@@ -277,7 +277,7 @@ export default function LandingPage() {
           >
             <div className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white font-extrabold tracking-wider text-xs flex items-center gap-1.5 shadow-sm group-hover:bg-white/20 transition-all">
               <Cpu className="w-3.5 h-3.5 text-purple-400" />
-              <span>NEXUS</span>
+              <span>ORGagent</span>
             </div>
           </div>
 
@@ -346,7 +346,7 @@ export default function LandingPage() {
         {/* Hero Subtitle in Exactly Two Lines */}
         <div className="text-slate-300 text-sm sm:text-base md:text-lg text-center max-w-5xl mx-auto mb-6 leading-normal font-normal flex flex-col gap-1.5">
           <p className="whitespace-normal md:whitespace-nowrap">
-            Describe what you want to build. NEXUS automatically forms specialized AI agents —
+            Describe what you want to build. ORGagent automatically forms specialized AI agents —
           </p>
           <p className="text-slate-400 whitespace-normal md:whitespace-nowrap">
             researchers, system architects, and reviewers — to design, audit, and generate ready-to-deploy code with cryptographic proof.
@@ -738,7 +738,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* 3-Step Interactive "How NEXUS Works" Visual Workflow */}
+        {/* 3-Step Interactive "How ORGagent Works" Visual Workflow */}
         <div className="w-full max-w-4xl mb-12 p-6 rounded-3xl bg-black/40 border border-white/10 flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-mono uppercase tracking-wider text-slate-300 flex items-center gap-2">
@@ -848,7 +848,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div className="flex items-center gap-2">
                 <Sliders className="w-5 h-5 text-purple-400" />
-                <h3 className="text-lg font-bold text-white">NEXUS Multi-Model Gateway</h3>
+                <h3 className="text-lg font-bold text-white">ORGagent Multi-Model Gateway</h3>
               </div>
               <button
                 onClick={() => setShowSettingsModal(false)}
@@ -907,7 +907,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="w-full border-t border-white/5 py-6 text-center text-xs font-mono text-slate-500 z-10">
-        NEXUS Organization OS · Dynamic Governance · Cryptographic Integrity · Reusable Memory
+        ORGagent Organization OS · Dynamic Governance · Cryptographic Integrity · Reusable Memory
       </footer>
     </div>
   );

@@ -1,8 +1,8 @@
 @echo off
-title Stop NEXUS Organization OS
+title Stop ORGagent Organization OS
 color 0c
 echo ==============================================================================
-echo   Stopping NEXUS Organization OS Servers...
+echo   Stopping ORGagent Organization OS Servers...
 echo ==============================================================================
 echo.
 
@@ -17,5 +17,5 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr :3000 ^| findstr LISTENING') 
 )
 
 echo.
-echo [OK] All NEXUS processes have been stopped successfully.
+echo [OK] All ORGagent processes have been stopped successfully.
 timeout /t 3 >nul

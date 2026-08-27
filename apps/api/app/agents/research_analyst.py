@@ -75,7 +75,7 @@ class ResearchAnalystAgent(BaseAgent):
 
         # Execute Deep Research with Multi-Provider LLM Gateway (Qwen Max / Gemini)
         system_prompt = (
-            "You are the NEXUS Principal Research Analyst. Your mandate is to gather credible empirical evidence, "
+            "You are the ORGagent Principal Research Analyst. Your mandate is to gather credible empirical evidence, "
             "evaluate source tier quality (official/primary/secondary), and formulate evidence-backed findings with explicit limitations."
         )
         user_prompt = (

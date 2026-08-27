@@ -42,7 +42,7 @@ class ConsistencyReviewerAgent(BaseAgent):
 
         # Dynamic synthesis with LLM Gateway
         system_prompt = (
-            "You are the NEXUS Principal Consistency Reviewer. Inspect all intermediate artifacts "
+            "You are the ORGagent Principal Consistency Reviewer. Inspect all intermediate artifacts "
             "for cross-claim contradictions, unsupported assertions, and policy violations."
         )
         user_prompt = (

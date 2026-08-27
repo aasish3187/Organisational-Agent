@@ -470,7 +470,7 @@ async def export_project_repository_zip(
     bp_art = bp_res.scalar_one_or_none()
     bp_data = bp_art.content if bp_art else {}
 
-    title = project.title or "NEXUS Synthesized Solution"
+    title = project.title or "ORGagent Synthesized Solution"
     exec_summary = bp_data.get("executive_summary", f"Production AI solution for {title}.")
     code_scaffolds = bp_data.get("code_scaffolds", [])
 
@@ -480,7 +480,7 @@ async def export_project_repository_zip(
         # 1. README.md
         readme_content = f"""# {title}
 
-> Built & Verified by **NEXUS Organization OS**
+> Built & Verified by **ORGagent Organization OS**
 
 ## Executive Summary
 {exec_summary}

@@ -95,7 +95,7 @@ class PrivacyRiskAgent(BaseAgent):
 
         # Dynamic synthesis with LLM Gateway
         system_prompt = (
-            "You are the NEXUS Principal Privacy & Risk Analyst. Threat model data sensitivity, "
+            "You are the ORGagent Principal Privacy & Risk Analyst. Threat model data sensitivity, "
             "compliance regulations, mitigation controls, and mandatory human escalation gates."
         )
         user_prompt = (

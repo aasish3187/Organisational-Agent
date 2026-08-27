@@ -51,7 +51,7 @@ POLICIES_CATALOG: list[PolicyDefinition] = [
     PolicyDefinition(
         code="P-06",
         name="Tool Catalog Isolation Rule",
-        description="NEXUS agents operate strictly in read-only analysis tools; unrestricted execution/write tools are denied.",
+        description="ORGagent agents operate strictly in read-only analysis tools; unrestricted execution/write tools are denied.",
         severity="CRITICAL",
         parameters={"enforce_read_only": True},
     ),

@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'NEXUS — Organization OS',
+  title: 'ORGagent — Organization OS',
   description: 'Governed, verified, explainable multi-agent AI organizations',
 };
 

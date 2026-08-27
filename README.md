@@ -1,4 +1,4 @@
-# NEXUS Organization OS — Governed Multi-Agent Architecture Compiler
+# ORGagent Organization OS — Governed Multi-Agent Architecture Compiler
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Expo_Ready_v1.0.0-8B5CF6?style=for-the-badge&logo=rocket&logoColor=white" alt="Status" />
@@ -32,7 +32,7 @@
 
 ---
 
-**NEXUS Organization OS** is an autonomous multi-agent operating system and architecture compiler. It dynamically instantiates governed teams of specialized AI agents (*Researchers, System Architects, Security Officers, Consistency Reviewers*) to turn raw human ideas, architecture diagrams, and database schemas into verified, production-grade software blueprints — backed by **cryptographic proof (VERITAS)** and **reusable organizational memory (MNEMOS)**.
+**ORGagent Organization OS** is an autonomous multi-agent operating system and architecture compiler. It dynamically instantiates governed teams of specialized AI agents (*Researchers, System Architects, Security Officers, Consistency Reviewers*) to turn raw human ideas, architecture diagrams, and database schemas into verified, production-grade software blueprints — backed by **cryptographic proof (VERITAS)** and **reusable organizational memory (MNEMOS)**.
 
 > **Built by Aasish** | *Lumina Systems Engineering / Advanced Multi-Agent Computing*  
 > **Repository:** [aasish3187/Organisational-Agent](https://github.com/aasish3187/Organisational-Agent) | **API Docs:** `http://localhost:8000/docs` | **Client App:** `http://localhost:3000`
@@ -42,7 +42,7 @@
 ## 🎯 Executive Summary & Pitch
 
 > **A user types a single raw idea or attaches an architecture diagram / SQL schema.**  
-> **NEXUS** analyzes the mission, synthesizes a formal **Idea Contract**, dynamically compiles a specialized 7-agent organization DAG, assigns structured tasks with strict token and tool sandboxing, enforces organizational policies with human approval gates, cryptographically chains every prompt, tool execution, and diff using SHA-256 (VERITAS), and returns a sealed, verified **Master Tech Blueprint** with copyable Docker Compose configurations, OpenAPI schemas, and sprint roadmaps.
+> **ORGagent** analyzes the mission, synthesizes a formal **Idea Contract**, dynamically compiles a specialized 7-agent organization DAG, assigns structured tasks with strict token and tool sandboxing, enforces organizational policies with human approval gates, cryptographically chains every prompt, tool execution, and diff using SHA-256 (VERITAS), and returns a sealed, verified **Master Tech Blueprint** with copyable Docker Compose configurations, OpenAPI schemas, and sprint roadmaps.
 
 ---
 
@@ -56,11 +56,11 @@
 
 ---
 
-## 🛡️ How NEXUS Solves Them (Core Architectural Pillars)
+## 🛡️ How ORGagent Solves Them (Core Architectural Pillars)
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                 NEXUS ORGANIZATION OS                                  │
+│                                 ORGagent ORGANIZATION OS                                  │
 ├───────────────────────┬──────────────────────────┬─────────────────────────────────────┤
 │ 1. DYNAMIC COMPILER   │ 2. VERITAS LEDGER        │ 3. MNEMOS REUSABLE MEMORY           │
 │ Phase-Gated 7-Agent   │ SHA-256 Merkle Chain of  │ Hybrid Tag Filtering & Semantic     │
@@ -72,7 +72,7 @@
 ```
 
 ### 1. Dynamic Organization Compiler
-No static chatrooms. NEXUS analyzes the incoming problem domain (FinTech, EdTech, Healthcare, Logistics, GovTech) and dynamically composes an optimal organizational chart. Each agent receives:
+No static chatrooms. ORGagent analyzes the incoming problem domain (FinTech, EdTech, Healthcare, Logistics, GovTech) and dynamically composes an optimal organizational chart. Each agent receives:
 - A strict **role mandate** and explicit **non-goals**.
 - A hard **token budget** (e.g. 4,000 tokens) with active circuit breaking.
 - A **sandboxed tool catalog** (read-only queries, no arbitrary shell/network access).
@@ -90,7 +90,7 @@ Completed runs distill reusable organizational lessons into **Process Atoms** (e
 Users can attach architecture wireframes (`.png`, `.jpg`, `.webp`), database schemas (`.sql`, `.json`, `.yaml`), and specification documents (`.pdf`, `.md`, `.txt`). The `MissionInterpreterAgent` and downstream architects extract, cite, and ground their technical requirements directly in user-provided diagrams and schemas.
 
 ### 5. Multi-Model LLM Gateway Cascade
-NEXUS routes inference dynamically across providers to ensure high availability, zero vendor lock-in, and sub-second compilation:
+ORGagent routes inference dynamically across providers to ensure high availability, zero vendor lock-in, and sub-second compilation:
 - **Google Gemini 2.5 Pro / Flash**: Primary complex reasoning, multimodal vision, and deep system architecture synthesis.
 - **Groq Cloud (LLaMA 3.3 70B / Qwen 2.5)**: Sub-200ms ultra-fast fallback inference pool.
 - **OpenRouter (Qwen 2.5 72B)**: High-diversity multi-agent reasoning.
@@ -175,7 +175,7 @@ graph TD
 - Allows human operators to review policy justifications, inspect proposed mitigation actions, and approve or reject with audit trail recording.
 
 ### 5. Screen E: Verified Master Tech Blueprint (`/projects/:id/blueprint`)
-- **Executive Mode**: Comparative analysis matrix (*Traditional Agency 6-8 weeks / $20,000 vs. NEXUS 1.82s / $0.045*), value propositions, and sprint roadmap.
+- **Executive Mode**: Comparative analysis matrix (*Traditional Agency 6-8 weeks / $20,000 vs. ORGagent 1.82s / $0.045*), value propositions, and sprint roadmap.
 - **Engineering Mode**:
   - **4-Tier Architecture Suite**: Interactive Tier Inspector Modal showing P99 SLAs, health probe commands, architectural decisions, and copyable `docker-compose.yml` snippets.
   - **Live OpenAPI Contracts**: Complete HTTP endpoint definitions with request/response types.
@@ -306,7 +306,7 @@ docker compose up --build
 
 ## 🧪 Testing & Verification Suite
 
-NEXUS includes complete test coverage across both backend and frontend layers:
+ORGagent includes complete test coverage across both backend and frontend layers:
 
 ```bash
 # Run Backend Pytest Suite
@@ -339,6 +339,6 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 ---
 
 <p align="center">
-  <b>NEXUS Organization OS</b> · <i>Autonomous AI Team &amp; Architecture Compiler</i><br>
+  <b>ORGagent Organization OS</b> · <i>Autonomous AI Team &amp; Architecture Compiler</i><br>
   Designed &amp; Developed by <b><a href="https://github.com/aasish3187">Aasish</a></b>
 </p>

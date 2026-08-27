@@ -139,7 +139,7 @@ class AIArchitectAgent(BaseAgent):
 
         # Dynamic synthesis with LLM Gateway
         system_prompt = (
-            "You are the NEXUS Principal AI & RAG Architect. Design model tiers, vector retrieval pipelines, "
+            "You are the ORGagent Principal AI & RAG Architect. Design model tiers, vector retrieval pipelines, "
             "embeddings, prompt topologies, guardrails, and evaluation datasets."
         )
         user_prompt = (

@@ -232,7 +232,7 @@ class MissionInterpreterAgent(BaseAgent):
 
         # Dynamic LLM parsing with Qwen Max / Gemini
         system_prompt = (
-            "You are the NEXUS Principal Mission Interpreter. Your mandate is to convert a raw human idea into "
+            "You are the ORGagent Principal Mission Interpreter. Your mandate is to convert a raw human idea into "
             "a structured IdeaContract containing domain, target audience, problem statement, success criteria, "
             "constraints, explicit assumptions, data sensitivity, open clarification questions, and domain-specialist roles. "
             "You MUST thoroughly analyze and incorporate all attached files, schemas, code, and diagram specifications."

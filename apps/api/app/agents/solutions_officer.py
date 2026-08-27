@@ -28,7 +28,7 @@ class SolutionsOfficerAgent(BaseAgent):
         token_budget: int = 8000,
     ) -> AgentResult:
         contract_data = inputs.get("contract", {})
-        title = contract_data.get("title") or inputs.get("title") or "NEXUS Synthesized Solution"
+        title = contract_data.get("title") or inputs.get("title") or "ORGagent Synthesized Solution"
         domain = contract_data.get("domain") or inputs.get("domain") or "edtech"
         raw_idea = inputs.get("raw_idea") or contract_data.get("problem_statement") or "Enterprise AI System"
 
@@ -74,7 +74,7 @@ class SolutionsOfficerAgent(BaseAgent):
         )
 
     def _build_edtech_blueprint(self, title: str, raw_idea: str) -> FinalBlueprint:
-        prefix = "NEXUS " if not title.startswith("NEXUS") else ""
+        prefix = "ORGagent " if not title.startswith("ORGagent") else ""
         return FinalBlueprint(
             project_title=f"{prefix}{title} — Verified Master Blueprint",
             executive_summary=(
@@ -291,7 +291,7 @@ export function MultilingualExamHUD({ currentLanguage, onSwitchLanguage }: { cur
                     filename="openapi.yaml",
                     code_content="""openapi: 3.1.0
 info:
-  title: NEXUS Multilingual Exam OS API
+  title: ORGagent Multilingual Exam OS API
   version: 1.0.0
 paths:
   /api/v1/exam/generate:
@@ -317,7 +317,7 @@ paths:
         )
 
     def _build_food_redistribution_blueprint(self, title: str, raw_idea: str) -> FinalBlueprint:
-        prefix = "NEXUS " if not title.startswith("NEXUS") else ""
+        prefix = "ORGagent " if not title.startswith("ORGagent") else ""
         return FinalBlueprint(
             project_title=f"{prefix}{title} — Verified Logistics Blueprint",
             executive_summary=(
@@ -419,7 +419,7 @@ async def match_donation(donation_id: str):
         )
 
     def _build_grievance_blueprint(self, title: str, raw_idea: str) -> FinalBlueprint:
-        prefix = "NEXUS " if not title.startswith("NEXUS") else ""
+        prefix = "ORGagent " if not title.startswith("ORGagent") else ""
         return FinalBlueprint(
             project_title=f"{prefix}{title} — Verified Governance Blueprint",
             executive_summary=(
@@ -511,7 +511,7 @@ class GrievanceAnonymizerMiddleware(BaseHTTPMiddleware):
 
 
     def _build_healthcare_blueprint(self, title: str, raw_idea: str) -> FinalBlueprint:
-        prefix = "NEXUS " if not title.startswith("NEXUS") else ""
+        prefix = "ORGagent " if not title.startswith("ORGagent") else ""
         return FinalBlueprint(
             project_title=f"{prefix}{title} — Verified Clinical & EHR Blueprint",
             executive_summary=(
@@ -661,7 +661,7 @@ async def evaluate_symptoms(req: DiagnosisRequest):
         )
 
     def _build_fintech_blueprint(self, title: str, raw_idea: str) -> FinalBlueprint:
-        prefix = "NEXUS " if not title.startswith("NEXUS") else ""
+        prefix = "ORGagent " if not title.startswith("ORGagent") else ""
         return FinalBlueprint(
             project_title=f"{prefix}{title} — Verified Financial Ledger & Fraud Guard",
             executive_summary=(
@@ -763,7 +763,7 @@ async def post_entry(req: PostTransactionRequest):
         )
 
     def _build_cybersecurity_blueprint(self, title: str, raw_idea: str) -> FinalBlueprint:
-        prefix = "NEXUS " if not title.startswith("NEXUS") else ""
+        prefix = "ORGagent " if not title.startswith("ORGagent") else ""
         return FinalBlueprint(
             project_title=f"{prefix}{title} — Verified Zero-Trust SIEM & SOAR Blueprint",
             executive_summary=(
@@ -850,7 +850,7 @@ async def isolate_host(host_id: str, reason: str):
         )
 
     def _build_agritech_blueprint(self, title: str, raw_idea: str) -> FinalBlueprint:
-        prefix = "NEXUS " if not title.startswith("NEXUS") else ""
+        prefix = "ORGagent " if not title.startswith("ORGagent") else ""
         return FinalBlueprint(
             project_title=f"{prefix}{title} — Verified Precision Agriculture & Crop AI",
             executive_summary=(
@@ -937,7 +937,7 @@ async def calculate_irrigation(parcel_id: str, moisture: float):
         )
 
     def _build_legaltech_blueprint(self, title: str, raw_idea: str) -> FinalBlueprint:
-        prefix = "NEXUS " if not title.startswith("NEXUS") else ""
+        prefix = "ORGagent " if not title.startswith("ORGagent") else ""
         return FinalBlueprint(
             project_title=f"{prefix}{title} — Verified Legal Contract & Compliance OS",
             executive_summary=(
@@ -1024,7 +1024,7 @@ async def audit_clause(clause_text: str):
         )
 
     def _build_universal_blueprint(self, title: str, raw_idea: str, domain: str) -> FinalBlueprint:
-        prefix = "NEXUS " if not title.startswith("NEXUS") else ""
+        prefix = "ORGagent " if not title.startswith("ORGagent") else ""
         formatted_title = f"{prefix}{title} — Verified Master Solution Blueprint"
         return FinalBlueprint(
             project_title=formatted_title,

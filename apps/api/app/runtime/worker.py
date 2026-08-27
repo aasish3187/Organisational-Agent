@@ -56,7 +56,7 @@ async def process_task(task_payload: dict[str, Any]) -> None:
 
 async def run_worker(concurrency: int = 2) -> None:
     global _should_stop
-    logger.info("NEXUS Background Task Worker starting with concurrency=%d...", concurrency)
+    logger.info("ORGagent Background Task Worker starting with concurrency=%d...", concurrency)
 
     active_tasks: set[asyncio.Task] = set()
 
@@ -79,7 +79,7 @@ async def run_worker(concurrency: int = 2) -> None:
         logger.info("Waiting for %d in-flight tasks to complete...", len(active_tasks))
         await asyncio.gather(*active_tasks, return_exceptions=True)
 
-    logger.info("NEXUS Worker stopped cleanly.")
+    logger.info("ORGagent Worker stopped cleanly.")
 
 
 def main():

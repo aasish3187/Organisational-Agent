@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
-    APP_NAME: str = "NEXUS Organization OS"
+    APP_NAME: str = "ORGagent Organization OS"
     VERSION: str = "1.0.0"
 
     # Security & Auth

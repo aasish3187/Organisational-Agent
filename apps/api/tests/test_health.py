@@ -8,7 +8,7 @@ async def test_health_endpoint(client: AsyncClient):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
-    assert data["app"] == "NEXUS Organization OS"
+    assert data["app"] == "ORGagent Organization OS"
     assert "version" in data
     assert "environment" in data
     assert "demo_mode" in data
