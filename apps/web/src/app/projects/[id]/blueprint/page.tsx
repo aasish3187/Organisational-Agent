@@ -1157,41 +1157,75 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
             </div>
 
             {/* The 7-Specialist Agent Collaborative Pipeline */}
-            <div className="pt-4 border-t border-white/10">
-              <div className="flex items-center justify-between mb-3">
+            {/* The 7-Specialist Agent Collaborative Pipeline - Spacious 4-Phase Grid */}
+            <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-purple-400" />
-                  The 7-Specialist Autonomous AI Team Behind This Blueprint
+                  Autonomous Agent Assembly Pipeline
                 </h3>
-                <span className="text-[11px] font-mono text-slate-500">
-                  {blueprint.veritas_verified_events} Chained Merkle Events · {blueprint.verification_score_pct}% Quality Score
+                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span>7 Specialists Verified</span>
+                  <span>·</span>
+                  <span className="text-slate-400">{blueprint.verification_score_pct}% Score</span>
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
-                  { role: 'Mission Interpreter', task: 'Formed Idea Contract', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-                  { role: 'AI Architect', task: 'Designed 4-Tier Stack', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-                  { role: 'Tech Lead', task: 'Engineered FastAPI APIs', color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
-                  { role: 'DevOps & SRE', task: 'Configured Docker & NGINX', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-                  { role: 'Security & Privacy', task: 'Audited P-02 Zero-PII', color: 'text-rose-400', bg: 'bg-rose-500/10' },
-                  { role: 'Consistency Reviewer', task: 'Cross-Tier Verification', color: 'text-amber-400', bg: 'bg-amber-500/10' },
-                  { role: 'Solutions Officer', task: 'Sealed Master Blueprint', color: 'text-sky-400', bg: 'bg-sky-500/10' },
-                ].map((agent, i) => (
+                  {
+                    phase: '1. Inception & Research',
+                    agents: [
+                      { role: 'Mission Interpreter', task: 'Formed Idea Contract & domain bounds', color: 'text-purple-400' },
+                      { role: 'Research Analyst', task: 'Gathered regional corpus & evidence', color: 'text-cyan-400' },
+                    ],
+                  },
+                  {
+                    phase: '2. Strategy & AI Scoping',
+                    agents: [
+                      { role: 'Product Strategist', task: 'User personas & MVP milestone KPIs', color: 'text-sky-400' },
+                      { role: 'AI Architect', task: 'Vector embeddings & model SLA limits', color: 'text-indigo-400' },
+                    ],
+                  },
+                  {
+                    phase: '3. Systems & Security',
+                    agents: [
+                      { role: 'System Architect', task: '4-Tier microservices & Docker YAML', color: 'text-emerald-400' },
+                      { role: 'Privacy & Risk Auditor', task: 'Policy P-02 Zero-PII sanitization', color: 'text-rose-400' },
+                    ],
+                  },
+                  {
+                    phase: '4. Audit & Sealing',
+                    agents: [
+                      { role: 'Consistency Reviewer', task: 'Cross-tier architectural review', color: 'text-amber-400' },
+                      { role: 'Solutions Officer', task: 'VERITAS seal & Master Blueprint', color: 'text-purple-300' },
+                    ],
+                  },
+                ].map((col, idx) => (
                   <div
-                    key={agent.role}
-                    className="p-2.5 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 hover:border-purple-500/30 transition-all group"
+                    key={idx}
+                    className="p-3.5 rounded-2xl bg-black/40 border border-white/5 flex flex-col gap-2.5 hover:border-purple-500/20 transition-all"
                   >
-                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
-                      <span>Step {i + 1}</span>
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold pb-1.5 border-b border-white/5">
+                      {col.phase}
+                    </span>
+                    <div className="flex flex-col gap-2">
+                      {col.agents.map((ag, aIdx) => (
+                        <div key={aIdx} className="flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-xs font-bold ${ag.color} flex items-center gap-1.5`}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+                              {ag.role}
+                            </span>
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                          </div>
+                          <span className="text-[11px] text-slate-400 leading-snug">
+                            {ag.task}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                    <span className={`text-xs font-bold ${agent.color} truncate`}>
-                      {agent.role}
-                    </span>
-                    <span className="text-[10px] text-slate-400 leading-snug">
-                      {agent.task}
-                    </span>
                   </div>
                 ))}
               </div>
