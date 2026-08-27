@@ -21,6 +21,7 @@ import {
   Sliders,
   Flame,
   Bug,
+  Home,
 } from 'lucide-react';
 import {
   fetchPolicies,
@@ -139,13 +140,16 @@ export default function CounterfactualLabPage() {
       {/* Top Header */}
       <header className="w-full border-b border-white/5 bg-black/30 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => router.push('/')}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 transition-all cursor-pointer flex items-center gap-1.5 font-mono text-xs shadow-sm"
+              title="Go to Main Home Page"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <Home className="w-3.5 h-3.5 text-purple-400" />
+              <span className="font-semibold">Home</span>
             </button>
+            <div className="h-4 w-px bg-white/10" />
             <div className="flex items-center gap-2">
               <span className="font-bold text-white text-sm md:text-base">
                 Governance Lab & Policy Sandbox

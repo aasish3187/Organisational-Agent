@@ -19,6 +19,7 @@ import {
   Users,
   Target,
   CheckCircle2,
+  Home,
 } from 'lucide-react';
 import {
   getProject,
@@ -140,13 +141,16 @@ export default function IdeaContractPage({
       {/* Top Bar */}
       <header className="w-full border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => router.push('/')}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 transition-all cursor-pointer flex items-center gap-1.5 font-mono text-xs shadow-sm"
+              title="Go to Main Home Page"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <Home className="w-3.5 h-3.5 text-purple-400" />
+              <span className="font-semibold">Home</span>
             </button>
+            <div className="h-4 w-px bg-white/10" />
             <div>
               <span className="font-bold text-white flex items-center gap-2 text-sm md:text-base">
                 Idea Contract <span className="text-xs font-mono text-purple-400 font-normal px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20">{project?.id}</span>
@@ -154,20 +158,26 @@ export default function IdeaContractPage({
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-4 text-xs font-mono text-slate-400 mr-2">
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-3 text-xs font-mono text-slate-400 mr-1">
+              <button
+                onClick={() => router.push('/')}
+                className="hover:text-purple-300 cursor-pointer transition-colors px-2 py-1 rounded hover:bg-white/5"
+              >
+                Main Page
+              </button>
               <span
                 onClick={() => {
                   const storedRun = typeof window !== 'undefined' ? localStorage.getItem(`nexus_last_run_${projectId}`) : null;
                   router.push(`/projects/${projectId}/canvas${storedRun ? `?run_id=${storedRun}` : ''}`);
                 }}
-                className="hover:text-purple-300 cursor-pointer transition-colors"
+                className="hover:text-purple-300 cursor-pointer transition-colors px-2 py-1 rounded hover:bg-white/5"
               >
                 Canvas
               </span>
               <span
                 onClick={() => router.push('/lab')}
-                className="hover:text-purple-300 cursor-pointer transition-colors"
+                className="hover:text-purple-300 cursor-pointer transition-colors px-2 py-1 rounded hover:bg-white/5"
               >
                 Policy Lab
               </span>

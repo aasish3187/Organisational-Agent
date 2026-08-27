@@ -47,6 +47,7 @@ import {
   TrendingUp,
   XCircle,
   X,
+  Home,
 } from 'lucide-react';
 import { getProject, apiClient, type Project, type FinalBlueprint } from '@/lib/api';
 import { TelemetryModal } from '@/components/ui/TelemetryModal';
@@ -882,8 +883,17 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
       {/* Top Navigation Bar */}
       <header className="w-full border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          {/* Left Section: Back button + Title */}
-          <div className="flex items-center gap-3 shrink-0">
+          {/* Left Section: Home + Back button + Title */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={() => router.push('/')}
+              className="px-2.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 transition-all cursor-pointer flex items-center gap-1.5 font-mono text-xs shadow-sm"
+              title="Go to Main Home Page"
+            >
+              <Home className="w-3.5 h-3.5 text-purple-400" />
+              <span className="font-semibold hidden sm:inline">Home</span>
+            </button>
+
             <button
               onClick={() => {
                 router.push(`/projects/${projectId}/canvas${activeRunId ? `?run_id=${activeRunId}` : ''}`);
@@ -895,7 +905,7 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
               <span>Canvas</span>
             </button>
 
-            <div className="h-4 w-px bg-white/10" />
+            <div className="h-4 w-px bg-white/10 hidden sm:block" />
 
             <div className="flex items-center gap-2">
               <span className="font-bold text-white text-sm sm:text-base tracking-tight whitespace-nowrap">
