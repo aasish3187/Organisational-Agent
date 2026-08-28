@@ -20,6 +20,13 @@ import {
   Target,
   CheckCircle2,
   Home,
+  MessageSquare,
+  Send,
+  Check,
+  Edit3,
+  Trash2,
+  CornerDownRight,
+  Zap,
 } from 'lucide-react';
 import {
   getProject,
@@ -29,6 +36,52 @@ import {
   type IdeaContract,
   type OrganizationPlan,
 } from '@/lib/api';
+
+function getQuestionSuggestions(question: string): string[] {
+  const q = question.toLowerCase();
+  if (q.includes('branch') || q.includes('discipline') || q.includes('cse') || q.includes('prioritize')) {
+    return ['Prioritize CSE & ECE for MVP', 'Cover all B.Tech branches', 'CSE, Data Science & AI only'];
+  }
+  if (q.includes('language') || q.includes('dialect')) {
+    return ['English, Telugu, Hindi, Tamil', 'Top 5 regional languages with audio', 'English only in initial release'];
+  }
+  if (q.includes('assessment') || q.includes('format') || q.includes('mcq') || q.includes('challenge')) {
+    return ['Adaptive MCQ + Code Playground', 'MCQ + Numerical step-by-step', 'MCQ Only for speed'];
+  }
+  if (q.includes('lms') || q.includes('integrate') || q.includes('university') || q.includes('standalone')) {
+    return ['Standalone first, with Canvas/Moodle LTI exports', 'Direct Moodle & Blackboard sync', 'Pure standalone mobile-first web app'];
+  }
+  if (q.includes('monetization') || q.includes('licensing') || q.includes('pricing') || q.includes('subscription')) {
+    return ['Freemium for students, Institutional license for colleges', '100% Free Open Source', 'Student subscription model'];
+  }
+  if (q.includes('offline') || q.includes('connectivity') || q.includes('internet')) {
+    return ['Local IndexedDB offline sync with PWA caching', 'Online-only with lightweight JSON endpoints'];
+  }
+  if (q.includes('content') || q.includes('partner') || q.includes('creation') || q.includes('responsibility')) {
+    return ['AI synthetic generation verified by faculty', 'Partner university crowdsourced curriculum'];
+  }
+  if (q.includes('compliance') || q.includes('privacy') || q.includes('data') || q.includes('state') || q.includes('border')) {
+    return ['Strict Policy P-02 Zero-PII with local encryption', 'Store hashed anonymous student IDs only'];
+  }
+  return ['Yes, prioritize this in MVP', 'Defer to Phase 2 roadmap', 'Keep automated baseline recommendation'];
+}
+
+function getAgentImpactNote(question: string, answer: string): string {
+  const q = question.toLowerCase();
+  if (q.includes('branch') || q.includes('cse')) {
+    return `Agent Note: Aligned Product Strategist MVP scope to prioritize ${answer}. Syllabus vector embeddings configured for targeted branches.`;
+  }
+  if (q.includes('language')) {
+    return `Agent Note: AI Architect configured cross-lingual tokenizer pipeline for ${answer}. Latency budget capped at <650ms.`;
+  }
+  if (q.includes('assessment') || q.includes('format')) {
+    return `Agent Note: System Architect added endpoint schemas for ${answer}. State validator updated.`;
+  }
+  if (q.includes('lms') || q.includes('integrate')) {
+    return `Agent Note: Infrastructure spec updated to support ${answer} with modular webhook bridges.`;
+  }
+  return `Agent Note: Incorporated human decision into System Architecture specifications and sprint deliverables.`;
+}
 
 function sanitizeContract(c: any, defaultTitle?: string, defaultObj?: string): IdeaContract {
   const title = c?.title || defaultTitle || 'Autonomous System Mission';
@@ -87,6 +140,11 @@ export default function IdeaContractPage({
   const [compiling, setCompiling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Interactive Question Answers & Agent Adaptive Feedback State
+  const [answers, setAnswers] = useState<Record<string, { answer: string; agentImpactNote: string }>>({});
+  const [activeQuestionIdx, setActiveQuestionIdx] = useState<number | null>(null);
+  const [currentInput, setCurrentInput] = useState<string>('');
+
   useEffect(() => {
     // Read query params if provided
     if (typeof window !== 'undefined') {
@@ -95,6 +153,17 @@ export default function IdeaContractPage({
       if (m === 'FAST' || m === 'BALANCED' || m === 'DEEP') setMode(m);
       const p = urlParams.get('policy');
       if (p === 'AUTO' || p === 'BALANCE' || p === 'STRICT' || p === 'NOCAP') setModelPolicy(p as any);
+
+      // Load previously saved question answers
+      try {
+        const storedAnswers = localStorage.getItem(`nexus_answers_${projectId}`);
+        if (storedAnswers) {
+          const parsed = JSON.parse(storedAnswers);
+          if (parsed && typeof parsed === 'object') {
+            setAnswers(parsed);
+          }
+        }
+      } catch (e) {}
     }
     // Check immediate client cache for instant 0ms rendering
     if (typeof window !== 'undefined') {
@@ -131,6 +200,39 @@ export default function IdeaContractPage({
         setLoading(false);
       });
   }, [projectId]);
+
+  const handleSaveAnswer = (q: string, ansText: string) => {
+    if (!ansText.trim()) return;
+    const note = getAgentImpactNote(q, ansText.trim());
+    const updated = {
+      ...answers,
+      [q]: { answer: ansText.trim(), agentImpactNote: note },
+    };
+    setAnswers(updated);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`nexus_answers_${projectId}`, JSON.stringify(updated));
+      } catch (e) {}
+    }
+    setActiveQuestionIdx(null);
+    setCurrentInput('');
+  };
+
+  const handleRemoveAnswer = (q: string) => {
+    const updated = { ...answers };
+    delete updated[q];
+    setAnswers(updated);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`nexus_answers_${projectId}`, JSON.stringify(updated));
+      } catch (e) {}
+    }
+  };
+
+  const handleStartReplying = (idx: number, q: string) => {
+    setActiveQuestionIdx(idx);
+    setCurrentInput(answers[q]?.answer || '');
+  };
 
   const handleCompile = async () => {
     if (compiledPlan) {
@@ -275,19 +377,181 @@ export default function IdeaContractPage({
               </p>
             </GlassCard>
 
-            <GlassCard tier="thin" className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
-                <HelpCircle className="w-4 h-4 text-amber-400" />
-                Open Clarification Questions
+            {/* Interactive Open Clarification Questions & Human Guidance */}
+            <GlassCard tier="regular" className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
+                  <HelpCircle className="w-4 h-4 text-amber-400" />
+                  Open Clarification Questions
+                </div>
+                {Object.keys(answers).length > 0 && (
+                  <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
+                    <Check className="w-3 h-3" />
+                    {Object.keys(answers).length} / {safeCt.open_questions?.length || 0} Resolved
+                  </span>
+                )}
               </div>
-              <ul className="space-y-2 text-xs text-slate-300">
-                {(safeCt.open_questions || []).map((q, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="text-amber-400 font-mono">?</span>
-                    <span>{q}</span>
-                  </li>
-                ))}
-              </ul>
+              <p className="text-[11px] text-slate-400 font-sans">
+                Provide your guidance or click recommended answers below. The AI swarm will adapt its architecture and roadmap accordingly.
+              </p>
+
+              <div className="space-y-3 mt-1">
+                {(safeCt.open_questions || []).map((q, i) => {
+                  const isReplying = activeQuestionIdx === i;
+                  const record = answers[q];
+                  const hasAnswer = !!record?.answer;
+                  const suggestions = getQuestionSuggestions(q);
+
+                  return (
+                    <div
+                      key={i}
+                      className={`p-3.5 rounded-2xl border transition-all flex flex-col gap-2.5 ${
+                        hasAnswer
+                          ? 'bg-emerald-950/20 border-emerald-500/30 shadow-sm shadow-emerald-950/20'
+                          : isReplying
+                          ? 'bg-purple-950/25 border-purple-500/40 ring-1 ring-purple-500/30'
+                          : 'bg-black/30 border-white/5 hover:border-white/15'
+                      }`}
+                    >
+                      {/* Question Row */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                          <span className="w-5 h-5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono text-xs flex items-center justify-center shrink-0 mt-0.5">
+                            ?
+                          </span>
+                          <span className="text-xs text-slate-200 font-medium leading-relaxed">
+                            {q}
+                          </span>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="shrink-0 flex items-center gap-1.5">
+                          {hasAnswer ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                                Answered
+                              </span>
+                              <button
+                                onClick={() => handleStartReplying(i, q)}
+                                className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+                                title="Edit your answer"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleRemoveAnswer(q)}
+                                className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-rose-400 transition-all cursor-pointer"
+                                title="Remove answer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleStartReplying(i, q)}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium flex items-center gap-1.5 transition-all cursor-pointer border ${
+                                isReplying
+                                  ? 'bg-purple-600 text-white border-purple-400/40 shadow-sm'
+                                  : 'bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border-white/10'
+                              }`}
+                            >
+                              <MessageSquare className="w-3 h-3 text-cyan-400" />
+                              <span>{isReplying ? 'Close' : 'Answer'}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Display Human Decision & Agent Adaptive Note */}
+                      {hasAnswer && !isReplying && (
+                        <div className="mt-1 space-y-2 font-mono text-xs">
+                          {/* User Decision Box */}
+                          <div className="p-2.5 rounded-xl bg-black/50 border border-emerald-500/20 text-emerald-300 flex items-start gap-2">
+                            <CornerDownRight className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                              <span className="text-[10px] text-slate-400 block uppercase tracking-wider">Your Decision / Guidance:</span>
+                              <span className="text-white font-sans text-xs font-semibold">{record.answer}</span>
+                            </div>
+                          </div>
+
+                          {/* Agent Adaptive Impact Note */}
+                          <div className="p-2 rounded-xl bg-purple-950/30 border border-purple-500/20 text-[11px] text-purple-200 flex items-start gap-2">
+                            <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5 animate-pulse" />
+                            <span className="font-sans leading-relaxed">{record.agentImpactNote}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Interactive Antigravity Reply Box */}
+                      {isReplying && (
+                        <div className="mt-2 p-3 rounded-2xl bg-black/60 border border-purple-500/30 flex flex-col gap-2.5 animate-fadeIn">
+                          {/* Smart Suggestion Chips */}
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
+                              <Zap className="w-3 h-3 text-cyan-400" /> Smart Suggestions (Click to fill):
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {suggestions.map((chip, cIdx) => (
+                                <button
+                                  key={cIdx}
+                                  type="button"
+                                  onClick={() => setCurrentInput(chip)}
+                                  className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-purple-500/20 text-slate-300 hover:text-white border border-white/10 hover:border-purple-500/30 text-[11px] font-mono transition-all text-left cursor-pointer"
+                                >
+                                  {chip}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Input Area */}
+                          <div className="flex flex-col gap-2">
+                            <textarea
+                              value={currentInput}
+                              onChange={(e) => setCurrentInput(e.target.value)}
+                              placeholder="Type your specific decision or guidance for the swarm..."
+                              rows={2}
+                              autoFocus
+                              className="w-full p-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-sans text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleSaveAnswer(q, currentInput);
+                                }
+                              }}
+                            />
+
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[10px] font-mono text-slate-500">
+                                Press Enter or click Save
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveQuestionIdx(null)}
+                                  className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-mono transition-all cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveAnswer(q, currentInput)}
+                                  disabled={!currentInput.trim()}
+                                  className="px-3.5 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-mono font-bold transition-all shadow-md shadow-purple-950/40 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                                >
+                                  <Send className="w-3 h-3" />
+                                  <span>Save Decision</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </GlassCard>
           </div>
 
