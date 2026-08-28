@@ -639,11 +639,8 @@ export default function CanvasPage({
                 <StatusBadge status={effectiveStatus} className="text-[10px] shrink-0" />
               </div>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[11px] text-purple-300 font-mono truncate max-w-[260px]">
-                  {project?.title && !project.title.startsWith('Project prj_') ? project.title : 'Swarm Orchestration'}
-                </span>
-                <span className="text-[10px] text-slate-500 font-mono hidden md:inline">
-                  · {runId}
+                <span className="text-[11px] text-purple-300 font-mono truncate max-w-[320px]">
+                  {project?.title && !project.title.startsWith('Project prj_') ? project.title : 'Governed Multi-Agent Swarm'}
                 </span>
               </div>
             </div>
