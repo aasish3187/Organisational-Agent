@@ -33,7 +33,11 @@ jobs:
 
       - name: Run Pytest
         working-directory: ./apps/api
-        run: pytest
+        env:
+          ENVIRONMENT: testing
+          DEMO_REPLAY: "true"
+          DATABASE_URL: sqlite+aiosqlite:///:memory:
+        run: pytest -v
 
   frontend:
     name: Frontend Tests & Typecheck
