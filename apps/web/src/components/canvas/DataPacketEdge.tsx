@@ -18,23 +18,53 @@ export const DataPacketEdge = memo(
 
     return (
       <>
-        {/* Base Edge Path */}
+        <defs>
+          <linearGradient id={`grad_${id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#a855f7" stopOpacity="0.8" />
+            <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.8" />
+          </linearGradient>
+        </defs>
+
+        {/* Base Glow Tube */}
+        {isActive && (
+          <path
+            d={edgePath}
+            fill="none"
+            stroke="rgba(168, 85, 247, 0.2)"
+            strokeWidth={5}
+            className="filter blur-[2px]"
+          />
+        )}
+
+        {/* Main Edge Path */}
         <path
           id={id}
           className="react-flow__edge-path transition-all duration-300"
           d={edgePath}
           fill="none"
-          stroke={isActive ? 'rgba(124, 58, 237, 0.45)' : 'rgba(255, 255, 255, 0.08)'}
-          strokeWidth={isActive ? 2 : 1}
-          strokeDasharray={isActive ? '6 4' : 'none'}
+          stroke={isActive ? `url(#grad_${id})` : 'rgba(255, 255, 255, 0.1)'}
+          strokeWidth={isActive ? 2.5 : 1}
+          strokeDasharray={isActive ? '5 5' : 'none'}
         />
 
-        {/* Animated Traveling Data Packet Particle Dot */}
+        {/* Primary Animated Traveling Data Packet Particle */}
         {isActive && (
           <g>
-            <circle r="4" fill="#06b6d4" className="filter drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">
+            <circle r="4.5" fill="#06b6d4" className="filter drop-shadow-[0_0_8px_#06b6d4]">
               <animateMotion
-                dur="2s"
+                dur="1.8s"
+                repeatCount="indefinite"
+                path={edgePath}
+                keyPoints="0;1"
+                keyTimes="0;1"
+              />
+            </circle>
+            {/* Secondary Staggered Pulse Dot */}
+            <circle r="3" fill="#a855f7" className="filter drop-shadow-[0_0_6px_#a855f7]">
+              <animateMotion
+                dur="1.8s"
+                begin="0.9s"
                 repeatCount="indefinite"
                 path={edgePath}
                 keyPoints="0;1"

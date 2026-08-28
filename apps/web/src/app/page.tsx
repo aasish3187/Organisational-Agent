@@ -6,6 +6,8 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { TokenMeter } from '@/components/ui/TokenMeter';
+import { NeuralBackground } from '@/components/canvas/NeuralBackground';
+import { TiltCard } from '@/components/ui/TiltCard';
 import {
   ShieldCheck,
   Cpu,
@@ -268,6 +270,9 @@ export default function LandingPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen relative overflow-x-clip bg-[#050810]">
+      {/* Interactive 60fps Neural Constellation Network Canvas Background */}
+      <NeuralBackground />
+
       {/* Ambient Radial Aurora Background Glows */}
       <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-purple-900/15 blur-[120px] pointer-events-none" />
       <div className="absolute top-[10%] right-[-10%] w-[650px] h-[650px] rounded-full bg-cyan-900/15 blur-[140px] pointer-events-none" />
@@ -733,10 +738,10 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* 3 Core Architecture Pillars */}
+        {/* 3 Core Architecture Pillars with 3D Perspective Tilt */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
           {/* Pillar 1: Dynamic Organization Compiler */}
-          <div className="glass-regular rounded-2xl p-6 flex flex-col gap-4 hover:-translate-y-1 transition-all duration-300 group">
+          <TiltCard className="glass-regular rounded-2xl p-6 flex flex-col gap-4 group">
             <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400 w-fit border border-purple-500/20 group-hover:scale-110 transition-transform">
               <Cpu className="w-6 h-6" />
             </div>
@@ -750,10 +755,10 @@ export default function LandingPage() {
               <span>Governance</span>
               <StatusBadge status="ACTIVE" />
             </div>
-          </div>
+          </TiltCard>
 
           {/* Pillar 2: VERITAS Cryptographic Chain */}
-          <div className="glass-regular rounded-2xl p-6 flex flex-col gap-4 hover:-translate-y-1 transition-all duration-300 group">
+          <TiltCard className="glass-regular rounded-2xl p-6 flex flex-col gap-4 group">
             <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 w-fit border border-cyan-500/20 group-hover:scale-110 transition-transform">
               <ShieldCheck className="w-6 h-6" />
             </div>
@@ -767,10 +772,10 @@ export default function LandingPage() {
               <span>Proof</span>
               <span className="text-cyan-400">Tamper-Evident</span>
             </div>
-          </div>
+          </TiltCard>
 
           {/* Pillar 3: MNEMOS Reusable Memory */}
-          <div className="glass-regular rounded-2xl p-6 flex flex-col gap-4 hover:-translate-y-1 transition-all duration-300 group">
+          <TiltCard className="glass-regular rounded-2xl p-6 flex flex-col gap-4 group">
             <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 w-fit border border-indigo-500/20 group-hover:scale-110 transition-transform">
               <Database className="w-6 h-6" />
             </div>
@@ -784,7 +789,7 @@ export default function LandingPage() {
               <span>Learning</span>
               <span className="text-indigo-400">Process Atoms</span>
             </div>
-          </div>
+          </TiltCard>
         </div>
       </main>
 
