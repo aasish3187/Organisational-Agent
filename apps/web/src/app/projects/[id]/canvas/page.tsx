@@ -281,7 +281,7 @@ export default function CanvasPage({
 
     try {
       const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-      const targetStepBudget = speedParam === 'FAST' ? 550 : speedParam === 'DEEP' ? 1200 : 750;
+      const targetStepBudget = speedParam === 'FAST' ? 950 : speedParam === 'DEEP' ? 2200 : 1450;
 
       let iterations = 0;
       const maxIterations = 20;
@@ -388,7 +388,7 @@ export default function CanvasPage({
         if (!autoRunningRef.current) break;
 
         const elapsed = Date.now() - stepStartTime;
-        const remainingDelay = Math.max(20, targetStepBudget - elapsed);
+        const remainingDelay = Math.max(25, targetStepBudget - elapsed);
         await new Promise((resolve) => setTimeout(resolve, remainingDelay));
       }
     } catch (err) {
@@ -422,7 +422,7 @@ export default function CanvasPage({
     setExecuting(true);
     try {
       const speedParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null;
-      let replayStepDelay = speedParam === 'FAST' ? 550 : speedParam === 'DEEP' ? 1200 : 750;
+      let replayStepDelay = speedParam === 'FAST' ? 950 : speedParam === 'DEEP' ? 2200 : 1450;
 
       for (let i = 0; i < 7; i++) {
         const updated = rawAgentsRef.current.map((a, idx) => ({
