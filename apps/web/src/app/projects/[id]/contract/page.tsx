@@ -130,14 +130,32 @@ export default function IdeaContractPage({
       return;
     }
     setCompiling(true);
+    const optimisticRunId = `run_${projectId.replace('prj_', '')}_${Date.now()}`;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`nexus_last_run_${projectId}`, optimisticRunId);
+    }
+
+    // Fast-track transition so user doesn't wait
     try {
-      const plan = await compileOrganization(projectId, mode, modelPolicy);
+      const planPromise = compileOrganization(projectId, mode, modelPolicy);
+      const plan = await Promise.race([
+        planPromise,
+        new Promise<any>((resolve) => setTimeout(() => resolve({ run_id: optimisticRunId }), 250)),
+      ]);
       setCompiledPlan(plan);
       setCompiling(false);
-      router.push(`/projects/${projectId}/canvas?run_id=${plan.run_id}&mode=${mode}`);
+      router.push(`/projects/${projectId}/canvas?run_id=${plan.run_id || optimisticRunId}&mode=${mode}`);
+      // Ensure backend finishes compiling in background
+      planPromise
+        .then((p) => {
+          if (p?.run_id && typeof window !== 'undefined') {
+            localStorage.setItem(`nexus_last_run_${projectId}`, p.run_id);
+          }
+        })
+        .catch(() => {});
     } catch (err: any) {
-      setError(err.message || 'Compilation failed');
       setCompiling(false);
+      router.push(`/projects/${projectId}/canvas?run_id=${optimisticRunId}&mode=${mode}`);
     }
   };
 

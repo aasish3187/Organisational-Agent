@@ -56,6 +56,8 @@ export default function CanvasPage({
   const [project, setProject] = useState<Project | null>(null);
   const [runId, setRunId] = useState<string>('');
   const [rawAgents, setRawAgents] = useState<any[]>([]);
+  const rawAgentsRef = useRef<any[]>([]);
+  const gateApprovedRef = useRef<boolean>(false);
   const [rawTasks, setRawTasks] = useState<any[]>([]);
   const [artifacts, setArtifacts] = useState<any[]>([]);
   const [selectedArtifact, setSelectedArtifact] = useState<any | null>(null);
@@ -73,6 +75,12 @@ export default function CanvasPage({
     message: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Helper to sync state and ref
+  const updateAgents = (newAgents: any[]) => {
+    rawAgentsRef.current = newAgents;
+    setRawAgents(newAgents);
+  };
 
   // Mode state for dynamic pacing (<30s FAST, <45s BALANCED, <60s DEEP)
   const [execMode, setExecMode] = useState<'FAST' | 'BALANCED' | 'DEEP'>('BALANCED');
@@ -123,6 +131,11 @@ export default function CanvasPage({
   };
 
   useEffect(() => {
+    gateApprovedRef.current = false;
+    wasAutoRunningBeforeGateRef.current = false;
+    autoRunningRef.current = false;
+    setAutoRunning(false);
+
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const m = urlParams?.get('mode');
     if (m === 'FAST' || m === 'BALANCED' || m === 'DEEP') {
@@ -168,7 +181,8 @@ export default function CanvasPage({
           }
 
           const orgRes = await apiClient.get(`/api/runs/${activeRunId}/organization`);
-          setRawAgents(orgRes.data.agents || []);
+          const fetchedAgents = orgRes.data.agents || [];
+          updateAgents(fetchedAgents);
           setRawTasks(orgRes.data.tasks || []);
 
           if (orgRes.data.status === 'COMPLETED') {
@@ -186,15 +200,16 @@ export default function CanvasPage({
           if (typeof window !== 'undefined') {
             localStorage.setItem(`nexus_last_run_${projectId}`, fallbackRunId);
           }
-          setRawAgents([
+          const defaultAgents = [
             { id: 'agt_research', role: 'research_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
-            { id: 'agt_product', role: 'product_strategist', status: 'ACTIVE', token_budget: 5000, tokens_used: 800 },
+            { id: 'agt_product', role: 'product_strategist', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
             { id: 'agt_ai_arch', role: 'ai_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
             { id: 'agt_sys_arch', role: 'system_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
             { id: 'agt_privacy', role: 'privacy_risk', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
             { id: 'agt_reviewer', role: 'consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
             { id: 'agt_solutions', role: 'solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
-          ]);
+          ];
+          updateAgents(defaultAgents);
         }
         setLoading(false);
       })
@@ -208,26 +223,24 @@ export default function CanvasPage({
     const targetRunId = runId || 'run_demo_primary';
     setExecuting(true);
 
-    // Optimistic snappy UI progression
-    setRawAgents((prev) => {
-      const next = [...prev];
-      const activeIdx = next.findIndex((a) => a.status === 'ACTIVE');
-      if (activeIdx !== -1) {
-        next[activeIdx] = { ...next[activeIdx], status: 'COMPLETED', tokens_used: next[activeIdx].token_budget || 2400 };
-        if (activeIdx + 1 < next.length) {
-          next[activeIdx + 1] = { ...next[activeIdx + 1], status: 'ACTIVE', tokens_used: 1200 };
-        } else {
-          setIsCompleted(true);
-          setShowCompletionModal(true);
-        }
+    // Optimistic snappy UI progression using ref
+    let agents = [...rawAgentsRef.current];
+    const activeIdx = agents.findIndex((a) => a.status === 'ACTIVE');
+    if (activeIdx !== -1) {
+      agents[activeIdx] = { ...agents[activeIdx], status: 'COMPLETED', tokens_used: agents[activeIdx].token_budget || 2400 };
+      if (activeIdx + 1 < agents.length) {
+        agents[activeIdx + 1] = { ...agents[activeIdx + 1], status: 'ACTIVE', tokens_used: 1200 };
       } else {
-        const firstPending = next.findIndex((a) => a.status === 'PENDING');
-        if (firstPending !== -1) {
-          next[firstPending] = { ...next[firstPending], status: 'ACTIVE', tokens_used: 1200 };
-        }
+        setIsCompleted(true);
+        setShowCompletionModal(true);
       }
-      return next;
-    });
+    } else {
+      const firstPending = agents.findIndex((a) => a.status === 'PENDING');
+      if (firstPending !== -1) {
+        agents[firstPending] = { ...agents[firstPending], status: 'ACTIVE', tokens_used: 1200 };
+      }
+    }
+    updateAgents(agents);
 
     try {
       const stepRes = await apiClient.post(`/api/runs/${targetRunId}/step`);
@@ -257,84 +270,96 @@ export default function CanvasPage({
     setExecuting(true);
 
     try {
-      let isDone = false;
-      let iterations = 0;
-      const maxIterations = 15;
-
       const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-      const targetStepBudget = speedParam === 'FAST' ? 250 : speedParam === 'DEEP' ? 1000 : 500;
+      const targetStepBudget = speedParam === 'FAST' ? 80 : speedParam === 'DEEP' ? 400 : 150;
 
-      while (autoRunningRef.current && !isDone && iterations < maxIterations) {
+      let iterations = 0;
+      const maxIterations = 20;
+
+      while (autoRunningRef.current && iterations < maxIterations) {
         iterations++;
         const stepStartTime = Date.now();
 
-        let nextActiveIdx = -1;
-        let isGateStep = false;
+        // 1. Get current agents synchronously from ref
+        let agents = [...rawAgentsRef.current];
+        if (agents.length === 0) break;
 
-        // Optimistically pulse to next agent
-        setRawAgents((prev) => {
-          const next = [...prev];
-          const activeIdx = next.findIndex((a) => a.status === 'ACTIVE');
-          if (activeIdx !== -1) {
-            next[activeIdx] = { ...next[activeIdx], status: 'COMPLETED', tokens_used: next[activeIdx].token_budget || 2400 };
-            if (activeIdx + 1 < next.length) {
-              next[activeIdx + 1] = { ...next[activeIdx + 1], status: 'ACTIVE', tokens_used: 1200 };
-              nextActiveIdx = activeIdx + 1;
-            } else {
-              isDone = true;
-            }
-          } else {
-            const firstPending = next.findIndex((a) => a.status === 'PENDING');
-            if (firstPending !== -1) {
-              next[firstPending] = { ...next[firstPending], status: 'ACTIVE', tokens_used: 1200 };
-              nextActiveIdx = firstPending;
-            }
+        let activeIdx = agents.findIndex((a) => a.status === 'ACTIVE');
+        let nextIdx = -1;
+
+        if (activeIdx !== -1) {
+          agents[activeIdx] = {
+            ...agents[activeIdx],
+            status: 'COMPLETED',
+            tokens_used: agents[activeIdx].token_budget || 2400,
+          };
+          if (activeIdx + 1 < agents.length) {
+            nextIdx = activeIdx + 1;
+            agents[nextIdx] = {
+              ...agents[nextIdx],
+              status: 'ACTIVE',
+              tokens_used: 1200,
+            };
           }
-
-          // Check if next node is the Human Approval Gate (Node 5 / index 4 or privacy/risk role)
-          if (nextActiveIdx !== -1 && next[nextActiveIdx]) {
-            const r = (next[nextActiveIdx].role || '').toLowerCase();
-            if (
-              nextActiveIdx === 4 ||
-              r.includes('privacy') ||
-              r.includes('risk') ||
-              r.includes('bioethics') ||
-              r.includes('compliance') ||
-              next[nextActiveIdx].id === 'agt_privacy'
-            ) {
-              isGateStep = true;
-            }
+        } else {
+          const firstPending = agents.findIndex((a) => a.status === 'PENDING');
+          if (firstPending !== -1) {
+            nextIdx = firstPending;
+            agents[firstPending] = {
+              ...agents[firstPending],
+              status: 'ACTIVE',
+              tokens_used: 1200,
+            };
           }
-          return next;
-        });
+        }
 
-        // If this is the Human Approval Gate node, immediately trigger the modal and pause
-        if (isGateStep) {
+        // Commit updated agent states synchronously to both ref & React state
+        updateAgents(agents);
+
+        // 2. Check if all agents completed
+        if (nextIdx === -1) {
+          setIsCompleted(true);
+          setShowCompletionModal(true);
+          wasAutoRunningBeforeGateRef.current = false;
+          autoRunningRef.current = false;
+          setAutoRunning(false);
+          setExecuting(false);
+          await fetchArtifacts(targetRunId);
+          break;
+        }
+
+        // 3. Check if the newly activated agent is the Human Approval Gate node
+        const targetAgent = agents[nextIdx];
+        const roleLower = (targetAgent?.role || '').toLowerCase();
+        const isGateNode =
+          nextIdx === 4 ||
+          roleLower.includes('privacy') ||
+          roleLower.includes('risk') ||
+          roleLower.includes('bioethics') ||
+          roleLower.includes('compliance') ||
+          targetAgent?.id === 'agt_privacy';
+
+        if (isGateNode && !gateApprovedRef.current) {
+          // Trigger Human Approval Gate Modal & Pause Execution
           setActiveGate({
             name: 'sensitive-data-retention',
-            role: 'privacy_risk',
+            role: targetAgent?.role || 'privacy_risk',
+            reason: 'Policy P-02 requires explicit human authorization for sensitive data retention and audit.',
           });
           setGateOpen(true);
           wasAutoRunningBeforeGateRef.current = true;
           autoRunningRef.current = false;
           setAutoRunning(false);
+          setExecuting(false);
           apiClient.post(`/api/runs/${targetRunId}/step`).catch(() => {});
-          break;
+          return; // Stop auto-run loop until human approves
         }
 
-        if (isDone) {
-          setIsCompleted(true);
-          setShowCompletionModal(true);
-          wasAutoRunningBeforeGateRef.current = false;
-          await fetchArtifacts(targetRunId);
-          break;
-        }
-
-        // Fire backend step API with timeout race so remote network latency never blocks the UI
+        // 4. Non-blocking API call with timeout race
         try {
           await Promise.race([
             apiClient.post(`/api/runs/${targetRunId}/step`).then((res) => {
-              if (res.data.status === 'WAITING_FOR_HUMAN') {
+              if (res.data.status === 'WAITING_FOR_HUMAN' && !gateApprovedRef.current) {
                 setActiveGate({
                   name: res.data.gate_name || 'sensitive-data-retention',
                   role: res.data.role || 'privacy_risk',
@@ -343,43 +368,23 @@ export default function CanvasPage({
                 wasAutoRunningBeforeGateRef.current = true;
                 autoRunningRef.current = false;
                 setAutoRunning(false);
+                setExecuting(false);
               }
             }),
             new Promise((resolve) => setTimeout(resolve, targetStepBudget)),
           ]);
-        } catch {
-          // ignore network errors, proceed with smooth local DAG step
-        }
+        } catch {}
 
         if (!autoRunningRef.current) break;
 
         const elapsed = Date.now() - stepStartTime;
-        const remainingDelay = Math.max(20, targetStepBudget - elapsed);
+        const remainingDelay = Math.max(5, targetStepBudget - elapsed);
         await new Promise((resolve) => setTimeout(resolve, remainingDelay));
       }
     } catch (err) {
-      console.warn('Auto-run fast-tracking simulation:', err);
-      const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-      const targetStepBudget = speedParam === 'FAST' ? 250 : speedParam === 'DEEP' ? 1000 : 500;
-
-      // Smoothly advance through all agents within guaranteed budget
-      for (let i = 0; i < 7; i++) {
-        if (!autoRunningRef.current) break;
-        setRawAgents((prev) =>
-          prev.map((a, idx) => ({
-            ...a,
-            status: idx <= i ? 'COMPLETED' : idx === i + 1 ? 'ACTIVE' : 'PENDING',
-            tokens_used: idx <= i ? a.token_budget || 2400 : 0,
-          }))
-        );
-        await new Promise((resolve) => setTimeout(resolve, targetStepBudget));
-      }
-      setIsCompleted(true);
-      setShowCompletionModal(true);
-      await fetchArtifacts(targetRunId);
+      console.warn('Auto-run simulation:', err);
     } finally {
-      if (!wasAutoRunningBeforeGateRef.current) {
-        autoRunningRef.current = false;
+      if (!wasAutoRunningBeforeGateRef.current && !autoRunningRef.current) {
         setAutoRunning(false);
         setExecuting(false);
       }
@@ -407,17 +412,15 @@ export default function CanvasPage({
     setExecuting(true);
     try {
       const speedParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null;
-      let replayStepDelay = speedParam === 'FAST' ? 200 : speedParam === 'DEEP' ? 1000 : 500;
+      let replayStepDelay = speedParam === 'FAST' ? 80 : speedParam === 'DEEP' ? 400 : 150;
 
-      // Visual pulse across all nodes
       for (let i = 0; i < 7; i++) {
-        setRawAgents((prev) =>
-          prev.map((a, idx) => ({
-            ...a,
-            status: idx <= i ? 'COMPLETED' : idx === i + 1 ? 'ACTIVE' : 'PENDING',
-            tokens_used: idx <= i ? a.token_budget || 2400 : 0,
-          }))
-        );
+        const updated = rawAgentsRef.current.map((a, idx) => ({
+          ...a,
+          status: idx <= i ? 'COMPLETED' : idx === i + 1 ? 'ACTIVE' : 'PENDING',
+          tokens_used: idx <= i ? a.token_budget || 2400 : 0,
+        }));
+        updateAgents(updated);
         await new Promise((resolve) => setTimeout(resolve, replayStepDelay));
       }
       await apiClient.post(`/api/runs/${runId}/replay`);
@@ -435,64 +438,60 @@ export default function CanvasPage({
   };
 
   const handleGateApprove = async (reason: string) => {
-    // 1. Immediately close the modal so it vanishes instantly
+    // 1. Immediately close modal and record approval
     setGateOpen(false);
+    gateApprovedRef.current = true;
     wasAutoRunningBeforeGateRef.current = false;
-    autoRunningRef.current = false;
-    setAutoRunning(true);
-    setExecuting(true);
     setIsCompleted(false);
 
-    // 2. Optimistically advance any active privacy/risk node to COMPLETED and activate Node 6
-    setRawAgents((prev) => {
-      const next = [...prev];
-      const activeIdx = next.findIndex(
-        (a) =>
-          a.status === 'ACTIVE' ||
-          a.role?.toLowerCase().includes('privacy') ||
-          a.role?.toLowerCase().includes('risk') ||
-          a.role?.toLowerCase().includes('bioethics') ||
-          a.role?.toLowerCase().includes('compliance') ||
-          a.id === 'agt_privacy'
-      );
-      if (activeIdx !== -1) {
-        next[activeIdx] = { ...next[activeIdx], status: 'COMPLETED', tokens_used: next[activeIdx].token_budget || 3200 };
-        if (activeIdx + 1 < next.length) {
-          next[activeIdx + 1] = { ...next[activeIdx + 1], status: 'ACTIVE', tokens_used: 1200 };
-        }
+    // 2. Advance the gate node (Node 5) to COMPLETED and activate Node 6 (Consistency Reviewer)
+    let agents = [...rawAgentsRef.current];
+    const gateIdx = agents.findIndex(
+      (a, idx) =>
+        idx === 4 ||
+        a.role?.toLowerCase().includes('privacy') ||
+        a.role?.toLowerCase().includes('risk') ||
+        a.role?.toLowerCase().includes('bioethics') ||
+        a.role?.toLowerCase().includes('compliance') ||
+        a.id === 'agt_privacy'
+    );
+
+    if (gateIdx !== -1) {
+      agents[gateIdx] = {
+        ...agents[gateIdx],
+        status: 'COMPLETED',
+        tokens_used: agents[gateIdx].token_budget || 3200,
+      };
+      if (gateIdx + 1 < agents.length) {
+        agents[gateIdx + 1] = {
+          ...agents[gateIdx + 1],
+          status: 'ACTIVE',
+          tokens_used: 1200,
+        };
       }
-      return next;
-    });
+    }
+    updateAgents(agents);
 
     const targetRunId = runId || 'run_demo_primary';
-    try {
-      const gateRes = await submitGateDecision(targetRunId, 'APPROVE', reason);
-      if (gateRes?.status === 'COMPLETED' || gateRes?.run_completed) {
-        setIsCompleted(true);
-        setShowCompletionModal(true);
-        await fetchArtifacts(targetRunId);
-        return;
-      }
-    } catch (err) {
-      console.warn('Gate decision submit error:', err);
-    }
+    submitGateDecision(targetRunId, 'APPROVE', reason).catch(() => {});
 
-    // 3. Smoothly continue remaining DAG execution
-    autoRunningRef.current = false;
-    startAutoRunExecution(targetRunId);
+    // 3. Automatically resume remaining AutoRun smoothly to completion without pausing
+    setTimeout(() => {
+      autoRunningRef.current = false;
+      startAutoRunExecution(targetRunId);
+    }, 40);
   };
 
   const handleGateReject = async (reason: string) => {
-    // Immediately close modal on reject
     setGateOpen(false);
+    gateApprovedRef.current = false;
     wasAutoRunningBeforeGateRef.current = false;
     autoRunningRef.current = false;
     setAutoRunning(false);
+    setExecuting(false);
+    const targetRunId = runId || 'run_demo_primary';
     try {
-      await submitGateDecision(runId, 'REJECT', reason);
-      const orgRes = await apiClient.get(`/api/runs/${runId}/organization`);
-      if (orgRes.data?.agents) setRawAgents(orgRes.data.agents);
-      if (orgRes.data?.tasks) setRawTasks(orgRes.data.tasks);
+      await submitGateDecision(targetRunId, 'REJECT', reason);
     } catch (err) {
       console.warn('Gate rejection error:', err);
     }
