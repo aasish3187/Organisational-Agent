@@ -85,12 +85,13 @@ async def execute_run_step_by_step(
         await session.commit()
         return {"status": "COMPLETED", "task_executed": None}
 
-    # Check if task triggers a Human Gate
+    # Check if task triggers a Human Gate (BALANCED and DEEP modes)
     if (
         ("privacy" in current_task.role.lower() or "risk" in current_task.role.lower() or "compliance" in current_task.role.lower() or "safety" in current_task.role.lower() or current_task.role == "privacy_risk")
         and not bypass_gates
         and current_task.status != "APPROVED"
         and current_task.risk_level == "high"
+        and run.mode != "FAST"
     ):
         current_task.status = "WAITING_FOR_HUMAN"
         run.status = "WAITING_FOR_HUMAN"

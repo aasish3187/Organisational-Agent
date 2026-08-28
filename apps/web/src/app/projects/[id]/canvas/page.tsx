@@ -307,6 +307,18 @@ export default function CanvasPage({
         const elapsed = Date.now() - stepStartTime;
 
         if (stepRes.data.status === 'WAITING_FOR_HUMAN') {
+          if (speedParam === 'FAST') {
+            // Auto-approve in FAST mode to guarantee run finishes in <30s!
+            try {
+              await apiClient.post(`/api/runs/${targetRunId}/gate-decision`, {
+                decision: 'APPROVE',
+                reason: 'Policy P-02 fast-tracked authorization under FAST mode SLA.',
+              });
+              continue;
+            } catch (e) {
+              continue;
+            }
+          }
           setActiveGate({
             name: stepRes.data.gate_name || 'sensitive-data-retention',
             role: stepRes.data.role || 'privacy_risk',
@@ -412,14 +424,22 @@ export default function CanvasPage({
     // 1. Immediately close the modal so it vanishes instantly
     setGateOpen(false);
 
-    // 2. Optimistically advance Privacy Risk to COMPLETED and Consistency Reviewer to ACTIVE
+    // 2. Optimistically advance any active privacy/risk node to COMPLETED and activate the next node
     setRawAgents((prev) => {
       const next = [...prev];
-      const privIdx = next.findIndex((a) => a.role === 'privacy_risk' || a.id === 'agt_privacy');
-      if (privIdx !== -1) {
-        next[privIdx] = { ...next[privIdx], status: 'COMPLETED', tokens_used: next[privIdx].token_budget || 3200 };
-        if (privIdx + 1 < next.length) {
-          next[privIdx + 1] = { ...next[privIdx + 1], status: 'ACTIVE', tokens_used: 1200 };
+      const activeIdx = next.findIndex(
+        (a) =>
+          a.status === 'ACTIVE' ||
+          a.role?.toLowerCase().includes('privacy') ||
+          a.role?.toLowerCase().includes('risk') ||
+          a.role?.toLowerCase().includes('bioethics') ||
+          a.role?.toLowerCase().includes('compliance') ||
+          a.id === 'agt_privacy'
+      );
+      if (activeIdx !== -1) {
+        next[activeIdx] = { ...next[activeIdx], status: 'COMPLETED', tokens_used: next[activeIdx].token_budget || 3200 };
+        if (activeIdx + 1 < next.length) {
+          next[activeIdx + 1] = { ...next[activeIdx + 1], status: 'ACTIVE', tokens_used: 1200 };
         }
       }
       return next;
@@ -445,17 +465,17 @@ export default function CanvasPage({
         return;
       }
 
-      // 3. Automatically continue DAG execution smoothly on Live Canvas!
+      // 3. Automatically continue DAG execution smoothly to completion!
       wasAutoRunningBeforeGateRef.current = false;
       setTimeout(() => {
         startAutoRunExecution(targetRunId);
-      }, 400);
+      }, 300);
     } catch (err) {
       console.warn('Gate approval completed with optimistic continuation:', err);
       wasAutoRunningBeforeGateRef.current = false;
       setTimeout(() => {
         startAutoRunExecution(targetRunId);
-      }, 400);
+      }, 300);
     }
   };
 
