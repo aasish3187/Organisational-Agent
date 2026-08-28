@@ -74,6 +74,9 @@ export default function CanvasPage({
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Mode state for dynamic pacing (<30s FAST, <45s BALANCED, <60s DEEP)
+  const [execMode, setExecMode] = useState<'FAST' | 'BALANCED' | 'DEEP'>('BALANCED');
+
   // Approval Gate state
   const [gateOpen, setGateOpen] = useState(false);
   const [activeGate, setActiveGate] = useState<{ name: string; role: string; reason?: string }>({
@@ -106,6 +109,12 @@ export default function CanvasPage({
   };
 
   useEffect(() => {
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const m = urlParams?.get('mode');
+    if (m === 'FAST' || m === 'BALANCED' || m === 'DEEP') {
+      setExecMode(m);
+    }
+
     // 1. Fetch project
     getProject(projectId)
       .then(async (proj) => {
@@ -114,7 +123,6 @@ export default function CanvasPage({
         // 2. Fetch runs or compile organization
         try {
           let activeRunId = '';
-          const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
           const passedRunId = urlParams?.get('run_id');
           const storedRunId = typeof window !== 'undefined' ? localStorage.getItem(`nexus_last_run_${projectId}`) : null;
 
@@ -301,7 +309,7 @@ export default function CanvasPage({
         // FAST mode: < 30s (~2.2s per node -> ~15.4s total)
         // BALANCED mode: < 45s (~4.2s per node -> ~29.4s total)
         // DEEP mode: < 60s (~6.5s per node -> ~45.5s total)
-        const speedParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null;
+        const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
         let transitionDelay = 4200; // BALANCED default (<45s)
         if (speedParam === 'FAST') transitionDelay = 2200;
         else if (speedParam === 'DEEP') transitionDelay = 6500;
@@ -309,7 +317,7 @@ export default function CanvasPage({
       }
     } catch (err) {
       console.warn('Auto-run fast-tracking simulation:', err);
-      const speedParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null;
+      const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
       let simDelay = speedParam === 'FAST' ? 2200 : speedParam === 'DEEP' ? 6500 : 4200;
 
       // Smoothly advance through all agents
@@ -509,6 +517,18 @@ export default function CanvasPage({
                   </span>
                 </h1>
                 <StatusBadge status={effectiveStatus} className="text-[10px]" />
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono border font-semibold ${
+                    execMode === 'FAST'
+                      ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+                      : execMode === 'DEEP'
+                      ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                      : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                  }`}
+                  title={`Execution Target: ${execMode === 'FAST' ? '<30s' : execMode === 'DEEP' ? '<60s' : '<45s'}`}
+                >
+                  {execMode} ({execMode === 'FAST' ? '<30s' : execMode === 'DEEP' ? '<60s' : '<45s'})
+                </span>
               </div>
               <span className="text-[10px] text-slate-400 font-mono block truncate">
                 {runId}

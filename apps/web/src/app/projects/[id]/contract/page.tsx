@@ -125,7 +125,7 @@ export default function IdeaContractPage({
   }, [projectId]);
 
   const handleCompile = async () => {
-    const autoParam = mode === 'FAST' ? '&autorun=true' : '';
+    const autoParam = '&autorun=true';
     if (compiledPlan) {
       router.push(`/projects/${projectId}/canvas?run_id=${compiledPlan.run_id}&mode=${mode}${autoParam}`);
       return;
