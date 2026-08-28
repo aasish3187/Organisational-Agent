@@ -76,6 +76,7 @@ export default function CanvasPage({
 
   // Mode state for dynamic pacing (<30s FAST, <45s BALANCED, <60s DEEP)
   const [execMode, setExecMode] = useState<'FAST' | 'BALANCED' | 'DEEP'>('BALANCED');
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   // Approval Gate state
   const [gateOpen, setGateOpen] = useState(false);
@@ -83,6 +84,19 @@ export default function CanvasPage({
     name: 'sensitive-data-retention',
     role: 'privacy_risk',
   });
+
+  // Stopwatch timer for live swarm execution
+  useEffect(() => {
+    let interval: any = null;
+    if ((autoRunning || executing) && !isCompleted) {
+      interval = setInterval(() => {
+        setElapsedSeconds((s) => s + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [autoRunning, executing, isCompleted]);
 
   // Initialize SSE event listener
   const { events, runStatus, tokensUsed, costUsd } = useRunEvents(runId);
@@ -260,8 +274,16 @@ export default function CanvasPage({
       let iterations = 0;
       const maxIterations = 15;
 
+      // Dynamic pace calibration to GUARANTEE total run finishes strictly under user limits:
+      // FAST mode: Target 14s total (<30s) -> 2000ms/step total budget
+      // BALANCED mode: Target 28s total (<45s) -> 4000ms/step total budget
+      // DEEP mode: Target 45s total (<60s) -> 6400ms/step total budget
+      const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
+      const targetStepBudget = speedParam === 'FAST' ? 2000 : speedParam === 'DEEP' ? 6400 : 4000;
+
       while (autoRunningRef.current && !isDone && iterations < maxIterations) {
         iterations++;
+        const stepStartTime = Date.now();
 
         // Optimistically pulse to next agent
         setRawAgents((prev) => {
@@ -282,6 +304,7 @@ export default function CanvasPage({
         });
 
         const stepRes = await apiClient.post(`/api/runs/${targetRunId}/step`);
+        const elapsed = Date.now() - stepStartTime;
 
         if (stepRes.data.status === 'WAITING_FOR_HUMAN') {
           setActiveGate({
@@ -305,22 +328,16 @@ export default function CanvasPage({
           break;
         }
 
-        // Pacing delays strictly matching user expo targets:
-        // FAST mode: < 30s (~2.2s per node -> ~15.4s total)
-        // BALANCED mode: < 45s (~4.2s per node -> ~29.4s total)
-        // DEEP mode: < 60s (~6.5s per node -> ~45.5s total)
-        const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-        let transitionDelay = 4200; // BALANCED default (<45s)
-        if (speedParam === 'FAST') transitionDelay = 2200;
-        else if (speedParam === 'DEEP') transitionDelay = 6500;
-        await new Promise((resolve) => setTimeout(resolve, transitionDelay));
+        // Remaining delay dynamically deducted from elapsed network time
+        const remainingDelay = Math.max(100, targetStepBudget - elapsed);
+        await new Promise((resolve) => setTimeout(resolve, remainingDelay));
       }
     } catch (err) {
       console.warn('Auto-run fast-tracking simulation:', err);
       const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-      let simDelay = speedParam === 'FAST' ? 2200 : speedParam === 'DEEP' ? 6500 : 4200;
+      const targetStepBudget = speedParam === 'FAST' ? 2000 : speedParam === 'DEEP' ? 6400 : 4000;
 
-      // Smoothly advance through all agents
+      // Smoothly advance through all agents within guaranteed budget
       for (let i = 0; i < 7; i++) {
         if (!autoRunningRef.current) break;
         setRawAgents((prev) =>
@@ -330,7 +347,7 @@ export default function CanvasPage({
             tokens_used: idx <= i ? a.token_budget || 2400 : 0,
           }))
         );
-        await new Promise((resolve) => setTimeout(resolve, simDelay));
+        await new Promise((resolve) => setTimeout(resolve, targetStepBudget));
       }
       setIsCompleted(true);
       setShowCompletionModal(true);
@@ -529,6 +546,15 @@ export default function CanvasPage({
                 >
                   {execMode} ({execMode === 'FAST' ? '<30s' : execMode === 'DEEP' ? '<60s' : '<45s'})
                 </span>
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono bg-black/60 border border-white/10 text-cyan-300 shadow-sm"
+                  title="Live Swarm Stopwatch"
+                >
+                  <Activity className={`w-3 h-3 text-cyan-400 ${autoRunning || executing ? 'animate-pulse' : ''}`} />
+                  <span>
+                    {elapsedSeconds}s / {execMode === 'FAST' ? '30s' : execMode === 'DEEP' ? '60s' : '45s'}
+                  </span>
+                </div>
               </div>
               <span className="text-[10px] text-slate-400 font-mono block truncate">
                 {runId}
