@@ -263,7 +263,6 @@ export default function CanvasPage({
 
   const startAutoRunExecution = async (targetRunId: string) => {
     if (autoRunningRef.current) return;
-    if (effectiveStatus === 'COMPLETED') return;
 
     autoRunningRef.current = true;
     setAutoRunning(true);
@@ -373,6 +372,7 @@ export default function CanvasPage({
     if (effectiveStatus === 'COMPLETED') return;
 
     const targetRunId = runId || 'run_demo_primary';
+    autoRunningRef.current = false;
     await startAutoRunExecution(targetRunId);
   };
 
@@ -411,8 +411,11 @@ export default function CanvasPage({
   const handleGateApprove = async (reason: string) => {
     // 1. Immediately close the modal so it vanishes instantly
     setGateOpen(false);
+    wasAutoRunningBeforeGateRef.current = false;
+    autoRunningRef.current = false;
+    setIsCompleted(false);
 
-    // 2. Optimistically advance any active privacy/risk node to COMPLETED and activate the next node
+    // 2. Optimistically advance any active privacy/risk node to COMPLETED and activate Node 6
     setRawAgents((prev) => {
       const next = [...prev];
       const activeIdx = next.findIndex(
@@ -435,36 +438,19 @@ export default function CanvasPage({
 
     const targetRunId = runId || 'run_demo_primary';
     try {
-      const gateRes = await submitGateDecision(targetRunId, 'APPROVE', reason);
+      await submitGateDecision(targetRunId, 'APPROVE', reason);
       const orgRes = await apiClient.get(`/api/runs/${targetRunId}/organization`);
       if (orgRes.data?.agents) setRawAgents(orgRes.data.agents);
       if (orgRes.data?.tasks) setRawTasks(orgRes.data.tasks);
       await fetchArtifacts(targetRunId);
-
-      // If run completed on this step, show completion modal
-      if (
-        gateRes?.status === 'COMPLETED' ||
-        gateRes?.run_completed ||
-        orgRes.data?.status === 'COMPLETED'
-      ) {
-        setIsCompleted(true);
-        setShowCompletionModal(true);
-        wasAutoRunningBeforeGateRef.current = false;
-        return;
-      }
-
-      // 3. Automatically continue DAG execution smoothly to completion!
-      wasAutoRunningBeforeGateRef.current = false;
-      setTimeout(() => {
-        startAutoRunExecution(targetRunId);
-      }, 300);
     } catch (err) {
-      console.warn('Gate approval completed with optimistic continuation:', err);
-      wasAutoRunningBeforeGateRef.current = false;
-      setTimeout(() => {
-        startAutoRunExecution(targetRunId);
-      }, 300);
+      console.warn('Gate decision background submit:', err);
     }
+
+    // 3. Immediately launch continuation of the remaining DAG nodes without stopping!
+    autoRunningRef.current = false;
+    setAutoRunning(true);
+    startAutoRunExecution(targetRunId);
   };
 
   const handleGateReject = async (reason: string) => {
