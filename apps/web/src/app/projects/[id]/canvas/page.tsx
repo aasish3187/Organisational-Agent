@@ -549,39 +549,21 @@ export default function CanvasPage({
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <div className="flex items-center gap-2.5">
                 <h1 className="font-bold text-white text-sm md:text-base truncate flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${autoRunning || executing ? 'bg-cyan-400 animate-pulse' : effectiveStatus === 'COMPLETED' ? 'bg-emerald-400' : 'bg-purple-400'}`} />
                   <span>Living Canvas</span>
-                  <span className="text-xs font-mono text-purple-300 font-normal px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 max-w-[180px] truncate hidden sm:inline-block">
-                    {project?.title && !project.title.startsWith('Project prj_') ? project.title : 'Active Mission'}
-                  </span>
                 </h1>
                 <StatusBadge status={effectiveStatus} className="text-[10px] shrink-0" />
-                <span
-                  className={`px-2 py-1 rounded-lg text-[10px] font-mono border font-semibold whitespace-nowrap shrink-0 ${
-                    execMode === 'FAST'
-                      ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
-                      : execMode === 'DEEP'
-                      ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
-                      : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                  }`}
-                  title={`Execution Target: ${execMode === 'FAST' ? '<30s' : execMode === 'DEEP' ? '<60s' : '<45s'}`}
-                >
-                  {execMode} ({execMode === 'FAST' ? '<30s' : execMode === 'DEEP' ? '<60s' : '<45s'})
-                </span>
-                <div
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono bg-black/70 border border-cyan-500/30 text-cyan-300 shadow-sm whitespace-nowrap shrink-0 tabular-nums"
-                  title="Live Swarm Stopwatch"
-                >
-                  <Activity className={`w-3.5 h-3.5 text-cyan-400 shrink-0 ${autoRunning || executing ? 'animate-pulse' : ''}`} />
-                  <span className="font-semibold tracking-tight">
-                    {elapsedSeconds}s / {execMode === 'FAST' ? '30s' : execMode === 'DEEP' ? '60s' : '45s'}
-                  </span>
-                </div>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono block truncate">
-                {runId}
-              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[11px] text-purple-300 font-mono truncate max-w-[260px]">
+                  {project?.title && !project.title.startsWith('Project prj_') ? project.title : 'Swarm Orchestration'}
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono hidden md:inline">
+                  · {runId}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -589,7 +571,7 @@ export default function CanvasPage({
           <div className="flex items-center gap-2">
             <button
               onClick={() => router.push(`/projects/${projectId}/blueprint?run_id=${runId}`)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+              className={`px-4 py-1.5 rounded-xl text-xs font-mono font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
                 effectiveStatus === 'COMPLETED'
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-500/30 shadow-lg shadow-emerald-950/40'
                   : 'bg-white/5 text-slate-300 border border-white/10 hover:text-white hover:bg-white/10'
