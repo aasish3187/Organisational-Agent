@@ -485,6 +485,7 @@ class LLMGateway:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
+                "max_tokens": 400,
                 "temperature": 0.3,
             }
             async with httpx.AsyncClient(timeout=timeout) as client:
@@ -636,7 +637,12 @@ class LLMGateway:
         tier: str = "PRO",
         preferred_provider: str | None = None,
     ) -> tuple[str, int, str, float]:
-        """Direct text generation with multi-provider cascade for instant queries."""
+        """Direct text generation with multi-provider cascade and instant semantic caching."""
+        # 0. Check Semantic Cache for instant (<5ms) answer
+        cached_text = semantic_cache.get_text(user_prompt)
+        if cached_text:
+            return cached_text, 180, "cached-turbo", 0.0
+
         live_candidates = []
         if settings.GROQ_API_KEY:
             live_candidates.append("groq")
@@ -672,6 +678,7 @@ class LLMGateway:
                 if cb:
                     cb.record_success()
                 cost = self.estimate_cost(used_model, tokens // 2, tokens // 2)
+                semantic_cache.set_text(user_prompt, text)
                 return text, tokens, used_model, cost
             except Exception as e:
                 last_error = e
