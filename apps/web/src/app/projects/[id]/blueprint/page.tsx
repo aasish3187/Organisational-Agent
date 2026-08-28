@@ -503,6 +503,20 @@ export default function BlueprintPage({
 
   useEffect(() => {
     async function loadBlueprint() {
+      // 0. Check immediate client cache for instant 0ms rendering
+      if (typeof window !== 'undefined') {
+        try {
+          const cached = localStorage.getItem(`nexus_blueprint_${projectId}`);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed && parsed.executive_summary) {
+              setBlueprint(normalizeBlueprint(parsed));
+              setLoading(false);
+            }
+          }
+        } catch (e) {}
+      }
+
       try {
         let proj: Project;
         try {

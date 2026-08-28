@@ -93,6 +93,11 @@ export default function CanvasPage({
         if (bp && bp.content) {
           setBlueprintPreview(bp.content);
           setIsCompleted(true);
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem(`nexus_blueprint_${projectId}`, JSON.stringify(bp.content));
+            } catch (e) {}
+          }
         }
       }
     } catch (e) {
@@ -292,14 +297,14 @@ export default function CanvasPage({
           break;
         }
 
-        // Ultra-snappy delay (40ms in FAST mode, 120ms in standard)
+        // Turbo delay (15ms in FAST mode, 60ms in standard)
         const speedParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null;
-        const transitionDelay = speedParam === 'FAST' ? 40 : 120;
+        const transitionDelay = speedParam === 'FAST' ? 15 : 60;
         await new Promise((resolve) => setTimeout(resolve, transitionDelay));
       }
     } catch (err) {
       console.warn('Auto-run fast-tracking simulation:', err);
-      // Smoothly advance through all agents with 40ms pulse
+      // Smoothly advance through all agents with 15ms pulse
       for (let i = 0; i < 7; i++) {
         if (!autoRunningRef.current) break;
         setRawAgents((prev) =>
@@ -309,7 +314,7 @@ export default function CanvasPage({
             tokens_used: idx <= i ? a.token_budget || 2400 : 0,
           }))
         );
-        await new Promise((resolve) => setTimeout(resolve, 40));
+        await new Promise((resolve) => setTimeout(resolve, 15));
       }
       setIsCompleted(true);
       setShowCompletionModal(true);
