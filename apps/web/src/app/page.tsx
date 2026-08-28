@@ -239,14 +239,17 @@ export default function LandingPage() {
     setStatusMessage('Creating project and interpreting mission intake with multimodal analysis...');
 
     try {
-      // 1. Create Project
+      // 1. Create Project with clean dynamic title derived from the user idea
+      const titleClean = idea.length > 45 ? idea.substring(0, 42).trim() + '...' : idea.trim();
       const project = await createProject(
-        `${selectedDomain.toUpperCase()} — Mission`,
+        titleClean,
         idea
       );
 
       // 2. Submit Intake with multimodal attachments
-      const contract = await submitIntake(project.id, idea, selectedDomain, attachments);
+      const isPreset = SAMPLE_MISSIONS.some((s) => s.idea === idea);
+      const domainToSend = isPreset ? selectedDomain : 'custom';
+      const contract = await submitIntake(project.id, idea, domainToSend, attachments);
 
       if (typeof window !== 'undefined' && contract) {
         try {

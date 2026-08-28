@@ -48,7 +48,7 @@ class MissionInterpreterAgent(BaseAgent):
 
         # Domain classification heuristic fallback
         lower_idea = raw_idea.lower()
-        if any(k in lower_idea for k in ["b.tech", "student", "exam", "education", "edtech", "learn", "study"]):
+        if any(k in lower_idea for k in ["b.tech", "exam prep", "exam practice", "syllabus coverage", "engineering college"]):
             domain = "edtech"
             data_sensitivity = "student-data"
             audience = "B.Tech students and academic faculty across Indian universities"
@@ -252,18 +252,22 @@ class MissionInterpreterAgent(BaseAgent):
             suggested_specialists=suggested_specialists,
         )
 
-        # Dynamic LLM parsing with Qwen Max / Gemini
+        # Dynamic LLM parsing with Groq / Gemini
         system_prompt = (
             "You are the ORGagent Principal Mission Interpreter. Your mandate is to convert a raw human idea into "
             "a structured IdeaContract containing domain, target audience, problem statement, success criteria, "
             "constraints, explicit assumptions, data sensitivity, open clarification questions, and domain-specialist roles. "
-            "You MUST thoroughly analyze and incorporate all attached files, schemas, code, and diagram specifications."
+            "CRITICAL INSTRUCTIONS:\n"
+            "1. Ground your extraction strictly in the user's exact idea.\n"
+            "2. Infer the accurate domain (e.g. 'culinary_ai', 'recipe_bot', 'ecommerce', 'gaming', 'fintech', 'healthcare', 'logistics', 'cybersecurity', 'general').\n"
+            "3. Do NOT force or assume education/edtech/student data unless the prompt explicitly mentions academic schools, universities, B.Tech students, or exams.\n"
+            "4. For bot/application roadmaps, define clear software milestone deliverables (e.g. NLP intent parsing, ingredient graph, conversational UI, testing).\n"
+            "5. You MUST thoroughly analyze and incorporate all attached files, schemas, and specifications."
         )
         user_prompt = (
-            f"Analyze and extract structured IdeaContract for query: '{raw_idea}'. "
-            f"Project Title: '{project_title}'. "
-            f"{attachment_context}"
-            f"Generate unique, domain-specific specifications and suggest domain-native specialist roles."
+            f"Analyze and extract structured IdeaContract strictly for the user prompt: '{raw_idea}'.\n"
+            f"{attachment_context}\n"
+            f"Generate unique, domain-specific specifications, real problem statement, target audience, and domain-native specialist roles."
         )
 
         try:
