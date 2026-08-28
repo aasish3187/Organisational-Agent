@@ -149,6 +149,13 @@ export default function CanvasPage({
           }
 
           await fetchArtifacts(activeRunId);
+
+          // Auto-start swarm execution if in FAST mode with autorun parameter
+          if (urlParams?.get('autorun') === 'true' && orgRes.data.status !== 'COMPLETED') {
+            setTimeout(() => {
+              startAutoRunExecution(activeRunId);
+            }, 100);
+          }
         } catch (e) {
           console.warn('Organization load fallback:', e);
           const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -168,6 +175,11 @@ export default function CanvasPage({
             { id: 'agt_reviewer', role: 'consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
             { id: 'agt_solutions', role: 'solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
           ]);
+          if (urlParams?.get('autorun') === 'true') {
+            setTimeout(() => {
+              startAutoRunExecution(fallbackRunId);
+            }, 100);
+          }
         }
         setLoading(false);
       })
@@ -264,9 +276,9 @@ export default function CanvasPage({
           break;
         }
 
-        // Snappy delay between agent transitions for responsive expo demonstration
+        // Snappy delay between agent transitions for responsive expo demonstration (<60ms in FAST mode)
         const speedParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null;
-        const transitionDelay = speedParam === 'FAST' ? 150 : 260;
+        const transitionDelay = speedParam === 'FAST' ? 60 : 180;
         await new Promise((resolve) => setTimeout(resolve, transitionDelay));
       }
     } catch (err) {
@@ -281,7 +293,7 @@ export default function CanvasPage({
             tokens_used: idx <= i ? a.token_budget || 2400 : 0,
           }))
         );
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 80));
       }
       setIsCompleted(true);
       setShowCompletionModal(true);

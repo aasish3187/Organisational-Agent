@@ -125,8 +125,9 @@ export default function IdeaContractPage({
   }, [projectId]);
 
   const handleCompile = async () => {
+    const autoParam = mode === 'FAST' ? '&autorun=true' : '';
     if (compiledPlan) {
-      router.push(`/projects/${projectId}/canvas?run_id=${compiledPlan.run_id}&mode=${mode}`);
+      router.push(`/projects/${projectId}/canvas?run_id=${compiledPlan.run_id}&mode=${mode}${autoParam}`);
       return;
     }
     setCompiling(true);
@@ -134,7 +135,7 @@ export default function IdeaContractPage({
       const plan = await compileOrganization(projectId, mode, modelPolicy);
       setCompiledPlan(plan);
       setCompiling(false);
-      router.push(`/projects/${projectId}/canvas?run_id=${plan.run_id}&mode=${mode}`);
+      router.push(`/projects/${projectId}/canvas?run_id=${plan.run_id}&mode=${mode}${autoParam}`);
     } catch (err: any) {
       setError(err.message || 'Compilation failed');
       setCompiling(false);
