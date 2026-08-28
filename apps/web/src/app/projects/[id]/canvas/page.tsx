@@ -44,14 +44,89 @@ import {
 } from '@/lib/api';
 import { useRunEvents } from '@/hooks/useRunEvents';
 
+function getDomainSpecialistRoles(domain?: string, title?: string, objective?: string) {
+  const text = `${domain || ''} ${title || ''} ${objective || ''}`.toLowerCase();
+
+  if (text.includes('food') || text.includes('donation') || text.includes('perish') || text.includes('redistribut')) {
+    return [
+      { id: 'agt_research', role: 'supply_chain_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
+      { id: 'agt_product', role: 'logistics_product_strategist', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_ai_arch', role: 'perishability_ai_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_sys_arch', role: 'geo_dispatch_systems_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_privacy', role: 'food_safety_compliance_officer', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_reviewer', role: 'logistics_consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
+      { id: 'agt_solutions', role: 'logistics_solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
+    ];
+  }
+
+  if (text.includes('grievance') || text.includes('citizen') || text.includes('complaint') || text.includes('civic') || text.includes('whistleblower')) {
+    return [
+      { id: 'agt_research', role: 'civic_intelligence_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
+      { id: 'agt_product', role: 'public_service_product_strategist', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_ai_arch', role: 'nlp_triage_ai_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_sys_arch', role: 'e_governance_systems_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_privacy', role: 'whistleblower_privacy_guard', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_reviewer', role: 'civic_consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
+      { id: 'agt_solutions', role: 'governance_solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
+    ];
+  }
+
+  if (text.includes('health') || text.includes('medical') || text.includes('clinic') || text.includes('patient') || text.includes('doctor') || text.includes('hospital')) {
+    return [
+      { id: 'agt_research', role: 'clinical_data_specialist', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
+      { id: 'agt_product', role: 'medical_product_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_ai_arch', role: 'biomedical_ai_engineer', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_sys_arch', role: 'hipaa_fhir_systems_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_privacy', role: 'bioethics_privacy_officer', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_reviewer', role: 'clinical_consistency_auditor', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
+      { id: 'agt_solutions', role: 'healthcare_solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
+    ];
+  }
+
+  if (text.includes('fintech') || text.includes('finance') || text.includes('trad') || text.includes('bank') || text.includes('fraud') || text.includes('pay') || text.includes('crypto')) {
+    return [
+      { id: 'agt_research', role: 'market_quantitative_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
+      { id: 'agt_product', role: 'fintech_product_strategist', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_ai_arch', role: 'fraud_detection_ai_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_sys_arch', role: 'ledger_transaction_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_privacy', role: 'sec_regulatory_compliance_officer', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_reviewer', role: 'financial_consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
+      { id: 'agt_solutions', role: 'fintech_solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
+    ];
+  }
+
+  if (text.includes('cyber') || text.includes('security') || text.includes('threat') || text.includes('soc') || text.includes('attack') || text.includes('vuln')) {
+    return [
+      { id: 'agt_research', role: 'threat_intelligence_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
+      { id: 'agt_product', role: 'secops_product_strategist', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_ai_arch', role: 'anomaly_detection_ai_engineer', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_sys_arch', role: 'zero_trust_systems_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_privacy', role: 'vulnerability_compliance_officer', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+      { id: 'agt_reviewer', role: 'security_consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
+      { id: 'agt_solutions', role: 'cybersecurity_solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
+    ];
+  }
+
+  // EdTech / Multilingual Exam OS (Default)
+  return [
+    { id: 'agt_research', role: 'curriculum_research_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
+    { id: 'agt_product', role: 'adaptive_learning_strategist', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+    { id: 'agt_ai_arch', role: 'multilingual_ai_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+    { id: 'agt_sys_arch', role: 'distributed_edtech_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+    { id: 'agt_privacy', role: 'student_privacy_guardian', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+    { id: 'agt_reviewer', role: 'pedagogical_consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
+    { id: 'agt_solutions', role: 'edtech_solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
+  ];
+}
+
 const DEFAULT_INITIAL_AGENTS = [
-  { id: 'agt_research', role: 'research_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
-  { id: 'agt_product', role: 'product_strategist', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
-  { id: 'agt_ai_arch', role: 'ai_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
-  { id: 'agt_sys_arch', role: 'system_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
-  { id: 'agt_privacy', role: 'privacy_risk', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
-  { id: 'agt_reviewer', role: 'consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
-  { id: 'agt_solutions', role: 'solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
+  { id: 'agt_research', role: 'curriculum_research_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
+  { id: 'agt_product', role: 'adaptive_learning_strategist', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+  { id: 'agt_ai_arch', role: 'multilingual_ai_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+  { id: 'agt_sys_arch', role: 'distributed_edtech_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+  { id: 'agt_privacy', role: 'student_privacy_guardian', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+  { id: 'agt_reviewer', role: 'pedagogical_consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
+  { id: 'agt_solutions', role: 'edtech_solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
 ];
 
 export default function CanvasPage({
@@ -98,10 +173,7 @@ export default function CanvasPage({
 
   // Approval Gate state
   const [gateOpen, setGateOpen] = useState(false);
-  const [activeGate, setActiveGate] = useState<{ name: string; role: string; reason?: string }>({
-    name: 'sensitive-data-retention',
-    role: 'privacy_risk',
-  });
+  const [activeGate, setActiveGate] = useState<{ name: string; role: string; reason?: string } | null>(null);
 
   // Stopwatch timer for live swarm execution
   useEffect(() => {
@@ -120,6 +192,7 @@ export default function CanvasPage({
   const { events, runStatus, tokensUsed, costUsd } = useRunEvents(runId);
 
   const fetchArtifacts = async (targetRunId: string) => {
+    if (!targetRunId) return;
     try {
       const res = await apiClient.get(`/api/runs/${targetRunId}/artifacts`);
       if (res.data && Array.isArray(res.data)) {
@@ -157,6 +230,13 @@ export default function CanvasPage({
       .then(async (proj) => {
         setProject(proj);
 
+        // Dynamically compute specialized agents based on question / problem prompt
+        const domainAgents = getDomainSpecialistRoles(
+          (proj as any).classification || (proj as any).domain,
+          proj.title,
+          proj.objective
+        );
+
         // 2. Fetch runs or compile organization
         try {
           let activeRunId = '';
@@ -191,7 +271,9 @@ export default function CanvasPage({
           }
 
           const orgRes = await apiClient.get(`/api/runs/${activeRunId}/organization`);
-          const fetchedAgents = orgRes.data.agents || [];
+          const fetchedAgents = orgRes.data.agents && orgRes.data.agents.length > 0
+            ? orgRes.data.agents
+            : domainAgents;
           updateAgents(fetchedAgents);
           setRawTasks(orgRes.data.tasks || []);
 
@@ -210,16 +292,7 @@ export default function CanvasPage({
           if (typeof window !== 'undefined') {
             localStorage.setItem(`nexus_last_run_${projectId}`, fallbackRunId);
           }
-          const defaultAgents = [
-            { id: 'agt_research', role: 'research_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
-            { id: 'agt_product', role: 'product_strategist', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
-            { id: 'agt_ai_arch', role: 'ai_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
-            { id: 'agt_sys_arch', role: 'system_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
-            { id: 'agt_privacy', role: 'privacy_risk', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
-            { id: 'agt_reviewer', role: 'consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
-            { id: 'agt_solutions', role: 'solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
-          ];
-          updateAgents(defaultAgents);
+          updateAgents(domainAgents);
         }
         setLoading(false);
       })
@@ -738,6 +811,8 @@ export default function CanvasPage({
         <AgentNetwork
           agents={rawAgents}
           tasks={rawTasks}
+          projectDomain={(project as any)?.classification || (project as any)?.domain}
+          projectTitle={project?.title}
           onNodeClick={(agentData) => {
             const foundArt = artifacts.find(
               (a) => a.producer_role === agentData.role || a.type.toLowerCase().includes(agentData.role.split('_')[0])
@@ -1033,8 +1108,8 @@ export default function CanvasPage({
       {/* Human Approval Gate Modal */}
       <ApprovalModal
         isOpen={gateOpen}
-        gateName={activeGate.name}
-        role={activeGate.role}
+        gateName={activeGate?.name || 'sensitive-data-retention'}
+        role={activeGate?.role || 'privacy_risk'}
         onApprove={handleGateApprove}
         onReject={handleGateReject}
       />

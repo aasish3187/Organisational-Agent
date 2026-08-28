@@ -38,6 +38,61 @@ const roleIconMap: Record<string, React.ReactNode> = {
 };
 
 const roleLabelMap: Record<string, string> = {
+  // Food & Redistribution
+  supply_chain_analyst: 'Perishability Analyst',
+  logistics_product_strategist: 'Food Logistics Strategist',
+  perishability_ai_architect: 'Route & Shelf-Life AI Architect',
+  geo_dispatch_systems_architect: 'Geo-Dispatch Systems Architect',
+  food_safety_compliance_officer: 'Food Safety & Hygiene Officer',
+  logistics_consistency_reviewer: 'Cold-Chain Consistency Reviewer',
+  logistics_solutions_officer: 'Logistics Solutions Officer',
+
+  // Civic & Grievance
+  civic_intelligence_analyst: 'Civic Intelligence Analyst',
+  public_service_product_strategist: 'Citizen Services Strategist',
+  nlp_triage_ai_architect: 'Multilingual NLP Triage AI',
+  e_governance_systems_architect: 'E-Governance Systems Architect',
+  whistleblower_privacy_guard: 'Whistleblower & Privacy Guard',
+  civic_consistency_reviewer: 'Civic Consistency Auditor',
+  governance_solutions_officer: 'Governance Solutions Officer',
+
+  // Healthcare & Life Sciences
+  clinical_data_specialist: 'Clinical Evidence Specialist',
+  medical_product_architect: 'Healthcare Product Strategist',
+  biomedical_ai_engineer: 'Biomedical Diagnostic AI Architect',
+  hipaa_fhir_systems_architect: 'HIPAA & FHIR Cloud Architect',
+  bioethics_privacy_officer: 'Bioethics & Patient Privacy Officer',
+  clinical_consistency_auditor: 'Clinical Consistency Auditor',
+  healthcare_solutions_officer: 'Healthcare Solutions Officer',
+
+  // FinTech & Banking
+  market_quantitative_analyst: 'FinTech Quant Analyst',
+  fintech_product_strategist: 'Financial Product Strategist',
+  fraud_detection_ai_architect: 'Fraud Detection AI Architect',
+  ledger_transaction_architect: 'Distributed Ledger Architect',
+  sec_regulatory_compliance_officer: 'SEC Compliance Officer',
+  financial_consistency_reviewer: 'Financial Consistency Auditor',
+  fintech_solutions_officer: 'FinTech Solutions Officer',
+
+  // Cybersecurity & Threat Ops
+  threat_intelligence_analyst: 'Threat Intelligence Analyst',
+  secops_product_strategist: 'SecOps Product Strategist',
+  anomaly_detection_ai_engineer: 'Zero-Day Anomaly AI Engineer',
+  zero_trust_systems_architect: 'Zero-Trust Systems Architect',
+  vulnerability_compliance_officer: 'SOC2 & Vulnerability Officer',
+  security_consistency_reviewer: 'Security Consistency Reviewer',
+  cybersecurity_solutions_officer: 'Cybersecurity Solutions Officer',
+
+  // EdTech & Multilingual Exam
+  curriculum_research_analyst: 'Curriculum Evidence Analyst',
+  adaptive_learning_strategist: 'Adaptive Learning Strategist',
+  multilingual_ai_architect: 'Multilingual Exam AI Architect',
+  distributed_edtech_architect: 'Exam Systems Architect',
+  student_privacy_guardian: 'Student Privacy Guardian',
+  pedagogical_consistency_reviewer: 'Pedagogical Consistency Auditor',
+  edtech_solutions_officer: 'EdTech Solutions Officer',
+
+  // Default Standard Roles
   research_analyst: 'Research Analyst',
   product_strategist: 'Product Strategist',
   ai_architect: 'AI / RAG Architect',

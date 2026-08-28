@@ -31,6 +31,7 @@ interface AgentNetworkProps {
     status: string;
     token_budget?: number;
     tokens_used?: number;
+    title?: string;
   }>;
   tasks?: Array<{
     id: string;
@@ -39,9 +40,11 @@ interface AgentNetworkProps {
     depends_on: string[];
   }>;
   onNodeClick?: (agentData: AgentNodeData) => void;
+  projectDomain?: string;
+  projectTitle?: string;
 }
 
-export function AgentNetwork({ agents, tasks, onNodeClick }: AgentNetworkProps) {
+export function AgentNetwork({ agents, tasks, onNodeClick, projectDomain, projectTitle }: AgentNetworkProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<AgentNodeData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedAgent, setSelectedAgent] = useState<AgentNodeData | null>(null);
@@ -192,7 +195,12 @@ export function AgentNetwork({ agents, tasks, onNodeClick }: AgentNetworkProps) 
 
       {/* Right Rail Inspector */}
       {selectedAgent && (
-        <NodeInspector agent={selectedAgent} onClose={() => setSelectedAgent(null)} />
+        <NodeInspector
+          agent={selectedAgent}
+          onClose={() => setSelectedAgent(null)}
+          projectDomain={projectDomain}
+          projectTitle={projectTitle}
+        />
       )}
     </div>
   );
