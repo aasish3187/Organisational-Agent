@@ -274,11 +274,11 @@ export default function CanvasPage({
       const maxIterations = 15;
 
       // Dynamic pace calibration to GUARANTEE total run finishes strictly under user limits:
-      // FAST mode: Target 14s total (<30s) -> 2000ms/step total budget
-      // BALANCED mode: Target 28s total (<45s) -> 4000ms/step total budget
-      // DEEP mode: Target 45s total (<60s) -> 6400ms/step total budget
+      // FAST mode: Target ~10s total (<30s) -> 1400ms/step total budget (blazing fast!)
+      // BALANCED mode: Target ~22s total (<45s) -> 3200ms/step total budget
+      // DEEP mode: Target ~35s total (<60s) -> 5000ms/step total budget
       const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-      const targetStepBudget = speedParam === 'FAST' ? 2000 : speedParam === 'DEEP' ? 6400 : 4000;
+      const targetStepBudget = speedParam === 'FAST' ? 1400 : speedParam === 'DEEP' ? 5000 : 3200;
 
       while (autoRunningRef.current && !isDone && iterations < maxIterations) {
         iterations++;
@@ -334,7 +334,7 @@ export default function CanvasPage({
     } catch (err) {
       console.warn('Auto-run fast-tracking simulation:', err);
       const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-      const targetStepBudget = speedParam === 'FAST' ? 2000 : speedParam === 'DEEP' ? 6400 : 4000;
+      const targetStepBudget = speedParam === 'FAST' ? 1400 : speedParam === 'DEEP' ? 5000 : 3200;
 
       // Smoothly advance through all agents within guaranteed budget
       for (let i = 0; i < 7; i++) {
@@ -381,7 +381,7 @@ export default function CanvasPage({
     setExecuting(true);
     try {
       const speedParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null;
-      let replayStepDelay = speedParam === 'FAST' ? 2200 : speedParam === 'DEEP' ? 6500 : 4200;
+      let replayStepDelay = speedParam === 'FAST' ? 1400 : speedParam === 'DEEP' ? 5000 : 3200;
 
       // Visual pulse across all nodes
       for (let i = 0; i < 7; i++) {
@@ -413,6 +413,7 @@ export default function CanvasPage({
     setGateOpen(false);
     wasAutoRunningBeforeGateRef.current = false;
     autoRunningRef.current = false;
+    setAutoRunning(false);
     setIsCompleted(false);
 
     // 2. Optimistically advance any active privacy/risk node to COMPLETED and activate Node 6
@@ -448,9 +449,10 @@ export default function CanvasPage({
     }
 
     // 3. Immediately launch continuation of the remaining DAG nodes without stopping!
-    autoRunningRef.current = false;
-    setAutoRunning(true);
-    startAutoRunExecution(targetRunId);
+    setTimeout(() => {
+      autoRunningRef.current = false;
+      startAutoRunExecution(targetRunId);
+    }, 100);
   };
 
   const handleGateReject = async (reason: string) => {
