@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use ORGagent Organization OS in your research or production systems, please cite it as below."
+authors:
+  - family-names: "Aasish"
+    given-names: "Lumina Systems"
+    affiliation: "Advanced Multi-Agent Computing Lab"
+title: "ORGagent: A Governed Multi-Agent Operating System with Dynamic Swarm Compilation, Cryptographic Proofs (VERITAS), and Reusable Institutional Memory (MNEMOS)"
+version: 1.0.0
+date-released: 2026-08-27
+url: "https://github.com/aasish3187/Organisational-Agent"
+repository-code: "https://github.com/aasish3187/Organisational-Agent"
+keywords:
+  - "multi-agent-systems"
+  - "autonomous-agents"
+  - "deepseek-r1"
+  - "cryptographic-verification"
+  - "merkle-tree"
+  - "governance"
+  - "fastapi"
+  - "nextjs"
+license: MIT

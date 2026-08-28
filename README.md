@@ -101,6 +101,21 @@ Completed runs distill reusable organizational lessons into **Process Atoms** (e
 ### 4. Multimodal Vision & Schema Grounded Intake
 Users can attach architecture wireframes (`.png`, `.jpg`, `.webp`), database schemas (`.sql`, `.json`, `.yaml`), and specification documents (`.pdf`, `.md`, `.txt`). The `MissionInterpreterAgent` and downstream architects extract, cite, and ground their technical requirements directly in user-provided diagrams and schemas.
 
+## 🥊 Why ORGagent? (Comparison with Existing Agent Frameworks)
+
+| Capability / Dimension | **ORGagent Organization OS** 🚀 | **CrewAI** | **AutoGen (Microsoft)** | **LangGraph** | **MetaGPT** |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Dynamic Org Swarm Compilation** | ✅ **Automated & Phase-Gated** | ❌ Static predefined roles | ❌ Unstructured chat loop | ⚠️ Manual graph coding required | ⚠️ Static SOP hierarchy |
+| **Cryptographic Audit Proof (VERITAS)** | ✅ **SHA-256 Merkle Chained** | ❌ None | ❌ None | ❌ None | ❌ None |
+| **Multi-Model Reasoning Matrix** | ✅ **DeepSeek-R1 / GLM / Gemini / Groq** | ⚠️ Single default provider | ⚠️ Single default provider | ⚠️ Manual provider dispatch | ⚠️ Single provider |
+| **Organizational Policy Engine** | ✅ **Active P-01 to P-09 + Human Gates** | ⚠️ Basic tool callbacks | ⚠️ Human input loop | ⚠️ Custom edge routing | ❌ No active policy gates |
+| **Reusable Memory Bank (MNEMOS)** | ✅ **Process Atoms + Semantic Rerank** | ⚠️ Raw embedding memory | ⚠️ Chat session history | ⚠️ Custom checkpointer | ❌ None |
+| **Multimodal Diagram & Schema Intake** | ✅ **Wireframes + SQL DDL Grounded** | ❌ Text prompts only | ⚠️ Single image prompt | ⚠️ Manual payload parsing | ❌ Text prompts only |
+| **Living 3D Agent Network Canvas** | ✅ **React Flow + SSE Streaming** | ❌ CLI terminal only | ❌ CLI / Basic Studio | ⚠️ LangSmith (Cloud/Paid) | ❌ CLI terminal only |
+| **Production Blueprint & Zip Scaffolding** | ✅ **OpenAPI + Docker + ZIP Export** | ❌ Markdown text dump | ❌ Chat text responses | ❌ Graph memory state | ⚠️ Basic python files |
+
+---
+
 ### 5. Multi-Model LLM Gateway Cascade
 ORGagent routes inference dynamically across specialized foundation models to ensure highest architectural reasoning quality, strict policy compliance, and sub-second compilation:
 - **DeepSeek-R1** (`deepseek-reasoner` / `deepseek-r1`): Deep Chain-of-Thought mathematical optimization, edge-case failure mode analysis, and multi-step formal verification with automatic `<think>` tag parsing.
@@ -412,6 +427,50 @@ npm run test
 
 ---
 
+## 🗺️ Project Roadmap
+
+- [x] **Phase 1: Governed Organization Compiler** — Dynamic 7-agent swarm synthesis with Pydantic v2 contract enforcement.
+- [x] **Phase 2: Cryptographic Audit Proof (VERITAS)** — SHA-256 Merkle chaining of every model event, prompt, and tool execution.
+- [x] **Phase 3: Multi-Model Inference Matrix** — Integrated DeepSeek-R1, GLM 5.2, Google Gemini 2.5 Pro, and Groq LLaMA 3.3.
+- [x] **Phase 4: 24/7 Production Cloud Hosting** — Deployed live on Render FastAPI backend and Vercel Edge Network.
+- [ ] **Phase 5: Automated GitHub Repo Pull Request Generator** — Direct 1-click generation of GitHub PR branches from compiled blueprints.
+- [ ] **Phase 6: Native Air-Gapped Local Swarms** — Standalone local compilation support using Ollama & vLLM clusters.
+
+---
+
+## 📈 Star History
+
+If you find **ORGagent** valuable, please consider giving it a ⭐ on GitHub!
+
+<p align="center">
+  <a href="https://star-history.com/#aasish3187/Organisational-Agent&Date">
+    <img src="https://api.star-history.com/svg?repos=aasish3187/Organisational-Agent&type=Date" alt="Star History Chart" width="700" />
+  </a>
+</p>
+
+---
+
+## 🤝 Contributing
+
+We welcome community contributions! Please check out [CONTRIBUTING.md](CONTRIBUTING.md) for local development setup and guidelines.
+
+---
+
+## 📖 Citation
+
+If you use ORGagent in your academic research or production architecture, please cite:
+
+```bibtex
+@software{aasish2026orgagent,
+  author = {Aasish},
+  title = {ORGagent: A Governed Multi-Agent Operating System with Dynamic Swarm Compilation, Cryptographic Proofs (VERITAS), and Reusable Institutional Memory (MNEMOS)},
+  year = {2026},
+  url = {https://github.com/aasish3187/Organisational-Agent}
+}
+```
+
+---
+
 ## License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
@@ -420,6 +479,6 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 <p align="center">
   <b>ORGagent Organization OS</b> · <i>Autonomous AI Team &amp; Architecture Compiler</i><br>
-  Designed &amp; Developed by <b><a href="https://github.com/aasish3187">Aasish</a></b>
+  Designed &amp; Developed with ❤️ by <b><a href="https://github.com/aasish3187">Aasish</a></b>
 </p>
 
