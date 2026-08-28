@@ -34,11 +34,13 @@ class SolutionsOfficerAgent(BaseAgent):
 
         # Dynamic Domain-Aware Architecture Synthesis
         idea_lower = (raw_idea + " " + title + " " + domain).lower()
-        if domain == "healthcare" or any(w in idea_lower for w in ["health", "medical", "clinical", "hospital", "patient", "ehr", "fhir"]):
+        if any(w in idea_lower for w in ["recipe", "cook", "food", "meal", "ingredient", "culinary", "pantry"]):
+            blueprint = self._build_food_redistribution_blueprint(title, raw_idea) if any(w in idea_lower for w in ["surplus", "rescue", "shelter", "waste", "redistribution"]) else self._build_universal_blueprint(title, raw_idea, "culinary_ai")
+        elif domain == "healthcare" or any(w in idea_lower for w in ["health", "medical", "clinical", "hospital", "patient", "ehr", "fhir"]):
             blueprint = self._build_healthcare_blueprint(title, raw_idea)
         elif domain == "fintech" or any(w in idea_lower for w in ["fintech", "banking", "trading", "stock", "double-entry", "ledger", "payment", "crypto"]):
             blueprint = self._build_fintech_blueprint(title, raw_idea)
-        elif domain in ("food_redistribution", "food_rescue", "food") or any(w in idea_lower for w in ["food", "surplus", "perishability", "cold-chain", "redistribution"]):
+        elif domain in ("food_redistribution", "food_rescue") or any(w in idea_lower for w in ["surplus", "perishability", "cold-chain", "redistribution"]):
             blueprint = self._build_food_redistribution_blueprint(title, raw_idea)
         elif domain in ("cybersecurity", "security") or any(w in idea_lower for w in ["cyber", "zero-trust", "siem", "soar", "soc analyst", "vulnerability", "malware", "firewall"]):
             blueprint = self._build_cybersecurity_blueprint(title, raw_idea)
@@ -1502,26 +1504,27 @@ export function ContractDiffViewer({ documentId }: { documentId: string }) {
 
     def _build_universal_blueprint(self, title: str, raw_idea: str, domain: str) -> FinalBlueprint:
         prefix = "ORGagent " if not title.startswith("ORGagent") else ""
-        formatted_title = f"{prefix}{title} — Verified Master Solution Blueprint"
+        clean_title = title.replace("ORGagent", "").strip() or "Core Engine"
+        slug = (domain or clean_title).lower().replace(" ", "_").replace("-", "_")[:16]
         return FinalBlueprint(
             project_title=formatted_title,
             executive_summary=(
-                f"An enterprise-grade, verified distributed AI system engineered specifically for {title}. "
+                f"An enterprise-grade, verified distributed AI system engineered specifically for {clean_title}. "
                 f"The platform employs a dual-tier AI reasoning architecture combining Gemini 2.5 Pro for complex domain logic "
                 f"with Gemini 2.5 Flash for sub-50ms query processing. Data privacy and compliance are cryptographically enforced "
                 f"under Policy P-02 with a tamper-evident VERITAS audit ledger and MNEMOS continuous learning."
             ),
             problem_statement=raw_idea,
-            target_users="Domain specialists, enterprise administrators, operations leads, and compliance evaluators.",
+            target_users=f"Domain specialists, enterprise administrators, operations leads, and compliance evaluators for {clean_title}.",
             domain=domain,
             architecture=ArchitectureSummary(
-                frontend="Next.js 15 (App Router, TailwindCSS, Liquid Glass HUD, React Flow Living DAG, WebSockets/SSE)",
-                backend="FastAPI 0.115+, Python 3.12 Async, SQLAlchemy 2.0 Async, Pydantic v2 Strict, Celery / Redis Streams Worker Pool",
-                database="PostgreSQL 16 with pgvector extension (cosine similarity RAG), Redis 7 with AOF persistence",
+                frontend=f"Next.js 15 (App Router, TailwindCSS, {clean_title} Interactive HUD, React Flow Living DAG, WebSockets/SSE)",
+                backend=f"FastAPI 0.115+, Python 3.12 Async, SQLAlchemy 2.0 Async, Pydantic v2 Strict, Celery / Redis Streams Worker Pool",
+                database=f"PostgreSQL 16 with pgvector extension ({clean_title} Vector Index), Redis 7 with AOF persistence",
                 ai_models=[
-                    "Gemini 2.5 Pro (Deep Domain Reasoning & Multi-Step Decision Synthesis)",
-                    "Gemini 2.5 Flash (Sub-50ms Real-Time Inference & Terminology Retrieval)",
-                    "Text-Embedding-004 (768-dim Vector Embeddings for Domain Knowledge)",
+                    f"Gemini 2.5 Pro (Deep {clean_title} Reasoning & Multi-Step Decision Synthesis)",
+                    f"Gemini 2.5 Flash (Sub-50ms Real-Time Inference & Terminology Retrieval)",
+                    f"Text-Embedding-004 (768-dim Vector Embeddings for {clean_title} Knowledge)",
                 ],
                 infrastructure="Docker Multi-Stage Containers, NGINX Reverse Proxy with SSL Termination, Kubernetes Helm Charts",
                 security_controls=[
@@ -1532,32 +1535,32 @@ export function ContractDiffViewer({ documentId }: { documentId: string }) {
                 ],
             ),
             core_features=[
-                f"Real-Time {title} Core Engine: Sub-100ms domain transaction processing and orchestration.",
-                "AI Domain Knowledge Graph: Vectorized knowledge explorer mapping domain entities and dependencies.",
+                f"Real-Time {clean_title} Core Engine: Sub-100ms domain transaction processing and orchestration.",
+                f"{clean_title} Domain Knowledge Graph: Vectorized knowledge explorer mapping domain entities and dependencies.",
                 "Cryptographic VERITAS Seal: Tamper-evident SHA-256 audit ledger verifying state transitions.",
                 "MNEMOS Organizational Learning Loop: Persists domain-native procedural atoms back to memory.",
             ],
             data_flows=[
-                "User Request -> NGINX Rate Limiter -> FastAPI Gateway -> Privacy Filter -> AI Reasoning Engine -> PostgreSQL Atomic Insert -> Real-Time Stream",
+                f"User Request -> NGINX Rate Limiter -> FastAPI Gateway -> Privacy Filter -> AI Reasoning Engine -> PostgreSQL Atomic Insert -> Real-Time Stream",
             ],
             api_contracts=[
                 ApiContractEndpoint(
                     method="POST",
-                    path="/api/v1/core/execute",
-                    description=f"Executes core domain workflow for {title}.",
-                    request_type='{"action": "process", "parameters": {"entity_id": "ent_01"}}',
-                    response_type='{"status": "SUCCESS", "execution_id": "exe_88", "veritas_hash": "6f7e8d..."}',
+                    path=f"/api/v1/{slug}/execute",
+                    description=f"Executes core domain workflow for {clean_title}.",
+                    request_type=f'{{"action": "process", "parameters": {{"entity_id": "{slug}_01"}}}}',
+                    response_type=f'{{"status": "SUCCESS", "execution_id": "exe_88", "veritas_hash": "6f7e8d..."}}',
                 ),
                 ApiContractEndpoint(
                     method="GET",
-                    path="/api/v1/core/status/{id}",
+                    path=f"/api/v1/{slug}/status/{{id}}",
                     description="Returns real-time execution telemetry and status.",
-                    request_type="No body (GET /api/v1/core/status/exe_88)",
+                    request_type=f"No body (GET /api/v1/{slug}/status/exe_88)",
                     response_type='{"execution_id": "exe_88", "progress_pct": 100, "status": "COMPLETED"}',
                 ),
                 ApiContractEndpoint(
                     method="POST",
-                    path="/api/v1/core/verify-state",
+                    path=f"/api/v1/{slug}/verify-state",
                     description="Cryptographically verifies system state integrity against VERITAS SHA-256 ledger.",
                     request_type='{"execution_id": "exe_88", "expected_root": "7a8b9c..."}',
                     response_type='{"verified": true, "integrity_score": 1.0, "broken_links": 0}',
@@ -1567,14 +1570,14 @@ export function ContractDiffViewer({ documentId }: { documentId: string }) {
                 SprintMilestone(
                     week_range="Week 1 — Foundation",
                     phase_name="Infrastructure & Schema Setup",
-                    deliverables=["Deploy PostgreSQL 16 database and Redis queue", "Build Next.js interactive interface", "Configure OpenAPI specifications"],
+                    deliverables=[f"Deploy PostgreSQL 16 database and Redis queue for {clean_title}", f"Build Next.js interactive {clean_title} interface", "Configure OpenAPI specifications"],
                     accountable_role="system_architect",
                     kpi_metric="Core API response time < 50ms",
                 ),
                 SprintMilestone(
                     week_range="Week 2 — AI & Automation",
                     phase_name="AI Pipeline & Reasoning Engine",
-                    deliverables=["Integrate Gemini 2.5 reasoning models", "Configure vector embedding store", "Deploy multi-agent consensus loop"],
+                    deliverables=[f"Integrate Gemini 2.5 reasoning models for {clean_title}", "Configure vector embedding store", "Deploy multi-agent consensus loop"],
                     accountable_role="ai_architect",
                     kpi_metric="Inference accuracy > 95%",
                 ),
@@ -1593,7 +1596,7 @@ export function ContractDiffViewer({ documentId }: { documentId: string }) {
                     policy_name="Evidence Grounding Rule",
                     severity="HIGH",
                     status="ENFORCED",
-                    audit_proof="All domain assertions grounded in verified sources and empirical benchmarks.",
+                    audit_proof=f"All {clean_title} assertions grounded in verified sources and empirical benchmarks.",
                 ),
                 GovernanceCertificate(
                     policy_code="P-02",
@@ -1623,15 +1626,15 @@ export function ContractDiffViewer({ documentId }: { documentId: string }) {
             verification_score_pct=99.0,
             learned_atoms=[
                 LearnedMemoryAtomSummary(
-                    atom_id="atom_universal_01",
-                    name=f"Standard governance protocol for {domain}",
+                    atom_id=f"atom_{slug}_01",
+                    name=f"Standard governance protocol for {clean_title}",
                     action_rule="Enforce Policy P-02 approval gate before modifying persistent state",
                     applicability_domain=domain,
                     privacy_scrubbed=True,
                 ),
                 LearnedMemoryAtomSummary(
-                    atom_id="atom_universal_02",
-                    name=f"Automated error recovery and checkpoint replay for {domain}",
+                    atom_id=f"atom_{slug}_02",
+                    name=f"Automated error recovery and checkpoint replay for {clean_title}",
                     action_rule="Replay unverified state transitions from last verified SHA-256 checkpoint",
                     applicability_domain=domain,
                     privacy_scrubbed=True,
@@ -1639,42 +1642,42 @@ export function ContractDiffViewer({ documentId }: { documentId: string }) {
             ],
             code_scaffolds=[
                 CodeScaffold(
-                    title="FastAPI Domain Core Router",
+                    title=f"FastAPI {clean_title} Core Router",
                     language="python",
-                    filename="app/api/v1/core.py",
-                    code_content="""from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+                    filename=f"app/api/v1/{slug}.py",
+                    code_content=f"""from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from app.services.veritas import emit_event
 
-router = APIRouter(prefix="/core", tags=["Core Engine"])
+router = APIRouter(prefix="/{slug}", tags=["{clean_title} Engine"])
 
 class ExecuteRequest(BaseModel):
-    action: str
-    entity_id: str
+    action: str = Field(..., example="process")
+    entity_id: str = Field(..., example="{slug}_01")
 
 @router.post("/execute")
 async def execute_task(req: ExecuteRequest):
     # 1. Validate inputs
     # 2. Invoke multi-agent reasoning
     # 3. Emit VERITAS cryptographic ledger event
-    return {"status": "SUCCESS", "action": req.action, "verified": True}
+    return {{"status": "SUCCESS", "action": req.action, "entity_id": req.entity_id, "verified": True}}
 """,
                 ),
                 CodeScaffold(
-                    title="Next.js Core Dashboard",
+                    title=f"Next.js {clean_title} Dashboard",
                     language="typescript",
-                    filename="src/components/core/CoreDashboard.tsx",
-                    code_content="""'use client';
+                    filename=f"src/components/{slug}/{slug.capitalize()}Dashboard.tsx",
+                    code_content=f"""'use client';
 import React from 'react';
 
-export function CoreDashboard({ entityId }: { entityId: string }) {
+export function {slug.capitalize()}Dashboard({{ entityId }}: {{ entityId: string }}) {{
   return (
-    <div className="p-4 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md">
-      <h3 className="font-bold text-white text-sm">Verified Domain Control Engine</h3>
-      <p className="text-xs text-blue-400 mt-1">Entity: {entityId} · Cryptographically Verified</p>
+    <div className="p-6 rounded-3xl bg-black/60 border border-purple-500/30 backdrop-blur-xl shadow-2xl">
+      <h3 className="font-bold text-white text-base">{clean_title} Control Engine</h3>
+      <p className="text-xs text-cyan-400 mt-2">Entity: {{entityId || '{slug}_01'}} · Cryptographically Verified</p>
     </div>
   );
-}
+}}
 """,
                 ),
             ],
