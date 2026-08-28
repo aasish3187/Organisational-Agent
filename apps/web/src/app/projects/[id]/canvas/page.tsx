@@ -439,11 +439,19 @@ export default function CanvasPage({
     });
 
     const targetRunId = runId || 'run_demo_primary';
-    
-    // Submit gate decision to backend in background
-    submitGateDecision(targetRunId, 'APPROVE', reason).catch((e) => console.warn('Gate decision async submit:', e));
+    try {
+      const gateRes = await submitGateDecision(targetRunId, 'APPROVE', reason);
+      if (gateRes?.status === 'COMPLETED' || gateRes?.run_completed) {
+        setIsCompleted(true);
+        setShowCompletionModal(true);
+        await fetchArtifacts(targetRunId);
+        return;
+      }
+    } catch (err) {
+      console.warn('Gate decision submit error:', err);
+    }
 
-    // 3. Immediately launch continuation of the remaining DAG nodes without stopping!
+    // 3. Smoothly continue remaining DAG execution
     autoRunningRef.current = false;
     startAutoRunExecution(targetRunId);
   };

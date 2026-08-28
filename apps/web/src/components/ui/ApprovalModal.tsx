@@ -26,14 +26,21 @@ export function ApprovalModal({
   isOpen,
   gateName,
   role,
-  reason = 'Policy P-02 requires explicit human authorization for student diagnostic data retention.',
+  reason = 'Policy P-02 requires explicit human authorization for mission data retention and risk waiver.',
   onApprove,
   onReject,
 }: ApprovalModalProps) {
   const [approvalNote, setApprovalNote] = useState(
-    'Authorized 90-day automatic student diagnostic log expiration under Policy P-02.'
+    'Authorized mission compliance and governance risk waiver under Policy P-02.'
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setIsSubmitting(false);
+      setApprovalNote('Authorized mission compliance and governance risk waiver under Policy P-02.');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
