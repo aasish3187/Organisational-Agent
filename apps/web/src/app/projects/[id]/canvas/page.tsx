@@ -307,18 +307,6 @@ export default function CanvasPage({
         const elapsed = Date.now() - stepStartTime;
 
         if (stepRes.data.status === 'WAITING_FOR_HUMAN') {
-          if (speedParam === 'FAST') {
-            // Auto-approve in FAST mode to guarantee run finishes in <30s!
-            try {
-              await apiClient.post(`/api/runs/${targetRunId}/gate-decision`, {
-                decision: 'APPROVE',
-                reason: 'Policy P-02 fast-tracked authorization under FAST mode SLA.',
-              });
-              continue;
-            } catch (e) {
-              continue;
-            }
-          }
           setActiveGate({
             name: stepRes.data.gate_name || 'sensitive-data-retention',
             role: stepRes.data.role || 'privacy_risk',
