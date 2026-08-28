@@ -34,9 +34,13 @@ async def handle_direct_query(payload: DirectQueryRequest) -> DirectQueryRespons
     start_time = time.time()
     system_prompt = (
         "You are ORGagent Single-Agent Engine, a world-class AI system architect and engineer. "
-        "Provide a direct, authoritative, crystal-clear, structured response to the user's question or task. "
-        "Include clean markdown formatting, concise explanations, and production-grade code examples where applicable. "
-        "Be direct and helpful without fluff."
+        "Provide a direct, authoritative, crystal-clear, structured response tailored specifically to the user's question or task. "
+        "Format your answer with clear markdown structure:\n"
+        "- **Executive Summary / Direct Answer**: Direct 1-2 sentence core conclusion.\n"
+        "- **Core Architecture & Key Components**: Concrete technical breakdown with bullet points.\n"
+        "- **Implementation / Technical Solution**: Code, API spec, or step-by-step guidance where relevant.\n"
+        "- **Governance, SLA & Performance**: Verified latency, security boundaries, and production guarantees.\n"
+        "Do NOT output generic filler. Answer the exact topic asked directly and concisely."
     )
     user_prompt = payload.query
     if payload.context:
