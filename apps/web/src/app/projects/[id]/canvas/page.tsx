@@ -546,16 +546,16 @@ export default function CanvasPage({
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                 <h1 className="font-bold text-white text-sm md:text-base truncate flex items-center gap-2">
                   <span>Living Canvas</span>
-                  <span className="text-xs font-mono text-purple-400 font-normal px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 max-w-[160px] truncate hidden sm:inline-block">
-                    {project?.title || projectId}
+                  <span className="text-xs font-mono text-purple-300 font-normal px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 max-w-[180px] truncate hidden sm:inline-block">
+                    {project?.title && !project.title.startsWith('Project prj_') ? project.title : 'Active Mission'}
                   </span>
                 </h1>
-                <StatusBadge status={effectiveStatus} className="text-[10px]" />
+                <StatusBadge status={effectiveStatus} className="text-[10px] shrink-0" />
                 <span
-                  className={`px-2 py-0.5 rounded text-[10px] font-mono border font-semibold ${
+                  className={`px-2 py-1 rounded-lg text-[10px] font-mono border font-semibold whitespace-nowrap shrink-0 ${
                     execMode === 'FAST'
                       ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
                       : execMode === 'DEEP'
@@ -567,11 +567,11 @@ export default function CanvasPage({
                   {execMode} ({execMode === 'FAST' ? '<30s' : execMode === 'DEEP' ? '<60s' : '<45s'})
                 </span>
                 <div
-                  className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono bg-black/60 border border-white/10 text-cyan-300 shadow-sm"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono bg-black/70 border border-cyan-500/30 text-cyan-300 shadow-sm whitespace-nowrap shrink-0 tabular-nums"
                   title="Live Swarm Stopwatch"
                 >
-                  <Activity className={`w-3 h-3 text-cyan-400 ${autoRunning || executing ? 'animate-pulse' : ''}`} />
-                  <span>
+                  <Activity className={`w-3.5 h-3.5 text-cyan-400 shrink-0 ${autoRunning || executing ? 'animate-pulse' : ''}`} />
+                  <span className="font-semibold tracking-tight">
                     {elapsedSeconds}s / {execMode === 'FAST' ? '30s' : execMode === 'DEEP' ? '60s' : '45s'}
                   </span>
                 </div>
