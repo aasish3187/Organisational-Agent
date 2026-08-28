@@ -2272,7 +2272,7 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
 
                 <button
                   onClick={() => {
-                    const cmd = `# 1. Clone generated blueprint package\ngit clone https://github.com/nexus-org/${projectId}-blueprint.git\ncd ${projectId}-blueprint\n\n# 2. Spin up complete production stack with Docker Compose\ndocker compose up -d`;
+                    const cmd = `# 1. Clone this repository or extract the exported ZIP\ngit clone https://github.com/aasish3187/Organisational-Agent.git\ncd Organisational-Agent\n\n# 2. Spin up complete 4-tier production stack\ndocker compose up -d\n\n# Or run directly in dev mode:\n# Backend (apps/api): uvicorn app.main:app --reload\n# Frontend (apps/web): npm run dev`;
                     navigator.clipboard.writeText(cmd);
                     setCopiedQuickstart(true);
                     setTimeout(() => setCopiedQuickstart(false), 2000);
@@ -2300,11 +2300,14 @@ ${s.deliverables.map((d) => `  * ${d}`).join('\n')}`
                   <span>bash — Terminal Execution Flow</span>
                 </div>
                 <pre className="pt-3 leading-relaxed">
-                  <span className="text-slate-500"># 1. Clone the generated repository package</span>{'\n'}
-                  <span className="text-cyan-400">$</span> git clone https://github.com/nexus-org/{projectId}-blueprint.git{'\n'}
-                  <span className="text-cyan-400">$</span> cd {projectId}-blueprint{'\n\n'}
+                  <span className="text-slate-500"># 1. Clone this repository (or extract exported ZIP)</span>{'\n'}
+                  <span className="text-cyan-400">$</span> git clone https://github.com/aasish3187/Organisational-Agent.git{'\n'}
+                  <span className="text-cyan-400">$</span> cd Organisational-Agent{'\n\n'}
                   <span className="text-slate-500"># 2. Launch Next.js 15, FastAPI Core, PostgreSQL 16 &amp; Redis Streams</span>{'\n'}
                   <span className="text-cyan-400">$</span> docker compose up -d{'\n\n'}
+                  <span className="text-slate-500"># Or run individually in development:</span>{'\n'}
+                  <span className="text-cyan-400">$</span> cd apps/api &amp;&amp; uvicorn app.main:app --reload  <span className="text-slate-500"># http://localhost:8000/docs</span>{'\n'}
+                  <span className="text-cyan-400">$</span> cd apps/web &amp;&amp; npm run dev                 <span className="text-slate-500"># http://localhost:3000</span>{'\n\n'}
                   <span className="text-emerald-400 font-bold">✓ Complete:</span> Frontend at <span className="text-cyan-300 underline">http://localhost:3000</span> · API Swagger at <span className="text-cyan-300 underline">http://localhost:8000/docs</span>
                 </pre>
               </div>
