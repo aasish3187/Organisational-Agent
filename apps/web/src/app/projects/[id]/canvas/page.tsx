@@ -261,12 +261,12 @@ export default function CanvasPage({
       let iterations = 0;
       const maxIterations = 15;
 
-      // Dynamic pace calibration to GUARANTEE total run finishes strictly under user limits:
-      // FAST mode: Target ~10s total (<30s) -> 1400ms/step total budget (blazing fast!)
-      // BALANCED mode: Target ~22s total (<45s) -> 3200ms/step total budget
-      // DEEP mode: Target ~35s total (<60s) -> 5000ms/step total budget
+      // Dynamic pace calibration (Speed up execution to be ultra-fast & snappy):
+      // FAST mode: Target ~2.5s total -> 300ms/step total budget (lightning fast!)
+      // BALANCED mode: Target ~5s total -> 700ms/step total budget
+      // DEEP mode: Target ~9s total -> 1200ms/step total budget
       const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-      const targetStepBudget = speedParam === 'FAST' ? 1400 : speedParam === 'DEEP' ? 5000 : 3200;
+      const targetStepBudget = speedParam === 'FAST' ? 300 : speedParam === 'DEEP' ? 1200 : 700;
 
       while (autoRunningRef.current && !isDone && iterations < maxIterations) {
         iterations++;
@@ -316,13 +316,13 @@ export default function CanvasPage({
         }
 
         // Remaining delay dynamically deducted from elapsed network time
-        const remainingDelay = Math.max(100, targetStepBudget - elapsed);
+        const remainingDelay = Math.max(30, targetStepBudget - elapsed);
         await new Promise((resolve) => setTimeout(resolve, remainingDelay));
       }
     } catch (err) {
       console.warn('Auto-run fast-tracking simulation:', err);
       const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-      const targetStepBudget = speedParam === 'FAST' ? 1400 : speedParam === 'DEEP' ? 5000 : 3200;
+      const targetStepBudget = speedParam === 'FAST' ? 300 : speedParam === 'DEEP' ? 1200 : 700;
 
       // Smoothly advance through all agents within guaranteed budget
       for (let i = 0; i < 7; i++) {
