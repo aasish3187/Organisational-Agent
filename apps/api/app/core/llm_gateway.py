@@ -373,27 +373,35 @@ class LLMGateway:
                 "Authorization": f"Bearer {settings.GROQ_API_KEY}",
                 "Content-Type": "application/json",
             }
-            payload = {
-                "model": settings.GROQ_MODEL,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": enriched_system_prompt,
-                    },
-                    {"role": "user", "content": user_prompt},
-                ],
-                "response_format": {"type": "json_object"},
-                "temperature": 0.2,
-            }
-            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=3.5, connect=1.5)) as client:
-                res = await client.post(url, headers=headers, json=payload)
-                res.raise_for_status()
-                res_data = res.json()
-                text = res_data["choices"][0]["message"]["content"]
-                text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
-                tokens = res_data.get("usage", {}).get("total_tokens", 950)
-                parsed = self.parse_schema(text, schema, demo_fallback)
-                return parsed, tokens, settings.GROQ_MODEL
+            groq_candidates = [settings.GROQ_MODEL, "qwen/qwen3.6-27b", "openai/gpt-oss-120b"]
+            last_err = None
+            for g_model in groq_candidates:
+                payload = {
+                    "model": g_model,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": enriched_system_prompt,
+                        },
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    "response_format": {"type": "json_object"},
+                    "temperature": 0.2,
+                }
+                try:
+                    async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=3.5, connect=1.5)) as client:
+                        res = await client.post(url, headers=headers, json=payload)
+                        res.raise_for_status()
+                        res_data = res.json()
+                        text = res_data["choices"][0]["message"]["content"]
+                        text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
+                        tokens = res_data.get("usage", {}).get("total_tokens", 950)
+                        parsed = self.parse_schema(text, schema, demo_fallback)
+                        return parsed, tokens, g_model
+                except Exception as e:
+                    last_err = e
+                    continue
+            raise last_err or ValueError("All Groq candidates exhausted")
 
         elif provider == "openrouter":
             if not settings.OPENROUTER_API_KEY:
@@ -479,23 +487,31 @@ class LLMGateway:
                 "Authorization": f"Bearer {settings.GROQ_API_KEY}",
                 "Content-Type": "application/json",
             }
-            payload = {
-                "model": settings.GROQ_MODEL,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                "max_tokens": 400,
-                "temperature": 0.3,
-            }
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                res = await client.post(url, headers=headers, json=payload)
-                res.raise_for_status()
-                res_data = res.json()
-                text = res_data["choices"][0]["message"]["content"]
-                text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
-                tokens = res_data.get("usage", {}).get("total_tokens", 450)
-                return text, tokens, settings.GROQ_MODEL
+            groq_candidates = [settings.GROQ_MODEL, "qwen/qwen3.6-27b", "openai/gpt-oss-120b"]
+            last_err = None
+            for g_model in groq_candidates:
+                payload = {
+                    "model": g_model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    "max_tokens": 500,
+                    "temperature": 0.3,
+                }
+                try:
+                    async with httpx.AsyncClient(timeout=timeout) as client:
+                        res = await client.post(url, headers=headers, json=payload)
+                        res.raise_for_status()
+                        res_data = res.json()
+                        text = res_data["choices"][0]["message"]["content"]
+                        text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
+                        tokens = res_data.get("usage", {}).get("total_tokens", 450)
+                        return text, tokens, g_model
+                except Exception as e:
+                    last_err = e
+                    continue
+            raise last_err or ValueError("All Groq text candidates exhausted")
 
         elif provider == "gemini":
             if not settings.GEMINI_API_KEY:
