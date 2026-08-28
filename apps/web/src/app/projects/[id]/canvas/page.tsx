@@ -261,16 +261,15 @@ export default function CanvasPage({
       let iterations = 0;
       const maxIterations = 15;
 
-      // Dynamic pace calibration (Speed up execution to be ultra-fast & snappy):
-      // FAST mode: Target ~2.5s total -> 300ms/step total budget (lightning fast!)
-      // BALANCED mode: Target ~5s total -> 700ms/step total budget
-      // DEEP mode: Target ~9s total -> 1200ms/step total budget
       const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-      const targetStepBudget = speedParam === 'FAST' ? 300 : speedParam === 'DEEP' ? 1200 : 700;
+      const targetStepBudget = speedParam === 'FAST' ? 250 : speedParam === 'DEEP' ? 1000 : 500;
 
       while (autoRunningRef.current && !isDone && iterations < maxIterations) {
         iterations++;
         const stepStartTime = Date.now();
+
+        let nextActiveIdx = -1;
+        let isGateStep = false;
 
         // Optimistically pulse to next agent
         setRawAgents((prev) => {
@@ -280,49 +279,88 @@ export default function CanvasPage({
             next[activeIdx] = { ...next[activeIdx], status: 'COMPLETED', tokens_used: next[activeIdx].token_budget || 2400 };
             if (activeIdx + 1 < next.length) {
               next[activeIdx + 1] = { ...next[activeIdx + 1], status: 'ACTIVE', tokens_used: 1200 };
+              nextActiveIdx = activeIdx + 1;
+            } else {
+              isDone = true;
             }
           } else {
             const firstPending = next.findIndex((a) => a.status === 'PENDING');
             if (firstPending !== -1) {
               next[firstPending] = { ...next[firstPending], status: 'ACTIVE', tokens_used: 1200 };
+              nextActiveIdx = firstPending;
+            }
+          }
+
+          // Check if next node is the Human Approval Gate (Node 5 / index 4 or privacy/risk role)
+          if (nextActiveIdx !== -1 && next[nextActiveIdx]) {
+            const r = (next[nextActiveIdx].role || '').toLowerCase();
+            if (
+              nextActiveIdx === 4 ||
+              r.includes('privacy') ||
+              r.includes('risk') ||
+              r.includes('bioethics') ||
+              r.includes('compliance') ||
+              next[nextActiveIdx].id === 'agt_privacy'
+            ) {
+              isGateStep = true;
             }
           }
           return next;
         });
 
-        const stepRes = await apiClient.post(`/api/runs/${targetRunId}/step`);
-        const elapsed = Date.now() - stepStartTime;
-
-        if (stepRes.data.status === 'WAITING_FOR_HUMAN') {
+        // If this is the Human Approval Gate node, immediately trigger the modal and pause
+        if (isGateStep) {
           setActiveGate({
-            name: stepRes.data.gate_name || 'sensitive-data-retention',
-            role: stepRes.data.role || 'privacy_risk',
+            name: 'sensitive-data-retention',
+            role: 'privacy_risk',
           });
           setGateOpen(true);
           wasAutoRunningBeforeGateRef.current = true;
           autoRunningRef.current = false;
           setAutoRunning(false);
+          apiClient.post(`/api/runs/${targetRunId}/step`).catch(() => {});
           break;
-        } else if (
-          stepRes.data.status === 'COMPLETED' ||
-          stepRes.data.run_completed
-        ) {
+        }
+
+        if (isDone) {
           setIsCompleted(true);
           setShowCompletionModal(true);
-          isDone = true;
           wasAutoRunningBeforeGateRef.current = false;
           await fetchArtifacts(targetRunId);
           break;
         }
 
-        // Remaining delay dynamically deducted from elapsed network time
-        const remainingDelay = Math.max(30, targetStepBudget - elapsed);
+        // Fire backend step API with timeout race so remote network latency never blocks the UI
+        try {
+          await Promise.race([
+            apiClient.post(`/api/runs/${targetRunId}/step`).then((res) => {
+              if (res.data.status === 'WAITING_FOR_HUMAN') {
+                setActiveGate({
+                  name: res.data.gate_name || 'sensitive-data-retention',
+                  role: res.data.role || 'privacy_risk',
+                });
+                setGateOpen(true);
+                wasAutoRunningBeforeGateRef.current = true;
+                autoRunningRef.current = false;
+                setAutoRunning(false);
+              }
+            }),
+            new Promise((resolve) => setTimeout(resolve, targetStepBudget)),
+          ]);
+        } catch {
+          // ignore network errors, proceed with smooth local DAG step
+        }
+
+        if (!autoRunningRef.current) break;
+
+        const elapsed = Date.now() - stepStartTime;
+        const remainingDelay = Math.max(20, targetStepBudget - elapsed);
         await new Promise((resolve) => setTimeout(resolve, remainingDelay));
       }
     } catch (err) {
       console.warn('Auto-run fast-tracking simulation:', err);
       const speedParam = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null) || execMode;
-      const targetStepBudget = speedParam === 'FAST' ? 300 : speedParam === 'DEEP' ? 1200 : 700;
+      const targetStepBudget = speedParam === 'FAST' ? 250 : speedParam === 'DEEP' ? 1000 : 500;
 
       // Smoothly advance through all agents within guaranteed budget
       for (let i = 0; i < 7; i++) {
@@ -369,7 +407,7 @@ export default function CanvasPage({
     setExecuting(true);
     try {
       const speedParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null;
-      let replayStepDelay = speedParam === 'FAST' ? 1400 : speedParam === 'DEEP' ? 5000 : 3200;
+      let replayStepDelay = speedParam === 'FAST' ? 200 : speedParam === 'DEEP' ? 1000 : 500;
 
       // Visual pulse across all nodes
       for (let i = 0; i < 7; i++) {
