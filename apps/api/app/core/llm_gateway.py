@@ -207,8 +207,8 @@ class LLMGateway:
         schema: type[BaseModel],
         demo_fallback: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], int, str]:
-        """Execute request against live provider endpoint with timeout."""
-        timeout = httpx.Timeout(timeout=12.0, connect=4.0)
+        """Execute request against live provider endpoint with fast expo timeout."""
+        timeout = httpx.Timeout(timeout=4.5, connect=2.0)
 
         schema_json = json.dumps(schema.model_json_schema(), indent=2)
         enriched_system_prompt = (
@@ -382,13 +382,15 @@ class LLMGateway:
                     },
                     {"role": "user", "content": user_prompt},
                 ],
+                "response_format": {"type": "json_object"},
                 "temperature": 0.2,
             }
-            async with httpx.AsyncClient(timeout=timeout) as client:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=3.5, connect=1.5)) as client:
                 res = await client.post(url, headers=headers, json=payload)
                 res.raise_for_status()
                 res_data = res.json()
                 text = res_data["choices"][0]["message"]["content"]
+                text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
                 tokens = res_data.get("usage", {}).get("total_tokens", 950)
                 parsed = self.parse_schema(text, schema, demo_fallback)
                 return parsed, tokens, settings.GROQ_MODEL
@@ -467,7 +469,7 @@ class LLMGateway:
         user_prompt: str,
     ) -> tuple[str, int, str]:
         """Execute text completion against provider endpoint."""
-        timeout = httpx.Timeout(timeout=15.0, connect=4.0)
+        timeout = httpx.Timeout(timeout=4.0, connect=1.5)
 
         if provider == "groq":
             if not settings.GROQ_API_KEY:
@@ -490,6 +492,7 @@ class LLMGateway:
                 res.raise_for_status()
                 res_data = res.json()
                 text = res_data["choices"][0]["message"]["content"]
+                text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
                 tokens = res_data.get("usage", {}).get("total_tokens", 450)
                 return text, tokens, settings.GROQ_MODEL
 

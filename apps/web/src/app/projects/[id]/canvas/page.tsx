@@ -264,8 +264,10 @@ export default function CanvasPage({
           break;
         }
 
-        // Brief delay between agent transitions for smooth visualization
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        // Snappy delay between agent transitions for responsive expo demonstration
+        const speedParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null;
+        const transitionDelay = speedParam === 'FAST' ? 150 : 260;
+        await new Promise((resolve) => setTimeout(resolve, transitionDelay));
       }
     } catch (err) {
       console.warn('Auto-run step progressing:', err);
@@ -279,7 +281,7 @@ export default function CanvasPage({
             tokens_used: idx <= i ? a.token_budget || 2400 : 0,
           }))
         );
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
       setIsCompleted(true);
       setShowCompletionModal(true);

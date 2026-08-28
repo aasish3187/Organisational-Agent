@@ -254,6 +254,8 @@ class MissionInterpreterAgent(BaseAgent):
                 demo_fallback_data=default_contract.model_dump(),
             )
             contract_obj = IdeaContract.model_validate(content_dict)
+            if data_sensitivity in ["student-data", "financial", "health", "critical"] and contract_obj.data_sensitivity in ["internal", "general"]:
+                contract_obj.data_sensitivity = data_sensitivity
         except Exception:
             contract_obj = default_contract
             tokens_used = 750
