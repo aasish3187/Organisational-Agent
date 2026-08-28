@@ -15,6 +15,7 @@
 10. [Cloud Production Infrastructure (Vercel + Render)](#10-cloud-production-infrastructure-vercel--render)
 11. [Competitive Benchmark Matrix (ORGagent vs. Existing Frameworks)](#11-competitive-benchmark-matrix-orgagent-vs-existing-frameworks)
 12. [Presentation & Viva Defense Script (2-Min & 5-Min Walkthroughs)](#12-presentation--viva-defense-script-2-min--5-min-walkthroughs)
+13. [Complete Encyclopedia of Every Page, Feature & Button (Why & How Each Operates)](#13-complete-encyclopedia-of-every-page-feature--button-why--how-each-operates)
 
 ---
 
@@ -304,7 +305,190 @@ ORGagent enforces 9 deterministic organizational policies:
 
 ---
 
+---
+
+## 13. Complete Encyclopedia of Every Page, Feature & Button (Why & How Each Operates)
+
+This section details every single page, component, user action, and button in ORGagent, explaining **why** it exists, **how** it functions under the hood, and **what** API/state transformations it triggers.
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                APPLICATION PAGES OVERVIEW                                        │
+├────────────────────────────────┬────────────────────────────────┬────────────────────────────────┤
+│ 1. Screen A: Intake (`/`)       │ 2. Screen B: Contract (`/con`) │ 3. Screen C: Canvas (`/can`)   │
+│ • Prompt + Multimodal Uploads  │ • 3-Column Requirement Matrix  │ • 3D React Flow Swarm DAG      │
+│ • Domain Presets & Enhancers   │ • Human Governance Approval    │ • Live VERITAS Event Ledger    │
+├────────────────────────────────┼────────────────────────────────┼────────────────────────────────┤
+│ 4. Screen D: Approval Modal    │ 5. Screen E: Blueprint (`/blu`)│ 6. Screen F: Policy Lab (`/lab`)│
+│ • Policy P-02 Risk Escalation  │ • Executive vs Engineering     │ • What-If Sandbox Simulation   │
+│ • Diff & Justification Review  │ • 4-Tier SLAs + Docker Export  │ • Cryptographic Tamper Demo    │
+└────────────────────────────────┴────────────────────────────────┴────────────────────────────────┘
+```
+
+---
+
+### 🖥️ 1. Global Navigation Bar (Present across All Screens)
+
+| Component / Button | Why It Was Built | How It Works Under the Hood |
+|---|---|---|
+| **`ORGagent` Logo Button** | Quick return to home / root mission intake. | Clears temporary form state and triggers Next.js router `router.push('/')`. |
+| **`Policy Lab` Pill Button** | Direct access to the Governance Sandbox and Cryptographic Simulator. | Navigates to `/lab` where operators can test counterfactual rules and tamper detection. |
+| **`Settings` Button** | Telemetry and API connectivity configuration. | Opens the diagnostics overlay showing latency metrics and backend health. |
+| **`● LIVE` Status Pill** | Visual proof of live backend connectivity. | Performs background polling (`/api/health`) to indicate Render container health. |
+
+---
+
+### 🖥️ 2. Screen A: Multimodal Mission Intake (`/`)
+
+#### A. Hero & Metrics Ribbon
+- **Typewriter Headline**: Dynamically cycles through key value propositions (*"Powered by an autonomous team of specialized AI agents"*, *"100% Policy-Enforced with SHA-256 Merkle Proofs"*).
+- **5-Metric Value Ribbon**:
+  - `⚡ 1.8s Synthesis`: Shows compiler speed benchmark.
+  - `🛡️ 100% Policy-Enforced`: Confirms all 9 active guardrails (P-01 to P-09) are monitored.
+  - `🔒 SHA-256 Merkle Chained`: Informs users that every transaction is cryptographically immutable.
+  - `🪙 $0.045 AI Cost`: Highlights token efficiency compared to human software agencies.
+  - `🖼️ Multimodal Vision & Schemas`: Informs users they can upload images and DDL files.
+
+#### B. Domain Preset Chips
+- **Chips**: `EdTech Adaptive Exam Engine`, `Food Surplus Redistribution`, `Administrative Grievance Triage`, `FinTech Double-Entry Ledger`, `HealthCare Clinical EHR Copilot`.
+- **Why**: Allows one-click loading of pre-tested, production-grade architectural prompts.
+- **How**: Clicking a chip updates the `idea` state and triggers domain auto-tagging.
+
+#### C. Input Capsule & File Attachment
+- **Textarea**: 4-row auto-expanding input box where users type custom natural language requirements.
+- **`Attach` Paperclip Button (`<input type="file">`)**:
+  - **Why**: Allows users to provide architectural sketches (`.png`, `.jpg`), database schemas (`.sql`, `.json`, `.yaml`), and PRDs (`.pdf`, `.md`).
+  - **How**: Encodes files into Base64 / raw text in client memory, sending them in the payload to `MissionInterpreterAgent` for multimodal diagram grounding.
+- **Remove File Button (`X`)**: Removes an attached file from the prompt state before submission.
+
+#### D. Prompt Enhancer Suggestion Pills
+- **Pills**: `+ <50ms SLA`, `+ pgvector RAG`, `+ Policy P-02 Zero-PII`, `+ Docker Setup`, `+ Multilingual NLP`.
+- **Why**: Helps users append non-functional architectural constraints with zero typing.
+- **How**: Clicking a pill dynamically appends `"with <constraint>"` to the textarea string.
+
+#### E. Execution Controls & Action Buttons
+- **`Depth` Selector (`FAST` / `BALANCED` / `DEEP`)**:
+  - `FAST`: 3-agent lean sprint (Interpreter $\rightarrow$ Architect $\rightarrow$ Blueprint).
+  - `BALANCED`: 5-agent standard enterprise sprint (adds Risk Auditor & Product Spec).
+  - `DEEP`: Full 7-agent comprehensive verification swarm with cross-model review loops.
+- **`Policy` Selector (`AUTO` / `BALANCE` / `STRICT` / `NOCAP`)**:
+  - Controls LLM routing and token budgeting constraints.
+- **`Quick Answer` Button**:
+  - **Why**: Instant direct query without compiling a full multi-agent organization.
+  - **How**: Dispatches prompt directly to the LLMGateway single-agent inference pool, returning a fast streaming response box with `Copy Answer` and `Promote to Full Organization Project` buttons.
+- **`Start Mission` Button**:
+  - **Why**: Launches the dynamic Organization Compiler.
+  - **How**: Submits prompt, attachments, and policy constraints to `POST /api/projects/intake`, creating project ID `proj_...`, and navigating to Screen B (`/projects/:id/contract`).
+
+---
+
+### 🖥️ 3. Screen B: Structured Idea Contract (`/projects/:id/contract`)
+
+- **Why It Exists**: To prevent agents from running wild on vague prompts. It creates an explicit, human-governed "contract" defining exact boundaries before code generation starts.
+- **Top Header Bar**: Shows Breadcrumb navigation, Project ID, `SUBMITTED` status badge, and `VERITAS Chained` cryptographic badge.
+- **Confidence Gauge**: Displays interpreter confidence (85% - 98%) based on prompt clarity and schema grounding.
+- **6 Structured Matrix Cards**:
+  1. `Problem Statement`: Formal definition of the technical problem to solve.
+  2. `Success Criteria`: Quantifiable metrics (e.g. `<15ms latency`, `zero PII leakage`).
+  3. `Specialist Roles`: AI roles required (Researcher, Architect, Risk Auditor, etc.).
+  4. `Target Audience`: End-user personas and scale requirements.
+  5. `Constraints & Policies`: Strict non-negotiable rules (P-01 to P-09).
+  6. `Explicit Assumptions & Open Questions`: Highlighted edge cases requiring confirmation.
+- **`Compile Organization` Button**:
+  - **Why**: Human operator sign-off.
+  - **How**: Calls `POST /api/projects/:id/compile`, instantiates the specialist agent DAG, and navigates to Screen C (`/projects/:id/canvas`).
+
+---
+
+### 🖥️ 4. Screen C: Living 3D Agent Network Canvas (`/projects/:id/canvas`)
+
+- **Why It Exists**: Provides visual explainability and real-time observability of autonomous swarm collaboration.
+- **Top Control Bar**:
+  - `Cost & Token Meter`: Displays real-time token spend (e.g. `$0.0017 / $2.00 cap`, `3,420 tokens used`).
+  - `Step` Button: Executes a single agent step in the DAG for slow-motion educational review.
+  - `Auto Run` Button: Kicks off autonomous continuous execution across the swarm.
+  - `Replay Demo` Button: Deterministically replays pre-verified flagship runs with live token streams.
+  - `Master Blueprint` Button: Unlocks and navigates to Screen E once all tasks complete.
+- **Interactive React Flow Topology Canvas**:
+  - **Agent Nodes**: Pulsing color-coded nodes displaying Agent Avatar, Role, Assigned LLM Model, and Token Count.
+  - **Animated Edges**: Particle beam animations illustrating real-time schema data handoffs between agents.
+  - **Navigation Controls**: Zoom In (`+`), Zoom Out (`-`), Fit View, Lock Canvas, and Interactive Minimap.
+- **Live VERITAS Event Feed**:
+  - Bottom-left terminal displaying real-time SHA-256 event hashes as each agent finishes its task block.
+- **Governed Artifacts Tray (`CLICK TO INSPECT`)**:
+  - Bottom-right drawer that opens a slide-over modal to inspect raw Pydantic JSON schemas (`EvidenceBrief`, `ProductSpec`, `AIArchitectureSpec`, `SystemArchitectureSpec`, `RiskAuditReport`, `ReviewReport`).
+
+---
+
+### 🖥️ 5. Screen D: Human Approval Gate (`Modal inside Canvas`)
+
+- **Why It Exists**: Prevents autonomous agents from making dangerous compliance or privacy mistakes without human oversight (e.g. Policy P-02).
+- **Trigger**: Activates automatically when the `PrivacyRiskAuditorAgent` flags sensitive data (student records, financial transactions, HIPAA PHI).
+- **Components**:
+  - `Threat Justification Box`: Explains why the gate was triggered (e.g. *"Student GPA export lacks encryption at rest"*).
+  - `Inspect Diff Button`: Displays side-by-side proposed code changes vs. policy requirement.
+  - `Reject / Require Modification Button`: Sends task back to the Architect with corrective instructions.
+  - `Approve & Seal Ledger Block Button`: Signs the event, logs the human operator's cryptographic signature, and resumes swarm execution.
+
+---
+
+### 🖥️ 6. Screen E: Verified Master Tech Blueprint (`/projects/:id/blueprint`)
+
+- **Why It Exists**: Converts raw swarm execution into a comprehensive, verified, ready-to-deploy enterprise blueprint.
+- **Top Seal & Metric Score**:
+  - Displays `VERITAS Cryptographic Verification Seal - 100% UNTAMPERED`.
+  - Quality Score (`98.4%`), Chained Events (`14 Blocks`), Total Cost (`$0.045`), Delivery Sizing (`4 Weeks`).
+- **`Simulate Tampering` Button**: Simulates a malicious bit flip to prove VERITAS detects tampering.
+- **`Copy Checksum` Button**: Copies the SHA-256 Merkle root to clipboard.
+
+#### Action Buttons:
+- `Briefing Button`: Synthesizes an executive audio/text pitch summary of the system.
+- `HUD Button`: Toggles real-time telemetry, model latency, and token throughput gauges.
+- `Ledger Button`: Opens the complete visual Merkle tree audit ledger.
+- `PDF Button`: Formats the page for clean, print-ready PDF export.
+- `Export ZIP Button`: Downloads a complete, runnable repository scaffold containing `docker-compose.yml`, FastAPI backend, Next.js frontend, and SQL DDL tables.
+
+#### Tab 1: Executive Mode
+- **Plain-English Pitch**: Concise executive summary of what was architected and why it matters.
+- **3 Core Purpose Columns**: Problem context, Multi-agent solution, Built-in governance proof.
+- **Agency vs ORGagent ROI Matrix**: Compares 6-8 weeks & $20,000 against 1.82s & $0.045.
+
+#### Tab 2: Engineering Mode
+- **4-Tier Pipeline Inspector**:
+  - *Tier 1 (Client)*: Next.js 15 App Router, TailwindCSS, WebSocket / SSE listeners.
+  - *Tier 2 (Backend)*: FastAPI async core, Pydantic v2 validation, Asyncpg pool.
+  - *Tier 3 (AI Engine)*: Multi-Model Gateway (DeepSeek-R1, Gemini 2.5, Groq).
+  - *Tier 4 (Proof & DB)*: PostgreSQL 16, pgvector embeddings, SHA-256 Merkle ledger.
+- **4-Week Sprint Roadmap**: Sprint 1 (Inception), Sprint 2 (Core APIs), Sprint 3 (AI Pipeline), Sprint 4 (Audit & Hardening).
+- **Governance Certificates**: Validated certificates for policies P-01 through P-09.
+- **MNEMOS Process Memory**: Displays institutional lessons reused during compilation.
+- **Ready-to-Deploy Code Viewer**: Interactive tabbed code viewer with copy buttons for `docker-compose.yml`, `openapi.json`, `schema.sql`, and `main.py`.
+
+---
+
+### 🖥️ 7. Screen F: Governance Lab & Policy Sandbox (`/lab`)
+
+- **Why It Exists**: An educational and developer sandbox to test counterfactual policy variations and prove cryptographic tamper detection.
+- **Simulation Presets**:
+  - `1. Fully Governed (Standard)`: All 9 policies active (default safe mode).
+  - `2. Unconstrained Autonomy`: P-02 & P-06 disabled to demonstrate risk exposure.
+  - `3. Strict Low-Cost Tier`: Restricts swarms to flash models only (65% cost savings).
+- **Data Classification Dropdown**: Toggles data sensitivity between `public`, `student-data`, `financial-records`, and `healthcare-phi`.
+- **`Re-run Simulation` Button**: Recomputes risk scores, team composition, and token budgets dynamically.
+- **9-Policy Matrix Cards (P-01 to P-09)**: Interactive toggle cards allowing users to enable/disable individual rules.
+- **`Live Threat Simulator` Modal**:
+  - Selectable attack vectors:
+    - *P-02: Unencrypted Student PII Export Attempt*
+    - *P-08: Anomalous Token Spike (45,000 Tokens)*
+    - *P-06: Unrestricted Write / Shell Access Call*
+    - *P-09: Verbatim Human Text Global Memory Leak*
+  - `Execute Threat Simulation` Button: Fires the attack against the policy engine to prove instant interception.
+  - `Dismiss` Button: Closes the modal.
+
+---
+
 <p align="center">
   <b>ORGagent Organization OS</b> · <i>Autonomous AI Team &amp; Architecture Compiler</i><br>
-  Built by <b><a href="https://github.com/aasish3187">Aasish</a></b>
+  Built with ❤️ by <b><a href="https://github.com/aasish3187">Aasish</a></b>
 </p>
+
