@@ -143,28 +143,19 @@ export default function IdeaContractPage({
       localStorage.setItem(`nexus_last_run_${projectId}`, optimisticRunId);
     }
 
-    // Fast-track transition so user doesn't wait
-    try {
-      const planPromise = compileOrganization(projectId, mode, modelPolicy);
-      const plan = await Promise.race([
-        planPromise,
-        new Promise<any>((resolve) => setTimeout(() => resolve({ run_id: optimisticRunId }), 250)),
-      ]);
-      setCompiledPlan(plan);
-      setCompiling(false);
-      router.push(`/projects/${projectId}/canvas?run_id=${plan.run_id || optimisticRunId}&mode=${mode}`);
-      // Ensure backend finishes compiling in background
-      planPromise
-        .then((p) => {
-          if (p?.run_id && typeof window !== 'undefined') {
-            localStorage.setItem(`nexus_last_run_${projectId}`, p.run_id);
-          }
-        })
-        .catch(() => {});
-    } catch (err: any) {
-      setCompiling(false);
-      router.push(`/projects/${projectId}/canvas?run_id=${optimisticRunId}&mode=${mode}`);
-    }
+    // Instantly navigate without waiting for network latency
+    router.push(`/projects/${projectId}/canvas?run_id=${optimisticRunId}&mode=${mode}`);
+
+    // Trigger backend compilation asynchronously in background
+    compileOrganization(projectId, mode, modelPolicy)
+      .then((plan) => {
+        if (plan?.run_id && typeof window !== 'undefined') {
+          localStorage.setItem(`nexus_last_run_${projectId}`, plan.run_id);
+        }
+      })
+      .catch((e) => {
+        console.warn('Background compilation notice:', e);
+      });
   };
 
   if (loading && !contract) {

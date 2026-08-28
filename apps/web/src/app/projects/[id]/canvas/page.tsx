@@ -44,6 +44,16 @@ import {
 } from '@/lib/api';
 import { useRunEvents } from '@/hooks/useRunEvents';
 
+const DEFAULT_INITIAL_AGENTS = [
+  { id: 'agt_research', role: 'research_analyst', status: 'ACTIVE', token_budget: 5000, tokens_used: 1200 },
+  { id: 'agt_product', role: 'product_strategist', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+  { id: 'agt_ai_arch', role: 'ai_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+  { id: 'agt_sys_arch', role: 'system_architect', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+  { id: 'agt_privacy', role: 'privacy_risk', status: 'PENDING', token_budget: 5000, tokens_used: 0 },
+  { id: 'agt_reviewer', role: 'consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
+  { id: 'agt_solutions', role: 'solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
+];
+
 export default function CanvasPage({
   params,
 }: {
@@ -55,8 +65,8 @@ export default function CanvasPage({
 
   const [project, setProject] = useState<Project | null>(null);
   const [runId, setRunId] = useState<string>('');
-  const [rawAgents, setRawAgents] = useState<any[]>([]);
-  const rawAgentsRef = useRef<any[]>([]);
+  const [rawAgents, setRawAgents] = useState<any[]>(DEFAULT_INITIAL_AGENTS);
+  const rawAgentsRef = useRef<any[]>(DEFAULT_INITIAL_AGENTS);
   const gateApprovedRef = useRef<boolean>(false);
   const [rawTasks, setRawTasks] = useState<any[]>([]);
   const [artifacts, setArtifacts] = useState<any[]>([]);
@@ -74,7 +84,7 @@ export default function CanvasPage({
     event_count: number;
     message: string;
   } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Helper to sync state and ref
   const updateAgents = (newAgents: any[]) => {
