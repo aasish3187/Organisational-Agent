@@ -413,7 +413,8 @@ export default function CanvasPage({
     setGateOpen(false);
     wasAutoRunningBeforeGateRef.current = false;
     autoRunningRef.current = false;
-    setAutoRunning(false);
+    setAutoRunning(true);
+    setExecuting(true);
     setIsCompleted(false);
 
     // 2. Optimistically advance any active privacy/risk node to COMPLETED and activate Node 6
@@ -438,21 +439,13 @@ export default function CanvasPage({
     });
 
     const targetRunId = runId || 'run_demo_primary';
-    try {
-      await submitGateDecision(targetRunId, 'APPROVE', reason);
-      const orgRes = await apiClient.get(`/api/runs/${targetRunId}/organization`);
-      if (orgRes.data?.agents) setRawAgents(orgRes.data.agents);
-      if (orgRes.data?.tasks) setRawTasks(orgRes.data.tasks);
-      await fetchArtifacts(targetRunId);
-    } catch (err) {
-      console.warn('Gate decision background submit:', err);
-    }
+    
+    // Submit gate decision to backend in background
+    submitGateDecision(targetRunId, 'APPROVE', reason).catch((e) => console.warn('Gate decision async submit:', e));
 
     // 3. Immediately launch continuation of the remaining DAG nodes without stopping!
-    setTimeout(() => {
-      autoRunningRef.current = false;
-      startAutoRunExecution(targetRunId);
-    }, 100);
+    autoRunningRef.current = false;
+    startAutoRunExecution(targetRunId);
   };
 
   const handleGateReject = async (reason: string) => {
