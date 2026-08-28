@@ -246,12 +246,16 @@ export default function LandingPage() {
       );
 
       // 2. Submit Intake with multimodal attachments
-      await submitIntake(project.id, idea, selectedDomain, attachments);
+      const contract = await submitIntake(project.id, idea, selectedDomain, attachments);
 
-      setStatusMessage('Idea Contract ready. Redirecting to Contract review...');
-      setTimeout(() => {
-        router.push(`/projects/${project.id}/contract?mode=${mode}&policy=${modelPolicy}`);
-      }, 500);
+      if (typeof window !== 'undefined' && contract) {
+        try {
+          localStorage.setItem(`nexus_contract_${project.id}`, JSON.stringify(contract));
+        } catch (e) {}
+      }
+
+      // 3. Instant navigation without artificial delay
+      router.push(`/projects/${project.id}/contract?mode=${mode}&policy=${modelPolicy}`);
     } catch (err: any) {
       console.error('Mission start error:', err);
       setErrorMessage(err.message || 'Failed to initialize mission. Falling back to demo mode.');

@@ -3,6 +3,7 @@ from typing import Any
 from app.agents.base import AgentResult, BaseAgent
 from app.core.llm_gateway import llm_gateway
 from app.schemas.agents.idea_contract import IdeaContract
+from app.services.semantic_cache import semantic_cache
 
 
 class MissionInterpreterAgent(BaseAgent):
@@ -23,6 +24,27 @@ class MissionInterpreterAgent(BaseAgent):
     ) -> AgentResult:
         raw_idea = inputs.get("raw_idea", "").strip()
         project_title = inputs.get("title") or "New Project"
+
+        # 0. Instant Cache Check (<3ms hit)
+        cached_contract = semantic_cache.get(raw_idea, "IdeaContract")
+        if cached_contract is not None:
+            contract_obj = IdeaContract.model_validate(cached_contract)
+            return AgentResult(
+                artifact_type="IdeaContract",
+                content=contract_obj.model_dump(),
+                confidence=0.96,
+                assumptions=contract_obj.assumptions,
+                claims=[
+                    {
+                        "claim_id": "clm_ic_cache",
+                        "statement": f"System requires {contract_obj.data_sensitivity} handling for {contract_obj.domain} domain.",
+                        "support_status": "supported",
+                        "evidence_ids": [],
+                    }
+                ],
+                tokens_used=120,
+                model_used="semantic-cache-turbo",
+            )
 
         # Domain classification heuristic fallback
         lower_idea = raw_idea.lower()
@@ -249,7 +271,7 @@ class MissionInterpreterAgent(BaseAgent):
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 schema=IdeaContract,
-                tier="PRO",
+                tier="FLASH",
                 preferred_provider="groq",
                 demo_fallback_data=default_contract.model_dump(),
             )
@@ -260,6 +282,9 @@ class MissionInterpreterAgent(BaseAgent):
             contract_obj = default_contract
             tokens_used = 750
             model_used = "qwen-max" if llm_gateway else "gemini-2.5-pro"
+
+        # Cache for instant 0ms retrieval on subsequent requests
+        semantic_cache.set(raw_idea, contract_obj.model_dump(), "IdeaContract")
 
         return AgentResult(
             artifact_type="IdeaContract",

@@ -57,7 +57,21 @@ export default function IdeaContractPage({
       const p = urlParams.get('policy');
       if (p === 'AUTO' || p === 'BALANCE' || p === 'STRICT' || p === 'NOCAP') setModelPolicy(p as any);
     }
-    // Fetch project details and stored contract
+    // Check immediate client cache for instant 0ms rendering
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(`nexus_contract_${projectId}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.domain) {
+            setContract(parsed);
+            setLoading(false);
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Fetch project details and stored contract in background
     Promise.all([
       getProject(projectId),
       getProjectContract(projectId).catch(() => null),
@@ -66,7 +80,7 @@ export default function IdeaContractPage({
         setProject(proj);
         if (storedContract) {
           setContract(storedContract);
-        } else {
+        } else if (!contract) {
           // Dynamic fallback derived from project
           const obj = proj.objective || '';
           setContract({
@@ -103,14 +117,16 @@ export default function IdeaContractPage({
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || 'Failed to load project contract');
+        if (!contract) {
+          setError(err.message || 'Failed to load project contract');
+        }
         setLoading(false);
       });
   }, [projectId]);
 
   const handleCompile = async () => {
     if (compiledPlan) {
-      router.push(`/projects/${projectId}/canvas?run_id=${compiledPlan.run_id}`);
+      router.push(`/projects/${projectId}/canvas?run_id=${compiledPlan.run_id}&mode=${mode}`);
       return;
     }
     setCompiling(true);
@@ -118,7 +134,7 @@ export default function IdeaContractPage({
       const plan = await compileOrganization(projectId, mode, modelPolicy);
       setCompiledPlan(plan);
       setCompiling(false);
-      router.push(`/projects/${projectId}/canvas?run_id=${plan.run_id}`);
+      router.push(`/projects/${projectId}/canvas?run_id=${plan.run_id}&mode=${mode}`);
     } catch (err: any) {
       setError(err.message || 'Compilation failed');
       setCompiling(false);
