@@ -176,13 +176,6 @@ export default function CanvasPage({
           }
 
           await fetchArtifacts(activeRunId);
-
-          // Auto-start swarm execution if in FAST mode with autorun parameter
-          if (urlParams?.get('autorun') === 'true' && orgRes.data.status !== 'COMPLETED') {
-            setTimeout(() => {
-              startAutoRunExecution(activeRunId);
-            }, 100);
-          }
         } catch (e) {
           console.warn('Organization load fallback:', e);
           const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -202,11 +195,6 @@ export default function CanvasPage({
             { id: 'agt_reviewer', role: 'consistency_reviewer', status: 'PENDING', token_budget: 4000, tokens_used: 0 },
             { id: 'agt_solutions', role: 'solutions_officer', status: 'PENDING', token_budget: 6000, tokens_used: 0 },
           ]);
-          if (urlParams?.get('autorun') === 'true') {
-            setTimeout(() => {
-              startAutoRunExecution(fallbackRunId);
-            }, 100);
-          }
         }
         setLoading(false);
       })
